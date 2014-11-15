@@ -107,6 +107,56 @@ public:
 	std::string asString() const override;
 };
 
+//Represents an if and else statement
+class IfElseStatementAST : public StatementAST {
+private:
+	std::shared_ptr<ExpressionAST> mConditionExpression;
+	std::shared_ptr<BlockAST> mThenBlock;
+	std::shared_ptr<BlockAST> mElseBlock;
+public:
+	//Creates a new if and else statement
+	IfElseStatementAST(std::shared_ptr<ExpressionAST> conditionExpression, std::shared_ptr<BlockAST> thenBlock, std::shared_ptr<BlockAST> elseBlock);
+
+	//Returns the condition expression
+	std::shared_ptr<ExpressionAST> conditionExpression() const;
+
+	//Returns the then block
+	std::shared_ptr<BlockAST> thenBlock() const;
+
+	//Returns the else block
+	std::shared_ptr<BlockAST> elseBlock() const;
+
+	std::string asString() const override;
+};
+
+//Represents a for loop statement
+class ForLoopStatementAST : public StatementAST {
+private:
+	std::shared_ptr<ExpressionAST> mInitExpression;
+	std::shared_ptr<ExpressionAST> mConditionExpression;
+	std::shared_ptr<ExpressionAST> mChangeExpression;
+	std::shared_ptr<BlockAST> mBodyBlock;
+public:
+	//Creates a new if and else statement
+	ForLoopStatementAST(
+		std::shared_ptr<ExpressionAST> initExpression, std::shared_ptr<ExpressionAST> conditionExpression,
+		std::shared_ptr<ExpressionAST> changeExpression, std::shared_ptr<BlockAST> bodyBlock);
+
+	//Returns the init expression
+	std::shared_ptr<ExpressionAST> initExpression() const;
+
+	//Returns the condition expression
+	std::shared_ptr<ExpressionAST> conditionExpression() const;
+
+	//Returns the change expression
+	std::shared_ptr<ExpressionAST> changeExpression() const;
+
+	//Returns the body block
+	std::shared_ptr<BlockAST> bodyBlock() const;
+
+	std::string asString() const override;
+};
+
 //Represents an integer expression
 class IntegerExpressionAST : public ExpressionAST {
 private:

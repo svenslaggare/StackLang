@@ -26,6 +26,18 @@ std::ostream& operator<<(std::ostream& os, const Token& token) {
 		case TokenType::Integer:
 			os << token.intValue;
 			break;
+		case TokenType::If:
+			os << "if";
+			break;
+		case TokenType::Else:
+			os << "else";
+			break;
+		case TokenType::For:
+			os << "for";
+			break;
+		case TokenType::While:
+			os << "while";
+			break;
 		case TokenType::Return:
 			os << "return";
 			break;
@@ -73,6 +85,14 @@ std::vector<Token> Lexer::tokenize(std::istream& stream) const {
 
 				if (identStr == "func") {
 					tokens.push_back(Token(TokenType::Func));
+				} else if (identStr == "if") {
+					tokens.push_back(Token(TokenType::If));
+				} else if (identStr == "else") {
+					tokens.push_back(Token(TokenType::Else));
+				} else if (identStr == "for") {
+					tokens.push_back(Token(TokenType::For));
+				} else if (identStr == "while") {
+					tokens.push_back(Token(TokenType::While));
 				} else if (identStr == "return") {
 					tokens.push_back(Token(TokenType::Return));
 				} else {

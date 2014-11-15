@@ -9,6 +9,10 @@ enum class TokenType : unsigned char {
 	Identifier,
 	Func,
 	Integer,
+	If,
+	Else,
+	For,
+	While,
 	Return,
 	EndOfFile
 };

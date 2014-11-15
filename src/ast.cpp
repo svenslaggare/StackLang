@@ -53,7 +53,7 @@ std::string BlockAST::asString() const {
 	blockStr += "{\n";
 
 	for (auto statement : mStatements) {
-		blockStr += "\t" + statement->asString() + "\n";
+		blockStr += statement->asString() + "\n";
 	}
 
 	blockStr += "}";
@@ -125,6 +125,56 @@ std::shared_ptr<ExpressionAST> ReturnStatementAST::returnExpression() const {
 
 std::string ReturnStatementAST::asString() const {
 	return "return" + (mReturnExpression == nullptr ? "" : " " + mReturnExpression->asString()) + ";";
+}
+
+//If & else statement AST
+IfElseStatementAST::IfElseStatementAST(std::shared_ptr<ExpressionAST> conditionExpression, std::shared_ptr<BlockAST> thenBlock, std::shared_ptr<BlockAST> elseBlock)
+	: mConditionExpression(conditionExpression), mThenBlock(thenBlock), mElseBlock(elseBlock) {
+
+}
+
+std::shared_ptr<ExpressionAST> IfElseStatementAST::conditionExpression() const {
+	return mConditionExpression;
+}
+
+std::shared_ptr<BlockAST> IfElseStatementAST::thenBlock() const {
+	return mThenBlock;
+}
+
+std::shared_ptr<BlockAST> IfElseStatementAST::elseBlock() const {
+	return mElseBlock;
+}
+
+std::string IfElseStatementAST::asString() const {
+	return "if (" + mConditionExpression->asString() + ") " + mThenBlock->asString() + (mElseBlock != nullptr ? " else " + mElseBlock->asString() : "");
+}
+
+//Foor loop statement AST
+ForLoopStatementAST::ForLoopStatementAST(
+	std::shared_ptr<ExpressionAST> initExpression, std::shared_ptr<ExpressionAST> conditionExpression,
+	std::shared_ptr<ExpressionAST> changeExpression, std::shared_ptr<BlockAST> bodyBlock)
+	: mConditionExpression(conditionExpression), mInitExpression(initExpression), mChangeExpression(changeExpression), mBodyBlock(bodyBlock) {
+
+}
+
+std::shared_ptr<ExpressionAST> ForLoopStatementAST::initExpression() const {
+	return mInitExpression;
+}
+
+std::shared_ptr<ExpressionAST> ForLoopStatementAST::conditionExpression() const {
+	return mConditionExpression;
+}
+
+std::shared_ptr<ExpressionAST> ForLoopStatementAST::changeExpression() const {
+	return mChangeExpression;
+}
+
+std::shared_ptr<BlockAST> ForLoopStatementAST::bodyBlock() const {
+	return mBodyBlock;
+}
+
+std::string ForLoopStatementAST::asString() const {
+	return "for (" + mInitExpression->asString() + "; " + mConditionExpression->asString() + "; " + mChangeExpression->asString() + ") " + mBodyBlock->asString();
 }
 
 //Integer expression AST

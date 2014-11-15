@@ -6,7 +6,7 @@
 
 int main() {
 	Lexer lexer;
-	std::stringstream programText("func abs(x) = { return std_abs(x); } func troll(x, y) = { x = x + 2; return abs(-2, x) + 5; }");
+	std::stringstream programText("func print() = { for (x = 0; x < 10; x = x + 1) { println(x); } } func abs(x) = { if (x < 0) { return -x; } else { return x; } } func troll(x, y) = { x = x + 2; return abs(-2, x) + 5; }");
 	auto tokens = lexer.tokenize(programText); 
 
 	Parser parser(tokens);

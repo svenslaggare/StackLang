@@ -5,6 +5,8 @@
 
 Parser::Parser(std::vector<Token> tokens)
 	: tokens(tokens), tokenIndex(-1) {
+	binOpPrecedence['<'] = 10;
+	binOpPrecedence['>'] = 10;
 	binOpPrecedence['+'] = 20;
 	binOpPrecedence['-'] = 20;
 	binOpPrecedence['*'] = 40;
@@ -12,7 +14,7 @@ Parser::Parser(std::vector<Token> tokens)
 	binOpPrecedence['='] = 100;
 }
 
-void compileError(std::string message) {
+void Parser::compileError(std::string message) {
 	throw std::runtime_error("Error: " + message);
 }
 
@@ -24,6 +26,17 @@ Token& Parser::nextToken() {
 	}
 
 	currentToken = tokens[tokenIndex];
+	return currentToken;
+}
+
+Token& Parser::peekToken() {
+	int nextTokenIndex = tokenIndex + 1;
+
+	if (nextTokenIndex >= tokens.size()) {
+		compileError("Reached end of tokens");
+	}
+
+	currentToken = tokens[nextTokenIndex];
 	return currentToken;
 }
 
@@ -200,17 +213,73 @@ std::shared_ptr<ExpressionAST> Parser::parseExpression() {
 	return parseBinaryOpRHS(0, lhs);
 }
 
+std::shared_ptr<StatementAST> Parser::parseIfElseStatement() {
+	nextToken(); //Eat the 'if'
+
+	assertCurrentTokenAsChar('(', "Expected '('.");
+	nextToken(); //Eat the '('
+
+	auto condExpr = parseExpression();
+
+	assertCurrentTokenAsChar(')', "Expected ')'.");
+	//nextToken(); //Eat the ')'
+
+	//Parse the then body
+	auto thenBody = parseBlock();
+
+	//Check if else
+	std::shared_ptr<BlockAST> elseBody = nullptr;
+
+	if (peekToken().type() == TokenType::Else) {
+		nextToken(); //Eat the 'else'.
+		elseBody = parseBlock();
+	}
+
+	return std::make_shared<IfElseStatementAST>(IfElseStatementAST(condExpr, thenBody, elseBody));
+}
+
+std::shared_ptr<StatementAST> Parser::parseForLoopStatement() {
+	nextToken(); //Eat the 'for'
+
+	assertCurrentTokenAsChar('(', "Expected '('.");
+	nextToken(); //Eat the '('
+
+	auto initExpr = parseExpression();
+	assertCurrentTokenAsChar(';', "Expected ';' after statement.");
+	nextToken(); //Eat the ';'
+
+	auto condExpr = parseExpression();
+	assertCurrentTokenAsChar(';', "Expected ';' after statement.");
+	nextToken(); //Eat the ';'
+
+	auto changeExpr = parseExpression();
+
+	assertCurrentTokenAsChar(')', "Expected ')'.");
+	//nextToken(); //Eat the ')'
+
+	//Parse the body
+	auto bodyBlock = parseBlock();
+
+	return std::make_shared<ForLoopStatementAST>(ForLoopStatementAST(initExpr, condExpr, changeExpr, bodyBlock));
+}
+
 std::shared_ptr<StatementAST> Parser::parseStatement() {
 	std::shared_ptr<StatementAST> statement;
 
 	switch (currentToken.type()) {
 	case TokenType::Return:
 		{
-			nextToken();
+			nextToken(); //Eat the 'return'
 			auto returnExpr = parseExpression();
 			statement = std::make_shared<ReturnStatementAST>(ReturnStatementAST(returnExpr));
 			assertCurrentTokenAsChar(';', "Expected ';' after statement.");
 		}
+		break;
+	case TokenType::If:
+		statement = parseIfElseStatement();
+		break;
+	case TokenType::For:
+		statement = parseForLoopStatement();
 		break;
 	default:
 		//Simple statement, one expression.
@@ -260,34 +329,31 @@ std::shared_ptr<FunctionAST> Parser::parseFunctionDef() {
 	std::string name = currentToken.strValue;
 
 	//Arguments
-	nextToken();
+	nextToken(); //Eat the name
 	if (currentTokenAsChar() != '(')  {
 		compileError("Expected ')' in prototype.");
 	}
 
-	std::vector<std::string> arguments;
+	nextToken(); //Eat the '('
 
-	bool isSep = false;
-	while (true) {
-		nextToken();
-		
-		if (isSep) {
-			if (currentToken.type() == TokenType::SingleChar && currentToken.charValue == ')') {
+	std::vector<std::string> arguments;
+	if (!(currentToken.type() == TokenType::SingleChar && currentToken.charValue == ')')) {
+		while (true) {
+			if (currentToken.type() == TokenType::Identifier) {
+				arguments.push_back(currentToken.strValue);
+			}
+
+			nextToken();
+
+			if (isSingleCharToken(')')) {
 				break;
 			}
 
-			if (currentToken.type() == TokenType::SingleChar && currentToken.charValue == ',') {
-				isSep = false;
-			} else {
-				compileError("Expected ',' between arguments.");
+			if (!isSingleCharToken(',')) {
+				compileError("Expected ',' or ')' in argument list.");
 			}
-		} else {
-			if (currentToken.type() == TokenType::Identifier) {
-				arguments.push_back(currentToken.strValue);
-				isSep = true;
-			} else {
-				compileError("Expected identifier.");
-			}
+
+			nextToken();
 		}
 	}
 

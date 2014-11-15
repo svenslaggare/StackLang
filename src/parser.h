@@ -19,8 +19,14 @@ private:
 
 	std::map<char, int> binOpPrecedence;
 
+	//Signals that a compile error has occured
+	void compileError(std::string message);
+
 	//Advances to the next token
 	Token& nextToken();
+
+	//Returns the next token
+	Token& peekToken();
 
 	//Uses the current token as a char
 	char currentTokenAsChar(std::string errorMessage = "Expected a single character.");
@@ -54,6 +60,12 @@ private:
 
 	//Parses an expression
 	std::shared_ptr<ExpressionAST> parseExpression();
+
+	//Parses a if & else statement
+	std::shared_ptr<StatementAST> parseIfElseStatement();
+
+	//Parses a for loop statement
+	std::shared_ptr<StatementAST> parseForLoopStatement();
 
 	//Parses a statement
 	std::shared_ptr<StatementAST> parseStatement();
