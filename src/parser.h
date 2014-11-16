@@ -1,5 +1,6 @@
 #pragma once
 #include <map>
+#include <set>
 #include <vector>
 #include <memory>
 #include "lexer.h"
@@ -18,6 +19,8 @@ private:
 	int tokenIndex;
 
 	std::map<char, int> binOpPrecedence;
+	std::map<std::pair<char, char>, int> twoCharOpPrecedence;
+	std::set<char> assignmentOperators;
 
 	//Signals that a compile error has occured
 	void compileError(std::string message);
@@ -53,13 +56,13 @@ private:
 	std::shared_ptr<ExpressionAST> parsePrimaryExpression();
 
 	//Parses the right hand side of an binary op expression
-	std::shared_ptr<ExpressionAST> parseBinaryOpRHS(int exprPrecedence, std::shared_ptr<ExpressionAST> lhs);
+	std::shared_ptr<ExpressionAST> parseBinaryOpRHS(int exprPrecedence, std::shared_ptr<ExpressionAST> lhs, bool allowEqualAssign = false);
 
 	//Parses a unary expression
 	std::shared_ptr<ExpressionAST> parseUnaryExpression();
 
 	//Parses an expression
-	std::shared_ptr<ExpressionAST> parseExpression();
+	std::shared_ptr<ExpressionAST> parseExpression(bool allowEqualAssign = false);
 
 	//Parses a if & else statement
 	std::shared_ptr<StatementAST> parseIfElseStatement();

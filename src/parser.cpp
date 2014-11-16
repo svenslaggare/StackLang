@@ -12,6 +12,18 @@ Parser::Parser(std::vector<Token> tokens)
 	binOpPrecedence['*'] = 40;
 	binOpPrecedence['/'] = 40;
 	binOpPrecedence['='] = 100;
+
+	twoCharOpPrecedence[std::make_pair('=', '=')] = 10;
+	twoCharOpPrecedence[std::make_pair('!', '=')] = 10;
+	twoCharOpPrecedence[std::make_pair('<', '=')] = 10;
+	twoCharOpPrecedence[std::make_pair('>', '=')] = 10;
+
+	twoCharOpPrecedence[std::make_pair('+', '=')] = 100;
+	twoCharOpPrecedence[std::make_pair('-', '=')] = 100;
+	twoCharOpPrecedence[std::make_pair('*', '=')] = 100;
+	twoCharOpPrecedence[std::make_pair('-', '=')] = 100;
+
+	assignmentOperators = { '+', '-', '*', '/' };
 }
 
 void Parser::compileError(std::string message) {
@@ -59,11 +71,21 @@ void Parser::assertCurrentTokenAsChar(char character, std::string errorMessage) 
 }
 
 int Parser::getTokenPrecedence() {
-	if (currentToken.type() != TokenType::SingleChar || binOpPrecedence.count(currentToken.charValue) == 0) {
+	if (!(currentToken.type() == TokenType::SingleChar || currentToken.type() == TokenType::TwoChars)) {
 		return -1;
 	}
 
-	return binOpPrecedence[currentToken.charValue];
+	auto twoCharsKey = std::make_pair(currentToken.charValue, currentToken.charValue2);
+
+	if (!(binOpPrecedence.count(currentToken.charValue) > 0 || twoCharOpPrecedence.count(twoCharsKey) > 0)) {
+		return -1;
+	}
+
+	if (currentToken.type() == TokenType::SingleChar) {
+		return binOpPrecedence[currentToken.charValue];
+	} else {
+		return twoCharOpPrecedence[twoCharsKey];
+	}
 }
 
 std::shared_ptr<ExpressionAST> Parser::parseIntegerExpression() {
@@ -78,9 +100,18 @@ std::shared_ptr<ExpressionAST> Parser::parseIdentifierExpression() {
 	//Eat the identifier.
 	nextToken();
 
-	//Simple variable reference
+	//Variable decleration/reference
 	if (!isSingleCharToken('(')) {
-		return std::make_shared<VariableReferenceExpressionAST>(VariableReferenceExpressionAST(identifier));
+		if (currentToken.type() == TokenType::Identifier) {
+			std::string varName = currentToken.strValue;
+			nextToken(); //Eat the identifier
+
+			//Decleration
+			return std::make_shared<VariableDeclerationExpressionAST>(VariableDeclerationExpressionAST(identifier, varName));
+		} else {
+			//Reference
+			return std::make_shared<VariableReferenceExpressionAST>(VariableReferenceExpressionAST(identifier));
+		}
 	}
 
 	//Function call
@@ -149,7 +180,7 @@ std::shared_ptr<ExpressionAST> Parser::parsePrimaryExpression() {
 	return std::shared_ptr<ExpressionAST>();
 }
 
-std::shared_ptr<ExpressionAST> Parser::parseBinaryOpRHS(int exprPrecedence, std::shared_ptr<ExpressionAST> lhs) {
+std::shared_ptr<ExpressionAST> Parser::parseBinaryOpRHS(int exprPrecedence, std::shared_ptr<ExpressionAST> lhs, bool allowEqualAssign) {
 	while (true) {
 		//If this is a bin op, find its precedence
 		int tokPrec = getTokenPrecedence();
@@ -159,7 +190,20 @@ std::shared_ptr<ExpressionAST> Parser::parseBinaryOpRHS(int exprPrecedence, std:
 			return lhs;
 		}
 
-		char binOp = currentToken.charValue;
+		Operator op = currentToken.type() == TokenType::SingleChar ?
+			Operator(currentToken.charValue) :
+			Operator(currentToken.charValue, currentToken.charValue2);
+
+		if (!op.isTwoChars()) {
+			if (!allowEqualAssign && op.op1() == '=') {
+				compileError("Operator '=' not allowed in this expression.");
+			}
+		} else {
+			if (!allowEqualAssign && assignmentOperators.count(op.op1()) > 0 && op.op2() == '=') {
+				compileError("Operator '=' not allowed in this expression.");
+			}
+		}
+
 		nextToken(); //Eat the operator
 
 		//Parse the unary expression after the binary operator
@@ -172,7 +216,7 @@ std::shared_ptr<ExpressionAST> Parser::parseBinaryOpRHS(int exprPrecedence, std:
 		//If binOp binds less tightly with RHS than the operator after RHS, let the pending operator take RHS as its LHS
 		int nextPrec = getTokenPrecedence();
 		if (tokPrec < nextPrec) {
-			rhs = parseBinaryOpRHS(tokPrec + 1, rhs);
+			rhs = parseBinaryOpRHS(tokPrec + 1, rhs, allowEqualAssign);
 
 			if (rhs == nullptr) {
 				return rhs;
@@ -180,7 +224,7 @@ std::shared_ptr<ExpressionAST> Parser::parseBinaryOpRHS(int exprPrecedence, std:
 		}
 
 		//Merge LHS/RHS
-		lhs = std::make_shared<BinaryOpExpressionAST>(lhs, rhs, binOp);
+		lhs = std::make_shared<BinaryOpExpressionAST>(lhs, rhs, op);
 	}
 }
 
@@ -197,20 +241,20 @@ std::shared_ptr<ExpressionAST> Parser::parseUnaryExpression() {
 	auto operand = parseUnaryExpression();
 
 	if (operand != nullptr) {
-		return std::make_shared<UnaryOpExpressionAST>(UnaryOpExpressionAST(operand, opChar));
+		return std::make_shared<UnaryOpExpressionAST>(UnaryOpExpressionAST(operand, Operator(opChar)));
 	} 
 
 	return operand;
 }
 
-std::shared_ptr<ExpressionAST> Parser::parseExpression() {
+std::shared_ptr<ExpressionAST> Parser::parseExpression(bool allowEqualAssign) {
 	auto lhs = parseUnaryExpression();
 
 	if (lhs == nullptr) {
 		return lhs;
 	}
 
-	return parseBinaryOpRHS(0, lhs);
+	return parseBinaryOpRHS(0, lhs, allowEqualAssign);
 }
 
 std::shared_ptr<StatementAST> Parser::parseIfElseStatement() {
@@ -222,16 +266,19 @@ std::shared_ptr<StatementAST> Parser::parseIfElseStatement() {
 	auto condExpr = parseExpression();
 
 	assertCurrentTokenAsChar(')', "Expected ')'.");
-	//nextToken(); //Eat the ')'
+	nextToken(); //Eat the ')'
 
 	//Parse the then body
 	auto thenBody = parseBlock();
 
 	//Check if else
+	//nextToken();
 	std::shared_ptr<BlockAST> elseBody = nullptr;
 
 	if (peekToken().type() == TokenType::Else) {
 		nextToken(); //Eat the 'else'.
+
+		nextToken(); 
 		elseBody = parseBlock();
 	}
 
@@ -244,7 +291,7 @@ std::shared_ptr<StatementAST> Parser::parseForLoopStatement() {
 	assertCurrentTokenAsChar('(', "Expected '('.");
 	nextToken(); //Eat the '('
 
-	auto initExpr = parseExpression();
+	auto initExpr = parseExpression(true);
 	assertCurrentTokenAsChar(';', "Expected ';' after statement.");
 	nextToken(); //Eat the ';'
 
@@ -252,10 +299,15 @@ std::shared_ptr<StatementAST> Parser::parseForLoopStatement() {
 	assertCurrentTokenAsChar(';', "Expected ';' after statement.");
 	nextToken(); //Eat the ';'
 
-	auto changeExpr = parseExpression();
+	auto changeExpr = parseExpression(true);
 
 	assertCurrentTokenAsChar(')', "Expected ')'.");
-	//nextToken(); //Eat the ')'
+	nextToken(); //Eat the ')'
+
+	// auto changeExprBin = std::dynamic_pointer_cast<BinaryOpExpressionAST>(changeExpr);
+
+	// std::cout << *changeExprBin->leftHandSide() << std::endl;
+	// std::cout << *changeExprBin->rightHandSide() << std::endl;
 
 	//Parse the body
 	auto bodyBlock = parseBlock();
@@ -283,7 +335,7 @@ std::shared_ptr<StatementAST> Parser::parseStatement() {
 		break;
 	default:
 		//Simple statement, one expression.
-		auto expr = parseExpression();
+		auto expr = parseExpression(true);
 		statement = std::make_shared<ExpressionStatementAST>(ExpressionStatementAST(expr));
 		assertCurrentTokenAsChar(';', "Expected ';' after statement.");
 		break;
@@ -293,7 +345,6 @@ std::shared_ptr<StatementAST> Parser::parseStatement() {
 }
 
 std::shared_ptr<BlockAST> Parser::parseBlock() {
-	nextToken();
 	assertCurrentTokenAsChar('{', "Expected '{'.");
 
 	std::vector<std::shared_ptr<StatementAST>> statements;
@@ -301,6 +352,10 @@ std::shared_ptr<BlockAST> Parser::parseBlock() {
 	nextToken(); //Eat the '{'
 
 	while (true) {
+		if (isSingleCharToken('}')) {
+			break;
+		}
+
 		auto statement = parseStatement();
 
 		if (statement != nullptr) {
@@ -308,10 +363,6 @@ std::shared_ptr<BlockAST> Parser::parseBlock() {
 		}
 
 		nextToken();
-
-		if (isSingleCharToken('}')) {
-			break;
-		}
 	}
 
 	return std::make_shared<BlockAST>(BlockAST(statements));
@@ -336,11 +387,16 @@ std::shared_ptr<FunctionAST> Parser::parseFunctionDef() {
 
 	nextToken(); //Eat the '('
 
-	std::vector<std::string> arguments;
+	std::vector<std::shared_ptr<VariableDeclerationExpressionAST>> arguments;
 	if (!(currentToken.type() == TokenType::SingleChar && currentToken.charValue == ')')) {
 		while (true) {
 			if (currentToken.type() == TokenType::Identifier) {
-				arguments.push_back(currentToken.strValue);
+				std::string varType = currentToken.strValue;
+				nextToken(); //Eat the type
+
+				if (currentToken.type() == TokenType::Identifier) {
+					arguments.push_back(std::make_shared<VariableDeclerationExpressionAST>(VariableDeclerationExpressionAST(varType, currentToken.strValue)));
+				}
 			}
 
 			nextToken();
@@ -357,15 +413,26 @@ std::shared_ptr<FunctionAST> Parser::parseFunctionDef() {
 		}
 	}
 
-	//Body
+	//Return type
 	nextToken();
-	if (currentTokenAsChar() != '=')  {
-		compileError("Expected '=' after prototype.");
+	if (currentTokenAsChar() != ':')  {
+		compileError("Expected ':' after arguments.");
 	}
+
+	nextToken();
+
+	if (currentToken.type() != TokenType::Identifier) {
+		compileError("Expected identifier.");
+	}
+
+	std::string returnType = currentToken.strValue;
+
+	//Body
+	nextToken(); //Eat the return type
 
 	auto body = parseBlock();
 
-	return std::make_shared<FunctionAST>(FunctionAST(name, arguments, body));
+	return std::make_shared<FunctionAST>(FunctionAST(name, arguments, returnType, body));
 }
 
 std::shared_ptr<ProgramAST> Parser::parse() {

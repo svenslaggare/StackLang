@@ -31,14 +31,12 @@ public:
 
 //Represents an expression AST
 class ExpressionAST : public AbstractSyntaxTree {
-public:
-	std::string asString() const override { return ""; }
+
 };
 
 //Represents a statement AST
 class StatementAST : public AbstractSyntaxTree {
-public:
-	std::string asString() const override { return ""; }
+
 };
 
 //Represents a block AST
@@ -55,21 +53,27 @@ public:
 	std::string asString() const override;
 };
 
+class VariableDeclerationExpressionAST;
+
 //Represents a function AST
 class FunctionAST : public AbstractSyntaxTree {
 private:
 	std::string mName;
-	std::vector<std::string> mArguments;
+	std::vector<std::shared_ptr<VariableDeclerationExpressionAST>> mArguments;
+	std::string mReturnType;
 	std::shared_ptr<BlockAST> mBody;
 public:
 	//Creates a new function
-	FunctionAST(std::string name, const std::vector<std::string>& arguments, std::shared_ptr<BlockAST> body);
+	FunctionAST(std::string name, const std::vector<std::shared_ptr<VariableDeclerationExpressionAST>>& arguments, std::string returnType, std::shared_ptr<BlockAST> body);
 
 	//Returns the name
 	const std::string name() const;
 
 	//Returns the arguments
-	const std::vector<std::string>& arguments() const;
+	const std::vector<std::shared_ptr<VariableDeclerationExpressionAST>>& arguments() const;
+
+	//Returns the type
+	const std::string returnType() const;
 
 	//Returns the body
 	std::shared_ptr<BlockAST> body() const;
@@ -185,6 +189,24 @@ public:
 	std::string asString() const override;
 };
 
+//Represents a variable decleration expression
+class VariableDeclerationExpressionAST : public ExpressionAST {
+private:
+	std::string mVarType;
+	std::string mVarName;
+public:
+	//Creates a new variable decleration expression
+	VariableDeclerationExpressionAST(std::string varType, std::string varName);
+
+	//Returns the type of the varaible
+	std::string varType() const;
+
+	//Returns the name of the varaible
+	std::string varName() const;
+
+	std::string asString() const override;
+};
+
 //Represents a call expression
 class CallExpressionAST : public ExpressionAST {
 private:
@@ -203,15 +225,44 @@ public:
 	std::string asString() const override;
 };
 
+//Represents an operator
+class Operator {
+private:
+	bool mIsTwoChars;
+	char mOp1;
+	char mOp2;
+public:
+	//Creates a new single-character operator
+	explicit Operator(char op1);
+
+	//Creates a new two-characters operator
+	Operator(char op1, char op2);
+
+	//Indicates if the current operator consists of two characters
+	bool isTwoChars() const;
+
+	//Returns the first op character
+	char op1() const;
+
+	//Returns the second op character. If not a two-character operator the functions throws an exception.
+	char op2() const;
+
+	bool operator==(const Operator& rhs) const;
+	bool operator!=(const Operator& rhs) const;
+
+	//Returns the current operator as a string
+	std::string asString() const;
+};
+
 //Represents a binary operation expression
 class BinaryOpExpressionAST : public ExpressionAST {
 private:
 	std::shared_ptr<ExpressionAST> mLeftHandSide;
 	std::shared_ptr<ExpressionAST> mRightHandSide;
-	char mOpChar;
+	Operator mOp;
 public:
 	//Creates a new binary operator expression
-	BinaryOpExpressionAST(std::shared_ptr<ExpressionAST> leftHandSide, std::shared_ptr<ExpressionAST> rightHandSide, char opChar);
+	BinaryOpExpressionAST(std::shared_ptr<ExpressionAST> leftHandSide, std::shared_ptr<ExpressionAST> rightHandSide, Operator op);
 
 	//Returns the left hand side
 	std::shared_ptr<ExpressionAST> leftHandSide() const;
@@ -219,8 +270,8 @@ public:
 	//Returns the right hand side
 	std::shared_ptr<ExpressionAST> rightHandSide() const;
 
-	//Returns the operator character
-	char opChar() const;
+	//Returns the operator
+	Operator op() const;
 
 	std::string asString() const override;
 };
@@ -229,16 +280,16 @@ public:
 class UnaryOpExpressionAST : public ExpressionAST {
 private:
 	std::shared_ptr<ExpressionAST> mOperand;
-	char mOpChar;
+	Operator mOp;
 public:
 	//Creates a new unary operator expression
-	UnaryOpExpressionAST(std::shared_ptr<ExpressionAST> operand, char opChar);
+	UnaryOpExpressionAST(std::shared_ptr<ExpressionAST> operand, Operator op);
 
 	//Returns operand
 	std::shared_ptr<ExpressionAST> operand() const;
 
-	//Returns the operator character
-	char opChar() const;
+	//Returns the operator
+	Operator op() const;
 
 	std::string asString() const override;
 };

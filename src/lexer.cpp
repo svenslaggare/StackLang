@@ -4,7 +4,7 @@ Token::Token(TokenType type): mType(type) {
 
 }
 
-Token::Token() {
+Token::Token(): mType(TokenType::NoToken) {
 
 }
 
@@ -14,8 +14,13 @@ TokenType Token::type() const {
 
 std::ostream& operator<<(std::ostream& os, const Token& token) {
 	switch (token.type()) {
+		case TokenType::NoToken:
+			break;
 		case TokenType::SingleChar:
 			os << token.charValue;
+			break;
+		case TokenType::TwoChars:
+			os << token.charValue << token.charValue2;
 			break;
 		case TokenType::Identifier:
 			os << token.strValue;
@@ -54,6 +59,7 @@ std::vector<Token> Lexer::tokenize(std::istream& stream) const {
 
 	char currentChar;
 	bool isComment = false;
+	Token prevToken;
 
 	while (stream.get(currentChar)) {
 		if (!isComment && currentChar == '#') {
@@ -101,6 +107,7 @@ std::vector<Token> Lexer::tokenize(std::istream& stream) const {
 					tokens.push_back(newToken);
 				}
 
+				prevToken = tokens[tokens.size() - 1];
 				continue;
 			}
 
@@ -118,12 +125,25 @@ std::vector<Token> Lexer::tokenize(std::istream& stream) const {
 				auto newToken = Token(TokenType::Integer);
 				newToken.intValue = std::stoi(numStr);
 				tokens.push_back(newToken);
+				prevToken = newToken;
 				continue;
 			}
 
-			auto newToken = Token(TokenType::SingleChar);
-			newToken.charValue = currentChar;
-			tokens.push_back(newToken);	
+			Token newToken;
+
+			//Merge two single chars to the 'TwoChars' type
+			if (prevToken.type() == TokenType::SingleChar && currentChar == '=' && mOpTable.count(prevToken.charValue) > 0) {
+				newToken = Token(TokenType::TwoChars);
+				newToken.charValue = prevToken.charValue;
+				newToken.charValue2 = currentChar;
+				tokens[tokens.size() - 1] = newToken;
+			} else {
+				newToken = Token(TokenType::SingleChar);
+				newToken.charValue = currentChar;
+				tokens.push_back(newToken);	
+			}
+
+			prevToken = newToken;
 		}
 	}
 

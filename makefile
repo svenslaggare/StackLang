@@ -1,6 +1,6 @@
 CC=clang++
 CFLAGS=-c -std=c++11
-LDFLAGS=
+LDFLAGS=-std=c++11
 
 SRCDIR=src
 OBJDIR=obj
@@ -13,6 +13,9 @@ _OBJECTS=$(SOURCES:.cpp=.o)
 OBJECTS=$(patsubst $(SRCDIR)/%,$(OBJDIR)/%,$(_OBJECTS))
 
 all: $(OBJDIR) $(SOURCES) $(EXECUTABLE)
+
+test: $(OBJDIR) $(SOURCES) $(EXECUTABLE)
+	./stackc
 
 $(OBJDIR):
 	mkdir -p $(OBJDIR)
