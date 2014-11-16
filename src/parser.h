@@ -47,19 +47,19 @@ private:
 	std::shared_ptr<ExpressionAST> parseIntegerExpression();
 
 	//Parses an identifier expression
-	std::shared_ptr<ExpressionAST> parseIdentifierExpression();
+	std::shared_ptr<ExpressionAST> parseIdentifierExpression(bool allowDecleration = false);
 
 	//Parses a parenthesis expression
 	std::shared_ptr<ExpressionAST> parseParenthesisExpression();
 
 	//Parses a primary expression
-	std::shared_ptr<ExpressionAST> parsePrimaryExpression();
+	std::shared_ptr<ExpressionAST> parsePrimaryExpression(bool allowDecleration = false);
 
 	//Parses the right hand side of an binary op expression
 	std::shared_ptr<ExpressionAST> parseBinaryOpRHS(int exprPrecedence, std::shared_ptr<ExpressionAST> lhs, bool allowEqualAssign = false);
 
 	//Parses a unary expression
-	std::shared_ptr<ExpressionAST> parseUnaryExpression();
+	std::shared_ptr<ExpressionAST> parseUnaryExpression(bool allowDecleration = false);
 
 	//Parses an expression
 	std::shared_ptr<ExpressionAST> parseExpression(bool allowEqualAssign = false);

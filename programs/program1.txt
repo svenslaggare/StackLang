@@ -1,5 +1,5 @@
 func print(): Void {
-	for (x = 0; x < 10; x += 1) {
+	for (Int x = 0; x < 10; x += 1) {
 		println(x);
 	}
 } 
@@ -18,6 +18,6 @@ func troll(Int x, Int y): Int {
 	if (y > 5) {
 		x = x + 2;
 	}
-	
+
 	return abs(-2, x) + 5;
 }

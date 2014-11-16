@@ -94,7 +94,7 @@ std::shared_ptr<ExpressionAST> Parser::parseIntegerExpression() {
 	return intAst;
 }
 
-std::shared_ptr<ExpressionAST> Parser::parseIdentifierExpression() {
+std::shared_ptr<ExpressionAST> Parser::parseIdentifierExpression(bool allowDecleration) {
 	std::string identifier = currentToken.strValue;
 
 	//Eat the identifier.
@@ -103,6 +103,11 @@ std::shared_ptr<ExpressionAST> Parser::parseIdentifierExpression() {
 	//Variable decleration/reference
 	if (!isSingleCharToken('(')) {
 		if (currentToken.type() == TokenType::Identifier) {
+			if (!allowDecleration) {
+				std::cout << identifier << " " << currentToken << std::endl;
+				compileError("Decleration isn't allowed.");
+			}
+
 			std::string varName = currentToken.strValue;
 			nextToken(); //Eat the identifier
 
@@ -162,12 +167,12 @@ std::shared_ptr<ExpressionAST> Parser::parseParenthesisExpression() {
 	return expr;
 }
 
-std::shared_ptr<ExpressionAST> Parser::parsePrimaryExpression() {
+std::shared_ptr<ExpressionAST> Parser::parsePrimaryExpression(bool allowDecleration) {
 	switch (currentToken.type()) {
 	case TokenType::Integer:
 		return parseIntegerExpression();
 	case TokenType::Identifier:
-		return parseIdentifierExpression();
+		return parseIdentifierExpression(allowDecleration);
 	case TokenType::SingleChar:
 		if (currentToken.charValue == '(') {
 			return parseParenthesisExpression();
@@ -228,17 +233,17 @@ std::shared_ptr<ExpressionAST> Parser::parseBinaryOpRHS(int exprPrecedence, std:
 	}
 }
 
-std::shared_ptr<ExpressionAST> Parser::parseUnaryExpression() {
+std::shared_ptr<ExpressionAST> Parser::parseUnaryExpression(bool allowDecleration) {
 	//If the current token isn't an operator, is must be a primary expression
 	if (currentToken.type() != TokenType::SingleChar || (isSingleCharToken('(') || isSingleCharToken(','))) {
-		return parsePrimaryExpression();
+		return parsePrimaryExpression(allowDecleration);
 	}
 
 	//If this is a unary operator, read it.
 	int opChar = currentToken.charValue;
 	nextToken(); //Eat the operator
 
-	auto operand = parseUnaryExpression();
+	auto operand = parseUnaryExpression(allowDecleration);
 
 	if (operand != nullptr) {
 		return std::make_shared<UnaryOpExpressionAST>(UnaryOpExpressionAST(operand, Operator(opChar)));
@@ -248,7 +253,7 @@ std::shared_ptr<ExpressionAST> Parser::parseUnaryExpression() {
 }
 
 std::shared_ptr<ExpressionAST> Parser::parseExpression(bool allowEqualAssign) {
-	auto lhs = parseUnaryExpression();
+	auto lhs = parseUnaryExpression(allowEqualAssign);
 
 	if (lhs == nullptr) {
 		return lhs;
@@ -303,11 +308,6 @@ std::shared_ptr<StatementAST> Parser::parseForLoopStatement() {
 
 	assertCurrentTokenAsChar(')', "Expected ')'.");
 	nextToken(); //Eat the ')'
-
-	// auto changeExprBin = std::dynamic_pointer_cast<BinaryOpExpressionAST>(changeExpr);
-
-	// std::cout << *changeExprBin->leftHandSide() << std::endl;
-	// std::cout << *changeExprBin->rightHandSide() << std::endl;
 
 	//Parse the body
 	auto bodyBlock = parseBlock();
