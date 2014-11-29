@@ -3,15 +3,24 @@
 #include <fstream>
 #include "lexer.h"
 #include "parser.h"
-#include "ast.h"
+#include "asts.h"
+#include "binder.h"
 
 int main() {
 	Lexer lexer;
-	std::fstream programText("programs/program1.txt");
+	std::fstream programText("programs/program2.txt");
 	auto tokens = lexer.tokenize(programText); 
 
 	Parser parser(tokens);
 	auto program = parser.parse();
 
 	std::cout << *program << std::endl;
+
+	Binder binder;
+	binder.generateSymbolTable(program);
+
+	std::cout << "Symbols:" << std::endl;
+	std::cout << *binder.symbolTable();
+
+	std::cout << binder.symbolTable()->outer() << std::endl;
 }

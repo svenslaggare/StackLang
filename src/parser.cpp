@@ -1,7 +1,7 @@
 #include <stdexcept>
 #include "parser.h"
 #include "lexer.h"
-#include "ast.h"
+#include "asts.h"
 
 Parser::Parser(std::vector<Token> tokens)
 	: tokens(tokens), tokenIndex(-1) {

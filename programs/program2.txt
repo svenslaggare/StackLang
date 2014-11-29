@@ -1,5 +1,17 @@
-func print(): Void {
-	for (Int x = 0; x < 10; x = x + 1) {
-		println(x);
+func abs(Int x): Int {
+	if (x == 0) {
+		return -x;
+	} else {
+		return x;
 	}
-} 
+}
+
+func troll(Int x, Int y): Int {
+	Int z = x + y;
+
+	if (y > 5) {
+		x = x + 2;
+	}
+
+	return abs(-2, x) + 5;
+}
