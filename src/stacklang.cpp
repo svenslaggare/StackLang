@@ -18,9 +18,4 @@ int main() {
 
 	Binder binder;
 	binder.generateSymbolTable(program);
-
-	std::cout << "Symbols:" << std::endl;
-	std::cout << *binder.symbolTable();
-
-	std::cout << binder.symbolTable()->outer() << std::endl;
 }

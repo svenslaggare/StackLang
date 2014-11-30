@@ -8,6 +8,8 @@ class Binder;
 
 //Represents an abstract syntax tree
 class AbstractSyntaxTree {
+protected:
+	std::shared_ptr<SymbolTable> mSymbolTable;
 public:
 	virtual ~AbstractSyntaxTree() {};
 
@@ -19,7 +21,7 @@ public:
 	virtual std::string asString() const = 0;
 
 	//Generates symbols
-	virtual void generateSymbols(Binder& binder, std::shared_ptr<SymbolTable> symbolTable) {};
+	virtual void generateSymbols(Binder& binder, std::shared_ptr<SymbolTable> symbolTable);
 };
 
 std::ostream& operator<<(std::ostream& os, const AbstractSyntaxTree& ast);
@@ -35,6 +37,7 @@ class StatementAST : public AbstractSyntaxTree {
 };
 
 namespace AST {
+	//Combines the given ASTs into a string with the given seperator
 	template <class T>
 	std::string combineAST(std::vector<std::shared_ptr<T>> asts, std::string sep) {
 		bool isFirst = true;

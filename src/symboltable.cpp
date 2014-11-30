@@ -37,6 +37,10 @@ std::shared_ptr<SymbolTable> SymbolTable::outer() const {
 	return mOuter;
 }
 
+std::shared_ptr<SymbolTable> SymbolTable::newInner(std::shared_ptr<SymbolTable> outer) {
+	return std::make_shared<SymbolTable>(SymbolTable(outer));
+}
+
 void printSymbolTable(std::ostream& os, const SymbolTable& symbolTable, int indentLevel = 0) {
 	for (auto symbol : symbolTable.inner()) {
 		for (int i = 0; i < indentLevel; i++) {
@@ -44,10 +48,6 @@ void printSymbolTable(std::ostream& os, const SymbolTable& symbolTable, int inde
 		}
 
 		os << symbol.first << ": " << symbol.second->type() << std::endl;
-	}
-
-	if (symbolTable.outer() != nullptr) {
-		printSymbolTable(os, symbolTable.outer(), indentLevel + 1);
 	}
 }
 

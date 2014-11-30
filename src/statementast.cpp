@@ -16,6 +16,7 @@ std::string ExpressionStatementAST::asString() const {
 }
 
 void ExpressionStatementAST::generateSymbols(Binder& binder, std::shared_ptr<SymbolTable> symbolTable) {
+	AbstractSyntaxTree::generateSymbols(binder, symbolTable);
 	mExpression->generateSymbols(binder, symbolTable);
 }
 
@@ -34,6 +35,7 @@ std::string ReturnStatementAST::asString() const {
 }
 
 void ReturnStatementAST::generateSymbols(Binder& binder, std::shared_ptr<SymbolTable> symbolTable) {
+	AbstractSyntaxTree::generateSymbols(binder, symbolTable);
 	mReturnExpression->generateSymbols(binder, symbolTable);
 }
 
@@ -60,6 +62,8 @@ std::string IfElseStatementAST::asString() const {
 }
 
 void IfElseStatementAST::generateSymbols(Binder& binder, std::shared_ptr<SymbolTable> symbolTable) {
+	AbstractSyntaxTree::generateSymbols(binder, symbolTable);
+
 	mConditionExpression->generateSymbols(binder, symbolTable);
 	mThenBlock->generateSymbols(binder, symbolTable);
 
@@ -97,6 +101,8 @@ std::string ForLoopStatementAST::asString() const {
 }
 
 void ForLoopStatementAST::generateSymbols(Binder& binder, std::shared_ptr<SymbolTable> symbolTable) {
+	AbstractSyntaxTree::generateSymbols(binder, symbolTable);
+
 	mInitExpression->generateSymbols(binder, symbolTable);
 	mConditionExpression->generateSymbols(binder, symbolTable);
 	mChangeExpression->generateSymbols(binder, symbolTable);

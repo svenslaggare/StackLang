@@ -1,6 +1,7 @@
 #pragma once
 #include <memory>
 #include <map>
+#include <vector>
 #include <string>
 #include <iostream>
 
@@ -26,6 +27,9 @@ public:
 
 	//Returns the outer table
 	std::shared_ptr<SymbolTable> outer() const;
+
+	//Creates a new symbol table for the given outer
+	static std::shared_ptr<SymbolTable> newInner(std::shared_ptr<SymbolTable> outer);
 };
 
 std::ostream& operator<<(std::ostream& os, const SymbolTable& symbolTable);

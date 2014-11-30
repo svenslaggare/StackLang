@@ -50,11 +50,13 @@ std::string FunctionAST::asString() const {
 }
 
 void FunctionAST::generateSymbols(Binder& binder, std::shared_ptr<SymbolTable> symbolTable) {
-	if (!symbolTable->add(name(), std::make_shared<FunctionAST>(*this))) {
-		binder.error("The symbol '" + name() + "' is already defined.");
-	}
+	AbstractSyntaxTree::generateSymbols(binder, symbolTable);
+	
+	// if (!symbolTable->add(name(), std::make_shared<FunctionAST>(*this))) {
+	// 	binder.error("The symbol '" + name() + "' is already defined.");
+	// }
 
-	auto inner = std::make_shared<SymbolTable>(SymbolTable(symbolTable));
+	auto inner = SymbolTable::newInner(symbolTable);
 
 	for (auto arg : mArguments) {
 		arg->generateSymbols(binder, inner);

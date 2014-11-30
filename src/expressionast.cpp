@@ -32,6 +32,8 @@ std::string VariableReferenceExpressionAST::asString() const {
 }
 
 void VariableReferenceExpressionAST::generateSymbols(Binder& binder, std::shared_ptr<SymbolTable> symbolTable) {
+	AbstractSyntaxTree::generateSymbols(binder, symbolTable);
+
 	auto symbol = symbolTable->find(varName());
 
 	if (symbol == nullptr) {
@@ -66,6 +68,8 @@ std::string VariableDeclerationExpressionAST::asString() const {
 }
 
 void VariableDeclerationExpressionAST::generateSymbols(Binder& binder, std::shared_ptr<SymbolTable> symbolTable) {
+	AbstractSyntaxTree::generateSymbols(binder, symbolTable);
+
 	if (!symbolTable->add(varName(), std::make_shared<VariableDeclerationExpressionAST>(*this))) {
 		binder.error("The symbol '" + varName() + "' is already defined.");
 	}
@@ -94,6 +98,8 @@ std::string CallExpressionAST::asString() const {
 }
 
 void CallExpressionAST::generateSymbols(Binder& binder, std::shared_ptr<SymbolTable> symbolTable) {
+	AbstractSyntaxTree::generateSymbols(binder, symbolTable);
+	
 	auto symbol = symbolTable->find(functionName());
 
 	if (symbol == nullptr) {
