@@ -15,6 +15,12 @@ bool SymbolTable::add(std::string name, std::shared_ptr<AbstractSyntaxTree> symb
 	return false;
 }
 
+void SymbolTable::add(const SymbolTable& symbolTable) {
+	for (auto symbol : symbolTable.inner()) {
+		add(symbol.first, symbol.second);
+	} 
+}
+
 std::shared_ptr<AbstractSyntaxTree> SymbolTable::find(std::string name) const {
 	//First check in the inner
 	if (mInner.count(name) > 0) {

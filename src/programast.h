@@ -8,8 +8,9 @@
 class FunctionAST;
 class Binder;
 class SymbolTable;
+class TypeChecker;
 
-//Represents an program AST
+//Represents a program AST
 class ProgramAST : public AbstractSyntaxTree {
 private:
 	std::vector<std::shared_ptr<FunctionAST>> mFunctions;
@@ -24,4 +25,6 @@ public:
 	std::string asString() const override;
 
 	virtual void generateSymbols(Binder& binder, std::shared_ptr<SymbolTable> symbolTable) override;
+
+	virtual void typeCheck(TypeChecker& checker) override;
 };

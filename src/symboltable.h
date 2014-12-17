@@ -19,6 +19,9 @@ public:
 	//Adds the given symbol to the table. True if added else false.
 	bool add(std::string name, std::shared_ptr<AbstractSyntaxTree> symbol);
 
+	//Adds the given table to the current
+	void add(const SymbolTable& symbolTable);
+
 	//Finds the given symbol. Nullptr if it doesn't exists.
 	std::shared_ptr<AbstractSyntaxTree> find(std::string name) const;
 

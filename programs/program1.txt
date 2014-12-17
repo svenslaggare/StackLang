@@ -2,10 +2,20 @@ func print(): Void {
 	for (Int x = 0; x < 10; x += 1) {
 		println(x);
 	}
+
+	Int x = 0;
+	while (x < 10) {
+		println(x);
+		x += 1;
+
+		if (x > 4) {
+			return;
+		}
+	}
 } 
 
 func abs(Int x): Int {
-	if (x == 0) {
+	if (x < 0) {
 		return -x;
 	} else {
 		return x;
@@ -15,9 +25,15 @@ func abs(Int x): Int {
 func troll(Int x, Int y): Int {
 	Int z = x + y;
 
-	if (y > 5) {
+	if (y > 5 && y < 10) {
 		x = x + 2;
 	}
 
-	return abs(-2, x) + 5;
+	Bool b = y > 5;
+
+	if (!b) {
+		return -1;
+	}
+
+	return abs(-x) + 5;
 }

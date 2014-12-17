@@ -24,12 +24,19 @@ void ProgramAST::generateSymbols(Binder& binder, std::shared_ptr<SymbolTable> sy
 	AbstractSyntaxTree::generateSymbols(binder, symbolTable);
 
 	for (auto func : mFunctions) {
-		if (!symbolTable->add(func->name(), func)) {
-			binder.error("The symbol '" + func->name() + "' is already defined.");
+		auto funcName = func->prototype()->name();
+		if (!symbolTable->add(funcName, func)) {
+			binder.error("The symbol '" + funcName + "' is already defined.");
 		}
 	}
 
 	for (auto func : mFunctions) {
 		func->generateSymbols(binder, symbolTable);
+	}
+}
+
+void ProgramAST::typeCheck(TypeChecker& checker) {
+	for (auto func : mFunctions) {
+		func->typeCheck(checker);
 	}
 }

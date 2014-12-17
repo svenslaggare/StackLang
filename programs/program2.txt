@@ -1,17 +1,12 @@
 func abs(Int x): Int {
-	if (x == 0) {
-		return -x;
-	} else {
-		return x;
-	}
+	#if (x < 0) {
+	#	return -x;
+	#} else {
+	#	return x;
+	#}
+	return x + 1;
 }
 
-func troll(Int x, Int y): Int {
-	Int z = x + y;
-
-	if (y > 5) {
-		x = x + 2;
-	}
-
-	return abs(-2, x) + 5;
+func main(): Int {
+	return abs(-2);
 }

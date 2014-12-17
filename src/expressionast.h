@@ -4,6 +4,9 @@
 
 #include "ast.h"
 
+class TypeChecker;
+class CodeGenerator;
+
 //Represents an integer expression
 class IntegerExpressionAST : public ExpressionAST {
 private:
@@ -16,7 +19,28 @@ public:
 	int value() const;
 
 	std::string asString() const override;
+
+	virtual std::shared_ptr<Type> expressionType(const TypeChecker& checker) const override; 
+
+	virtual void generateCode(CodeGenerator& codeGen, GeneratedFunction& func) override;
 };
+
+//Represents a bool expression
+class BoolExpressionAST : public ExpressionAST {
+private:
+	bool mValue;
+public:
+	//Creates a new integer expression
+	BoolExpressionAST(bool value);
+
+	//Returns the value
+	bool value() const;
+
+	std::string asString() const override;
+
+	virtual std::shared_ptr<Type> expressionType(const TypeChecker& checker) const override; 
+};
+
 
 //Represents a variable reference expression
 class VariableReferenceExpressionAST : public ExpressionAST {
@@ -32,6 +56,10 @@ public:
 	std::string asString() const override;
 
 	virtual void generateSymbols(Binder& binder, std::shared_ptr<SymbolTable> symbolTable) override;
+
+	virtual std::shared_ptr<Type> expressionType(const TypeChecker& checker) const override; 
+
+	virtual void generateCode(CodeGenerator& codeGen, GeneratedFunction& func) override;
 };
 
 //Represents a variable decleration expression
@@ -39,9 +67,10 @@ class VariableDeclerationExpressionAST : public ExpressionAST {
 private:
 	std::string mVarType;
 	std::string mVarName;
+	bool mIsFunctionParameter;
 public:
 	//Creates a new variable decleration expression
-	VariableDeclerationExpressionAST(std::string varType, std::string varName);
+	VariableDeclerationExpressionAST(std::string varType, std::string varName, bool isFunctionParameter = false);
 
 	//Returns the type of the varaible
 	std::string varType() const;
@@ -49,11 +78,20 @@ public:
 	//Returns the name of the varaible
 	std::string varName() const;
 
+	//Indicates if the decleration is of a function parameter
+	bool isFunctionParameter() const;
+
 	virtual std::string type() const override;
 
 	std::string asString() const override;
 
 	virtual void generateSymbols(Binder& binder, std::shared_ptr<SymbolTable> symbolTable) override;
+
+	virtual void typeCheck(TypeChecker& checker) override;
+
+	virtual std::shared_ptr<Type> expressionType(const TypeChecker& checker) const override; 
+
+	virtual void generateCode(CodeGenerator& codeGen, GeneratedFunction& func) override;
 };
 
 //Represents a call expression
@@ -74,4 +112,10 @@ public:
 	std::string asString() const override;
 
 	virtual void generateSymbols(Binder& binder, std::shared_ptr<SymbolTable> symbolTable) override;
+
+	virtual void typeCheck(TypeChecker& checker) override;
+
+	virtual std::shared_ptr<Type> expressionType(const TypeChecker& checker) const override; 
+
+	virtual void generateCode(CodeGenerator& codeGen, GeneratedFunction& func) override;
 };

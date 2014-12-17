@@ -1,0 +1,37 @@
+#pragma once
+#include <map>
+#include <memory>
+#include <string>
+
+class Type;
+class ProgramAST;
+
+//Represents a type checker
+class TypeChecker {
+private:
+	std::map<std::string, std::shared_ptr<Type>> mTypes;
+public:
+	//Creates a new type checker
+	TypeChecker(std::map<std::string, std::shared_ptr<Type>> types);
+
+	//Returns the given type. Nullptr if not found.
+	std::shared_ptr<Type> getType(std::string typeName) const;
+
+	//Adds the given type
+	bool addType(std::shared_ptr<Type> type);
+
+	//Indicates if the given type exists
+	bool typeExists(std::string name) const;
+
+	//Indicates that a type error has occured
+	void typeError(std::string message);
+
+	//Asserts that a type with the given name exists
+	bool assertTypeExists(std::string name);
+
+	//Asserts that the types are equal
+	bool assertSameType(const Type& expected, const Type& actual, std::string errorMessage = "");
+
+	//Checkes the types for the given program
+	void checkTypes(std::shared_ptr<ProgramAST> program);
+};

@@ -1,8 +1,13 @@
 #pragma once
 #include <memory>
 #include <set>
+#include <map>
 
 #include "ast.h"
+
+class TypeChecker;
+class Type;
+class CodeGenerator;
 
 //Represents an operator
 class Operator {
@@ -26,6 +31,7 @@ public:
 	//Returns the second op character. If not a two-character operator the functions throws an exception.
 	char op2() const;
 
+	bool operator<(const Operator& rhs) const;
 	bool operator==(const Operator& rhs) const;
 	bool operator!=(const Operator& rhs) const;
 
@@ -39,6 +45,7 @@ private:
 	std::shared_ptr<ExpressionAST> mLeftHandSide;
 	std::shared_ptr<ExpressionAST> mRightHandSide;
 	Operator mOp;
+	static const std::map<Operator, std::shared_ptr<Type>> mBoolTypes;
 public:
 	//Creates a new binary operator expression
 	BinaryOpExpressionAST(std::shared_ptr<ExpressionAST> leftHandSide, std::shared_ptr<ExpressionAST> rightHandSide, Operator op);
@@ -55,6 +62,12 @@ public:
 	std::string asString() const override;
 
 	virtual void generateSymbols(Binder& binder, std::shared_ptr<SymbolTable> symbolTable) override;
+
+	virtual void typeCheck(TypeChecker& checker) override;
+
+	virtual std::shared_ptr<Type> expressionType(const TypeChecker& checker) const override; 
+
+	virtual void generateCode(CodeGenerator& codeGen, GeneratedFunction& func) override;
 };
 
 //Represents a unary operator expression 
@@ -75,4 +88,10 @@ public:
 	std::string asString() const override;
 	
 	virtual void generateSymbols(Binder& binder, std::shared_ptr<SymbolTable> symbolTable) override;
+
+	virtual void typeCheck(TypeChecker& checker) override;
+
+	virtual std::shared_ptr<Type> expressionType(const TypeChecker& checker) const override; 
+
+	virtual void generateCode(CodeGenerator& codeGen, GeneratedFunction& func) override;
 };

@@ -31,6 +31,12 @@ std::ostream& operator<<(std::ostream& os, const Token& token) {
 		case TokenType::Integer:
 			os << token.intValue;
 			break;
+		case TokenType::True:
+			os << "true";
+			break;
+		case TokenType::False:
+			os << "false";
+			break;
 		case TokenType::If:
 			os << "if";
 			break;
@@ -42,6 +48,9 @@ std::ostream& operator<<(std::ostream& os, const Token& token) {
 			break;
 		case TokenType::While:
 			os << "while";
+			break;
+		case TokenType::Break:
+			os << "break";
 			break;
 		case TokenType::Return:
 			os << "return";
@@ -91,6 +100,10 @@ std::vector<Token> Lexer::tokenize(std::istream& stream) const {
 
 				if (identStr == "func") {
 					tokens.push_back(Token(TokenType::Func));
+				} else if (identStr == "true") {
+					tokens.push_back(Token(TokenType::True));
+				} else if (identStr == "false") {
+					tokens.push_back(Token(TokenType::False));
 				} else if (identStr == "if") {
 					tokens.push_back(Token(TokenType::If));
 				} else if (identStr == "else") {
@@ -99,6 +112,8 @@ std::vector<Token> Lexer::tokenize(std::istream& stream) const {
 					tokens.push_back(Token(TokenType::For));
 				} else if (identStr == "while") {
 					tokens.push_back(Token(TokenType::While));
+				} else if (identStr == "break") {
+					tokens.push_back(Token(TokenType::Break));
 				} else if (identStr == "return") {
 					tokens.push_back(Token(TokenType::Return));
 				} else {
@@ -132,7 +147,7 @@ std::vector<Token> Lexer::tokenize(std::istream& stream) const {
 			Token newToken;
 
 			//Merge two single chars to the 'TwoChars' type
-			if (prevToken.type() == TokenType::SingleChar && currentChar == '=' && mOpTable.count(prevToken.charValue) > 0) {
+			if (prevToken.type() == TokenType::SingleChar && (currentChar == '=' || currentChar == '&' || currentChar == '|') && mOpTable.count(prevToken.charValue) > 0) {
 				newToken = Token(TokenType::TwoChars);
 				newToken.charValue = prevToken.charValue;
 				newToken.charValue2 = currentChar;

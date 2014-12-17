@@ -46,6 +46,9 @@ private:
 	//Parses an integer expression
 	std::shared_ptr<ExpressionAST> parseIntegerExpression();
 
+	//Parses a bool expression
+	std::shared_ptr<ExpressionAST> parseBoolExpression();
+
 	//Parses an identifier expression
 	std::shared_ptr<ExpressionAST> parseIdentifierExpression(bool allowDecleration = false);
 
@@ -66,6 +69,9 @@ private:
 
 	//Parses a if & else statement
 	std::shared_ptr<StatementAST> parseIfElseStatement();
+
+	//Parses a while loop statement
+	std::shared_ptr<StatementAST> parseWhileLoopStatement();
 
 	//Parses a for loop statement
 	std::shared_ptr<StatementAST> parseForLoopStatement();

@@ -5,23 +5,26 @@
 
 Parser::Parser(std::vector<Token> tokens)
 	: tokens(tokens), tokenIndex(-1) {
-	binOpPrecedence['<'] = 10;
-	binOpPrecedence['>'] = 10;
-	binOpPrecedence['+'] = 20;
-	binOpPrecedence['-'] = 20;
-	binOpPrecedence['*'] = 40;
-	binOpPrecedence['/'] = 40;
-	binOpPrecedence['='] = 100;
+	binOpPrecedence['<'] = 5;
+	binOpPrecedence['>'] = 5;
+	binOpPrecedence['+'] = 6;
+	binOpPrecedence['-'] = 6;
+	binOpPrecedence['*'] = 7;
+	binOpPrecedence['/'] = 7;
+	binOpPrecedence['='] = 1;
 
-	twoCharOpPrecedence[std::make_pair('=', '=')] = 10;
-	twoCharOpPrecedence[std::make_pair('!', '=')] = 10;
-	twoCharOpPrecedence[std::make_pair('<', '=')] = 10;
-	twoCharOpPrecedence[std::make_pair('>', '=')] = 10;
+	twoCharOpPrecedence[std::make_pair('<', '=')] = 5;
+	twoCharOpPrecedence[std::make_pair('>', '=')] = 5;
+	twoCharOpPrecedence[std::make_pair('=', '=')] = 4;
+	twoCharOpPrecedence[std::make_pair('!', '=')] = 4;
 
-	twoCharOpPrecedence[std::make_pair('+', '=')] = 100;
-	twoCharOpPrecedence[std::make_pair('-', '=')] = 100;
-	twoCharOpPrecedence[std::make_pair('*', '=')] = 100;
-	twoCharOpPrecedence[std::make_pair('-', '=')] = 100;
+	twoCharOpPrecedence[std::make_pair('&', '&')] = 3;
+	twoCharOpPrecedence[std::make_pair('|', '|')] = 2;
+
+	twoCharOpPrecedence[std::make_pair('+', '=')] = 1;
+	twoCharOpPrecedence[std::make_pair('-', '=')] = 1;
+	twoCharOpPrecedence[std::make_pair('*', '=')] = 1;
+	twoCharOpPrecedence[std::make_pair('-', '=')] = 1;
 
 	assignmentOperators = { '+', '-', '*', '/' };
 }
@@ -92,6 +95,12 @@ std::shared_ptr<ExpressionAST> Parser::parseIntegerExpression() {
 	auto intAst = std::make_shared<IntegerExpressionAST>(IntegerExpressionAST(currentToken.intValue));
 	nextToken(); //Consume the int
 	return intAst;
+}
+
+std::shared_ptr<ExpressionAST> Parser::parseBoolExpression() {
+	auto boolAst = std::make_shared<BoolExpressionAST>(BoolExpressionAST(currentToken.type() == TokenType::True));
+	nextToken(); //Consume the bool value
+	return boolAst;
 }
 
 std::shared_ptr<ExpressionAST> Parser::parseIdentifierExpression(bool allowDecleration) {
@@ -171,6 +180,10 @@ std::shared_ptr<ExpressionAST> Parser::parsePrimaryExpression(bool allowDeclerat
 	switch (currentToken.type()) {
 	case TokenType::Integer:
 		return parseIntegerExpression();
+	case TokenType::True:
+		return parseBoolExpression();
+	case TokenType::False:
+		return parseBoolExpression();	
 	case TokenType::Identifier:
 		return parseIdentifierExpression(allowDecleration);
 	case TokenType::SingleChar:
@@ -290,6 +303,22 @@ std::shared_ptr<StatementAST> Parser::parseIfElseStatement() {
 	return std::make_shared<IfElseStatementAST>(IfElseStatementAST(condExpr, thenBody, elseBody));
 }
 
+std::shared_ptr<StatementAST> Parser::parseWhileLoopStatement() {
+	nextToken(); //Eat the 'while'
+
+	assertCurrentTokenAsChar('(', "Expected '('.");
+	nextToken(); //Eat the '('
+
+	auto condExpr = parseExpression();
+	assertCurrentTokenAsChar(')', "Expected ')'.");
+	nextToken(); //Eat the ')'
+
+	//Parse the body
+	auto bodyBlock = parseBlock();
+
+	return std::make_shared<WhileLoopStatementAST>(WhileLoopStatementAST(condExpr, bodyBlock));
+}
+
 std::shared_ptr<StatementAST> Parser::parseForLoopStatement() {
 	nextToken(); //Eat the 'for'
 
@@ -322,13 +351,21 @@ std::shared_ptr<StatementAST> Parser::parseStatement() {
 	case TokenType::Return:
 		{
 			nextToken(); //Eat the 'return'
-			auto returnExpr = parseExpression();
-			statement = std::make_shared<ReturnStatementAST>(ReturnStatementAST(returnExpr));
-			assertCurrentTokenAsChar(';', "Expected ';' after statement.");
+
+			if (isSingleCharToken(';')) {
+				statement = std::make_shared<ReturnStatementAST>(ReturnStatementAST());
+			} else {
+				auto returnExpr = parseExpression();
+				statement = std::make_shared<ReturnStatementAST>(ReturnStatementAST(returnExpr));
+				assertCurrentTokenAsChar(';', "Expected ';' after statement.");
+			}
 		}
 		break;
 	case TokenType::If:
 		statement = parseIfElseStatement();
+		break;
+	case TokenType::While:
+		statement = parseWhileLoopStatement();
 		break;
 	case TokenType::For:
 		statement = parseForLoopStatement();
@@ -395,7 +432,7 @@ std::shared_ptr<FunctionAST> Parser::parseFunctionDef() {
 				nextToken(); //Eat the type
 
 				if (currentToken.type() == TokenType::Identifier) {
-					arguments.push_back(std::make_shared<VariableDeclerationExpressionAST>(VariableDeclerationExpressionAST(varType, currentToken.strValue)));
+					arguments.push_back(std::make_shared<VariableDeclerationExpressionAST>(VariableDeclerationExpressionAST(varType, currentToken.strValue, true)));
 				}
 			}
 
@@ -432,7 +469,8 @@ std::shared_ptr<FunctionAST> Parser::parseFunctionDef() {
 
 	auto body = parseBlock();
 
-	return std::make_shared<FunctionAST>(FunctionAST(name, arguments, returnType, body));
+	auto prototype = std::make_shared<FunctionPrototypeAST>(FunctionPrototypeAST(name, arguments, returnType));
+	return std::make_shared<FunctionAST>(FunctionAST(prototype, body));
 }
 
 std::shared_ptr<ProgramAST> Parser::parse() {
