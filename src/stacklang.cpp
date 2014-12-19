@@ -21,9 +21,9 @@ int main() {
 
 	//std::cout << *programAST << std::endl;
 
-	auto program = std::make_shared<Program>(Program());
+	programAST->rewrite();
 
-	Binder binder(program);
+	Binder binder;
 	binder.addFunction("println", { { "Int", "x" } }, "Void");
 	binder.generateSymbolTable(programAST);
 

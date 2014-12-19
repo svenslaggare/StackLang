@@ -28,6 +28,18 @@ std::string BlockAST::asString() const {
 	return blockStr;
 }
 
+void BlockAST::rewrite() {
+	for (auto& statement : mStatements) {
+		std::shared_ptr<AbstractSyntaxTree> newAST;
+
+		if (statement->rewriteAST(newAST)) {
+			statement = std::dynamic_pointer_cast<StatementAST>(newAST);
+		}
+
+		statement->rewrite();
+	}
+}
+
 std::shared_ptr<AbstractSyntaxTree> BlockAST::findAST(std::function<bool (std::shared_ptr<AbstractSyntaxTree> ast)> predicate) const {
 	for (auto statement : mStatements) {
 		if (predicate(statement)) {

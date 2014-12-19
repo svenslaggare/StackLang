@@ -15,6 +15,10 @@ std::shared_ptr<AbstractSyntaxTree> AbstractSyntaxTree::findAST(std::function<bo
 	return nullptr;
 }
 
+bool AbstractSyntaxTree::rewriteAST(std::shared_ptr<AbstractSyntaxTree>& newAST) const {
+	return false;
+}
+
 std::ostream& operator<<(std::ostream& os, const AbstractSyntaxTree& ast) {
 	os << ast.asString();
 	return os;

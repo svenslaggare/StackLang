@@ -20,6 +20,18 @@ std::string ProgramAST::asString() const {
 	return AST::combineAST(mFunctions, "\n\n");
 }
 
+void ProgramAST::rewrite() {
+	for (auto& func : mFunctions) {
+		std::shared_ptr<AbstractSyntaxTree> newAST;
+
+		if (func->rewriteAST(newAST)) {
+			func = std::dynamic_pointer_cast<FunctionAST>(newAST);
+		}
+
+		func->rewrite();
+	}
+}
+
 void ProgramAST::generateSymbols(Binder& binder, std::shared_ptr<SymbolTable> symbolTable) {
 	AbstractSyntaxTree::generateSymbols(binder, symbolTable);
 

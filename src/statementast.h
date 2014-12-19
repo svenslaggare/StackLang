@@ -21,6 +21,8 @@ public:
 
 	std::string asString() const override;
 
+	virtual void rewrite() override;
+
 	virtual std::shared_ptr<AbstractSyntaxTree> findAST(std::function<bool (std::shared_ptr<AbstractSyntaxTree> ast)> predicate) const override;
 
 	virtual void generateSymbols(Binder& binder, std::shared_ptr<SymbolTable> symbolTable) override;
@@ -45,6 +47,8 @@ public:
 	std::shared_ptr<ExpressionAST> returnExpression() const;
 
 	std::string asString() const override;
+
+	virtual void rewrite() override;
 
 	virtual std::shared_ptr<AbstractSyntaxTree> findAST(std::function<bool (std::shared_ptr<AbstractSyntaxTree> ast)> predicate) const override;
 
@@ -76,6 +80,8 @@ public:
 
 	std::string asString() const override;
 
+	virtual void rewrite() override;
+
 	virtual std::shared_ptr<AbstractSyntaxTree> findAST(std::function<bool (std::shared_ptr<AbstractSyntaxTree> ast)> predicate) const override;
 
 	virtual void generateSymbols(Binder& binder, std::shared_ptr<SymbolTable> symbolTable) override;
@@ -101,6 +107,8 @@ public:
 	std::shared_ptr<BlockAST> bodyBlock() const;
 
 	std::string asString() const override;
+
+	virtual void rewrite() override;
 
 	virtual std::shared_ptr<AbstractSyntaxTree> findAST(std::function<bool (std::shared_ptr<AbstractSyntaxTree> ast)> predicate) const override;
 
@@ -138,6 +146,8 @@ public:
 
 	std::string asString() const override;
 
+	virtual void rewrite() override;
+	
 	virtual std::shared_ptr<AbstractSyntaxTree> findAST(std::function<bool (std::shared_ptr<AbstractSyntaxTree> ast)> predicate) const override;
 
 	virtual void generateSymbols(Binder& binder, std::shared_ptr<SymbolTable> symbolTable) override;

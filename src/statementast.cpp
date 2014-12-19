@@ -20,6 +20,16 @@ std::string ExpressionStatementAST::asString() const {
 	return mExpression->asString() + ";";
 }
 
+void ExpressionStatementAST::rewrite() {
+	std::shared_ptr<AbstractSyntaxTree> newAST;
+
+	if (mExpression->rewriteAST(newAST)) {
+		mExpression = std::dynamic_pointer_cast<ExpressionAST>(newAST);
+	}
+
+	mExpression->rewrite();
+}
+
 void ExpressionStatementAST::generateSymbols(Binder& binder, std::shared_ptr<SymbolTable> symbolTable) {
 	AbstractSyntaxTree::generateSymbols(binder, symbolTable);
 	mExpression->generateSymbols(binder, symbolTable);
@@ -58,6 +68,16 @@ std::shared_ptr<ExpressionAST> ReturnStatementAST::returnExpression() const {
 
 std::string ReturnStatementAST::asString() const {
 	return "return" + (mReturnExpression == nullptr ? "" : " " + mReturnExpression->asString()) + ";";
+}
+
+void ReturnStatementAST::rewrite() {
+	std::shared_ptr<AbstractSyntaxTree> newAST;
+
+	if (mReturnExpression != nullptr && mReturnExpression->rewriteAST(newAST)) {
+		mReturnExpression = std::dynamic_pointer_cast<ExpressionAST>(newAST);
+	}
+
+	mReturnExpression->rewrite();
 }
 
 std::shared_ptr<AbstractSyntaxTree> ReturnStatementAST::findAST(std::function<bool (std::shared_ptr<AbstractSyntaxTree> ast)> predicate) const {
@@ -116,6 +136,29 @@ std::shared_ptr<BlockAST> IfElseStatementAST::elseBlock() const {
 
 std::string IfElseStatementAST::asString() const {
 	return "if (" + mConditionExpression->asString() + ") " + mThenBlock->asString() + (mElseBlock != nullptr ? " else " + mElseBlock->asString() : "");
+}
+
+void IfElseStatementAST::rewrite() {
+	std::shared_ptr<AbstractSyntaxTree> newAST;
+
+	if (mConditionExpression->rewriteAST(newAST)) {
+		mConditionExpression = std::dynamic_pointer_cast<ExpressionAST>(newAST);
+	}
+
+	if (mThenBlock->rewriteAST(newAST)) {
+		mThenBlock = std::dynamic_pointer_cast<BlockAST>(newAST);
+	}
+
+	if (mElseBlock != nullptr && mElseBlock->rewriteAST(newAST)) {
+		mElseBlock = std::dynamic_pointer_cast<BlockAST>(newAST);
+	}
+
+	mConditionExpression->rewrite();
+	mThenBlock->rewrite();
+
+	if (mElseBlock != nullptr) {
+		mElseBlock->rewrite();
+	}
 }
 
 std::shared_ptr<AbstractSyntaxTree> IfElseStatementAST::findAST(std::function<bool (std::shared_ptr<AbstractSyntaxTree> ast)> predicate) const {
@@ -215,6 +258,21 @@ std::string WhileLoopStatementAST::asString() const {
 	return "while (" + mConditionExpression->asString() + ") " + mBodyBlock->asString();
 }
 
+void WhileLoopStatementAST::rewrite() {
+	std::shared_ptr<AbstractSyntaxTree> newAST;
+
+	if (mConditionExpression->rewriteAST(newAST)) {
+		mConditionExpression = std::dynamic_pointer_cast<ExpressionAST>(newAST);
+	}
+
+	if (mBodyBlock->rewriteAST(newAST)) {
+		mBodyBlock = std::dynamic_pointer_cast<BlockAST>(newAST);
+	}
+
+	mConditionExpression->rewrite();
+	mBodyBlock->rewrite();
+}
+
 std::shared_ptr<AbstractSyntaxTree> WhileLoopStatementAST::findAST(std::function<bool (std::shared_ptr<AbstractSyntaxTree> ast)> predicate) const {
 	if (predicate(mConditionExpression)) {
 		return mConditionExpression;
@@ -238,7 +296,7 @@ std::shared_ptr<AbstractSyntaxTree> WhileLoopStatementAST::findAST(std::function
 void WhileLoopStatementAST::generateSymbols(Binder& binder, std::shared_ptr<SymbolTable> symbolTable) {
 	AbstractSyntaxTree::generateSymbols(binder, symbolTable);
 
-	mConditionExpression->generateSymbols(binder, symbolTable);;
+	mConditionExpression->generateSymbols(binder, symbolTable);
 	mBodyBlock->generateSymbols(binder, symbolTable);
 }
 
@@ -248,7 +306,39 @@ void WhileLoopStatementAST::typeCheck(TypeChecker& checker) {
 }
 
 void WhileLoopStatementAST::generateCode(CodeGenerator& codeGen, GeneratedFunction& func) {
+	if (auto binOpExpr = std::dynamic_pointer_cast<BinaryOpExpressionAST>(mConditionExpression)) {
+		auto op = binOpExpr->op();
 
+		int condStart = func.numInstructions();
+		
+		binOpExpr->rightHandSide()->generateCode(codeGen, func);
+		binOpExpr->leftHandSide()->generateCode(codeGen, func);
+		
+		int condIndex = func.numInstructions();
+
+		if (op == Operator('<')) {
+			func.addInstruction("BGE");
+		} else if (op == Operator('>')) {
+			func.addInstruction("BLE");
+		} else if (op == Operator('<', '=')) {
+			func.addInstruction("BGT");
+		} else if (op == Operator('>', '=')) {
+			func.addInstruction("BLT");
+		} else if (op == Operator('=', '=')) {
+			func.addInstruction("BNE");
+		} else if (op == Operator('!', '=')) {
+			func.addInstruction("BEQ");
+		} else {
+			codeGen.codeGenError("'" + op.asString() + "' is not a boolean operator.");
+		}
+
+		mBodyBlock->generateCode(codeGen, func);
+		func.addInstruction("BR " + std::to_string(condStart));
+
+		func.instruction(condIndex) += " " + std::to_string(func.numInstructions());
+	} else {
+		codeGen.codeGenError("While statement not implemented for current expression.");
+	}
 }
 
 //For loop statement AST
@@ -277,6 +367,31 @@ std::shared_ptr<BlockAST> ForLoopStatementAST::bodyBlock() const {
 
 std::string ForLoopStatementAST::asString() const {
 	return "for (" + mInitExpression->asString() + "; " + mConditionExpression->asString() + "; " + mChangeExpression->asString() + ") " + mBodyBlock->asString();
+}
+
+void ForLoopStatementAST::rewrite() {
+	std::shared_ptr<AbstractSyntaxTree> newAST;
+
+	if (mInitExpression->rewriteAST(newAST)) {
+		mInitExpression = std::dynamic_pointer_cast<ExpressionAST>(newAST);
+	}
+
+	if (mConditionExpression->rewriteAST(newAST)) {
+		mConditionExpression = std::dynamic_pointer_cast<ExpressionAST>(newAST);
+	}
+
+	if (mChangeExpression->rewriteAST(newAST)) {
+		mChangeExpression = std::dynamic_pointer_cast<ExpressionAST>(newAST);
+	}
+
+	if (mBodyBlock->rewriteAST(newAST)) {
+		mBodyBlock = std::dynamic_pointer_cast<BlockAST>(newAST);
+	}
+
+	mInitExpression->rewrite();
+	mConditionExpression->rewrite();
+	mChangeExpression->rewrite();
+	mBodyBlock->rewrite();
 }
 
 std::shared_ptr<AbstractSyntaxTree> ForLoopStatementAST::findAST(std::function<bool (std::shared_ptr<AbstractSyntaxTree> ast)> predicate) const {

@@ -91,6 +91,16 @@ std::string FunctionAST::asString() const {
 	return funcStr;
 }
 
+void FunctionAST::rewrite() {
+	std::shared_ptr<AbstractSyntaxTree> newAST;
+
+	if (mBody->rewriteAST(newAST)) {
+		mBody = std::dynamic_pointer_cast<BlockAST>(newAST);
+	}
+
+	mBody->rewrite();
+}
+
 void FunctionAST::generateSymbols(Binder& binder, std::shared_ptr<SymbolTable> symbolTable) {
 	AbstractSyntaxTree::generateSymbols(binder, symbolTable);
 	auto inner = SymbolTable::newInner(symbolTable);

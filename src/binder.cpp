@@ -1,12 +1,12 @@
 #include "binder.h"
 #include "programast.h"
-#include <stdexcept>
-#include <vector>
 #include "expressionast.h"
 #include "functionast.h"
+#include <stdexcept>
+#include <vector>
 
-Binder::Binder(std::shared_ptr<Program> program)
-	: mProgram(program), mSymbolTable(std::make_shared<SymbolTable>(SymbolTable())) {
+Binder::Binder()
+	: mSymbolTable(std::make_shared<SymbolTable>(SymbolTable())) {
 
 }
 
@@ -22,10 +22,6 @@ void Binder::addFunction(std::string name, const std::vector<std::pair<std::stri
 
 void Binder::generateSymbolTable(std::shared_ptr<ProgramAST> programAST) {
 	programAST->generateSymbols(*this, mSymbolTable);
-}
-
-std::shared_ptr<Program> Binder::program() const {
-	return mProgram;
 }
 
 std::shared_ptr<SymbolTable> Binder::symbolTable() const {

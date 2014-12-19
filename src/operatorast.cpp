@@ -97,6 +97,42 @@ std::string BinaryOpExpressionAST::asString() const {
 	return mLeftHandSide->asString() + " " + mOp.asString() + " " + mRightHandSide->asString();
 }
 
+bool BinaryOpExpressionAST::rewriteAST(std::shared_ptr<AbstractSyntaxTree>& newAST) const {
+	bool correctOp = false;
+	Operator op(' ');
+
+	if (mOp == Operator('+', '=')) {
+		op = Operator('+');
+		correctOp = true;
+	} else if (mOp == Operator('-', '=')) {
+		op = Operator('-');
+		correctOp = true;
+	} else if (mOp == Operator('*', '=')) {
+		op = Operator('*');
+		correctOp = true;
+	} else if (mOp == Operator('/', '=')) {
+		op = Operator('/');
+		correctOp = true;
+	}
+
+	if (correctOp) {
+		std::shared_ptr<ExpressionAST> varRefExpr;
+
+		if (auto varDec = std::dynamic_pointer_cast<VariableDeclerationExpressionAST>(mLeftHandSide)) {
+			varRefExpr = std::make_shared<VariableReferenceExpressionAST>(varDec->varName());
+		} else if (auto varRef = std::dynamic_pointer_cast<VariableReferenceExpressionAST>(mLeftHandSide)) {
+			varRefExpr = std::make_shared<VariableReferenceExpressionAST>(varRef->varName());
+		} else {
+			return false;
+		}
+
+		newAST = std::make_shared<BinaryOpExpressionAST>(mLeftHandSide, std::make_shared<BinaryOpExpressionAST>(varRefExpr, mRightHandSide, op), Operator('='));
+		return true;
+	}
+
+	return false;
+}
+
 void BinaryOpExpressionAST::generateSymbols(Binder& binder, std::shared_ptr<SymbolTable> symbolTable) {
 	AbstractSyntaxTree::generateSymbols(binder, symbolTable);
 

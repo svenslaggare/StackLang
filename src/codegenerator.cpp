@@ -168,4 +168,4 @@ void CodeGenerator::codeGenError(std::string errorMessage) {
 	throw std::runtime_error(errorMessage);
 }
 
-std::string CodeGenerator::returnValueLocal = "__INTERNAL_RETURN_VALUE";
+std::string CodeGenerator::returnValueLocal = "$COMPILER_INTERNAL$_RETURN_VALUE";

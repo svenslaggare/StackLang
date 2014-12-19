@@ -27,6 +27,12 @@ public:
 	//Searches for the given tree
 	virtual std::shared_ptr<AbstractSyntaxTree> findAST(std::function<bool (std::shared_ptr<AbstractSyntaxTree> ast)> predicate) const;
 
+	//Rewrites the children of the current tree
+	virtual void rewrite() {};
+
+	//Rewrites the current tree and returns the result
+	virtual bool rewriteAST(std::shared_ptr<AbstractSyntaxTree>& newAST) const;
+
 	//Generates symbols
 	virtual void generateSymbols(Binder& binder, std::shared_ptr<SymbolTable> symbolTable);
 
