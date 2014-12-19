@@ -35,7 +35,7 @@ int main() {
 
 	typeChecker.checkTypes(programAST);
 
-	CodeGenerator codeGenerator;
+	CodeGenerator codeGenerator(typeChecker);
 	codeGenerator.generateProgram(programAST);
 	codeGenerator.printGeneratedCode();
 }

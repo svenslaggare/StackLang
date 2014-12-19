@@ -95,7 +95,7 @@ void VariableReferenceExpressionAST::generateCode(CodeGenerator& codeGen, Genera
 	if (isFuncParam) {
 		func.addInstruction("LDARG " + std::to_string(func.functionParameterIndex(mVarName)));
 	} else {
-
+		func.addInstruction("LDLOC " + std::to_string(func.getLocal(mVarName).first));
 	}
 }
 
@@ -142,7 +142,9 @@ std::shared_ptr<Type> VariableDeclerationExpressionAST::expressionType(const Typ
 }
 
 void VariableDeclerationExpressionAST::generateCode(CodeGenerator& codeGen, GeneratedFunction& func) {
-
+	if (!mIsFunctionParameter) {
+		func.newLocal(mVarName, codeGen.typeChecker().getType(mVarType));
+	}
 }
 
 //Call expression AST

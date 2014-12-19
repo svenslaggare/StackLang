@@ -2,7 +2,9 @@
 #include "ast.h"
 #include "typechecker.h"
 #include "type.h"
+#include "symboltable.h"
 #include "codegenerator.h"
+#include "expressionast.h"
 
 //Operator
 Operator::Operator(char op1)
@@ -96,6 +98,8 @@ std::string BinaryOpExpressionAST::asString() const {
 }
 
 void BinaryOpExpressionAST::generateSymbols(Binder& binder, std::shared_ptr<SymbolTable> symbolTable) {
+	AbstractSyntaxTree::generateSymbols(binder, symbolTable);
+
 	mRightHandSide->generateSymbols(binder, symbolTable);
 	mLeftHandSide->generateSymbols(binder, symbolTable);
 }
@@ -118,17 +122,39 @@ std::shared_ptr<Type> BinaryOpExpressionAST::expressionType(const TypeChecker& c
 }
 
 void BinaryOpExpressionAST::generateCode(CodeGenerator& codeGen, GeneratedFunction& func) {
-	mLeftHandSide->generateCode(codeGen, func);
-	mRightHandSide->generateCode(codeGen, func);
-
 	if (mOp == Operator('+')) {
+		mRightHandSide->generateCode(codeGen, func);
+		mLeftHandSide->generateCode(codeGen, func);
 		func.addInstruction("ADD");
 	} else if (mOp == Operator('-')) {
+		mRightHandSide->generateCode(codeGen, func);
+		mLeftHandSide->generateCode(codeGen, func);
 		func.addInstruction("SUB");
 	} else if (mOp == Operator('*')) {
+		mRightHandSide->generateCode(codeGen, func);
+		mLeftHandSide->generateCode(codeGen, func);
 		func.addInstruction("MUL");
 	} else if (mOp == Operator('/')) {
+		mRightHandSide->generateCode(codeGen, func);
+		mLeftHandSide->generateCode(codeGen, func);
 		func.addInstruction("DIV");
+	} else if (mOp == Operator('=')) {
+		mRightHandSide->generateCode(codeGen, func);
+
+		if (auto varDec = std::dynamic_pointer_cast<VariableDeclerationExpressionAST>(mLeftHandSide)) {
+			mLeftHandSide->generateCode(codeGen, func);
+			func.addInstruction("STLOC " + std::to_string(func.getLocal(varDec->varName()).first));
+		} else if (auto varRef = std::dynamic_pointer_cast<VariableReferenceExpressionAST>(mLeftHandSide)) {
+			auto varDec = std::dynamic_pointer_cast<VariableDeclerationExpressionAST>(mSymbolTable->find(varRef->varName()));
+
+			if (!varDec->isFunctionParameter()) {
+				func.addInstruction("STLOC " + std::to_string(func.getLocal(varRef->varName()).first));
+			} else {
+				codeGen.codeGenError("Assignment to function parameter.");
+			}
+		} else {
+			codeGen.codeGenError("Left hand side is not decleration or variable reference.");
+		}
 	} else {
 		codeGen.codeGenError("Operator '" + mOp.asString() + "' is not defined.");
 	}

@@ -3,6 +3,8 @@
 #include "functionast.h"
 #include "programast.h"
 #include "expressionast.h"
+#include "type.h"
+#include "typechecker.h"
 #include <stdexcept>
 
 //Generated function
@@ -20,14 +22,18 @@ int GeneratedFunction::numLocals() const {
 	return mLocals.size();
 }
 
-int GeneratedFunction::newLocal(std::shared_ptr<Type> type) {
+const std::map<std::string, std::pair<int, std::shared_ptr<Type>>>& GeneratedFunction::locals() const {
+	return mLocals;
+}
+
+int GeneratedFunction::newLocal(std::string name, std::shared_ptr<Type> type) {
 	int index = numLocals();
-	mLocals.push_back(type);
+	mLocals.insert({ name, { index, type } });
 	return index;
 }
 
-std::shared_ptr<Type> GeneratedFunction::getLocal(int index) const {
-	return mLocals.at(index);
+Local GeneratedFunction::getLocal(std::string name) const {
+	return mLocals.at(name);
 }
 
 int GeneratedFunction::functionParameterIndex(std::string paramName) const {
@@ -42,6 +48,18 @@ int GeneratedFunction::functionParameterIndex(std::string paramName) const {
 
 void GeneratedFunction::addInstruction(const std::string& instruction) {
 	mInstructions.push_back(instruction);
+}
+
+int GeneratedFunction::numInstructions() const {
+	return mInstructions.size();
+}
+
+std::string& GeneratedFunction::instruction(int index) {
+	return mInstructions.at(index);
+}
+
+void GeneratedFunction::addReturnBranch(int index) {
+	mReturnBranches.push_back(index);
 }
 
 void GeneratedFunction::outputGeneratedCode(std::ostream& os) {
@@ -63,16 +81,30 @@ void GeneratedFunction::outputGeneratedCode(std::ostream& os) {
 	os << "{";
 
 	if (mLocals.size() > 0) {
-		os << ".locals " << mLocals.size() << std::endl;
+		os << std::endl << "   .locals " << mLocals.size() << std::endl;
 
-		for (int i = 0; i < mLocals.size(); i++) {
-			os << ".local " << i << mLocals[i] << std::endl;
+		for (auto local : mLocals) {
+			os << "   .local " << local.second.first << " " << local.second.second->name() << std::endl;
 		}
 	}
 
-	isFirst = false;
+	//Handle return
+	int returnInst = mInstructions.size();
+	auto genInstructions = mInstructions;
 
-	for (auto inst : mInstructions) {
+	if (mPrototype->returnType() != "Void") {
+		genInstructions.push_back("LDLOC " + std::to_string(getLocal(CodeGenerator::returnValueLocal).first));
+	}
+
+	genInstructions.push_back("RET");
+
+	for (auto returnBrach : mReturnBranches) {
+		genInstructions[returnBrach] += " " + std::to_string(returnInst);
+	}
+
+	isFirst = false;
+	int i = 0;
+	for (auto inst : genInstructions) {
 		if (!isFirst) {
 			os << std::endl;
 		} else {
@@ -80,12 +112,22 @@ void GeneratedFunction::outputGeneratedCode(std::ostream& os) {
 		}
 
 		os << "   " << inst;
+		i++;
 	}
 
 	os << std::endl << "}" << std::endl;
 }
 
 //Code generator
+CodeGenerator::CodeGenerator(const TypeChecker& typeChecker)
+	: mTypeChecker(typeChecker) {
+
+}
+
+const TypeChecker& CodeGenerator::typeChecker() const {
+	return mTypeChecker;
+}
+
 void CodeGenerator::generateProgram(std::shared_ptr<ProgramAST> programAST) {
 	for (auto func : programAST->functions()) {
 		auto& genFunc = newFunction(func->prototype());
@@ -95,7 +137,14 @@ void CodeGenerator::generateProgram(std::shared_ptr<ProgramAST> programAST) {
 
 GeneratedFunction& CodeGenerator::newFunction(std::shared_ptr<FunctionPrototypeAST> functionPrototype) {
 	mFunctions.insert({ functionPrototype->name(), GeneratedFunction(functionPrototype) });
-	return mFunctions[functionPrototype->name()];
+
+	auto& newFunc = mFunctions[functionPrototype->name()];
+
+	if (functionPrototype->returnType() != "Void") {
+		newFunc.newLocal(CodeGenerator::returnValueLocal, mTypeChecker.getType(functionPrototype->returnType()));
+	}
+
+	return newFunc;
 }
 
 GeneratedFunction& CodeGenerator::getFunction(std::string funcName) {
@@ -118,3 +167,5 @@ void CodeGenerator::printGeneratedCode() {
 void CodeGenerator::codeGenError(std::string errorMessage) {
 	throw std::runtime_error(errorMessage);
 }
+
+std::string CodeGenerator::returnValueLocal = "__INTERNAL_RETURN_VALUE";

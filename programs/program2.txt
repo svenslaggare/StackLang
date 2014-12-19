@@ -1,12 +1,25 @@
 func abs(Int x): Int {
-	#if (x < 0) {
-	#	return -x;
-	#} else {
-	#	return x;
-	#}
-	return x + 1;
+	Int res = 0;
+
+	if (x < 0) {
+		res = -x;
+	} else {
+		res = x;
+	}
+
+	return res;
+}
+
+func abs2(Int x): Int {
+	if (x < 0) {
+		return -x;
+	} else {
+		return x;
+	}
 }
 
 func main(): Int {
-	return abs(-2);
+	println(abs2(-5));
+	println(abs2(5));
+	return 0;
 }

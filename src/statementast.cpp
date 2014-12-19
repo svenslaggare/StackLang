@@ -1,5 +1,6 @@
 #include "statementast.h"
 #include "blockast.h"
+#include "operatorast.h"
 #include "typechecker.h"
 #include "symboltable.h"
 #include "asthelpers.h"
@@ -86,9 +87,13 @@ void ReturnStatementAST::typeCheck(TypeChecker& checker) {
 }
 
 void ReturnStatementAST::generateCode(CodeGenerator& codeGen, GeneratedFunction& func) {
-	mReturnExpression->generateCode(codeGen, func);
+	if (mReturnExpression != nullptr) {
+		mReturnExpression->generateCode(codeGen, func);
+		func.addInstruction("STLOC " + std::to_string(func.getLocal(CodeGenerator::returnValueLocal).first));
+	}
 
-	func.addInstruction("RET");
+	func.addReturnBranch(func.numInstructions());
+	func.addInstruction("BR");
 }
 
 //If & else statement AST
@@ -149,6 +154,47 @@ void IfElseStatementAST::typeCheck(TypeChecker& checker) {
 }
 
 void IfElseStatementAST::generateCode(CodeGenerator& codeGen, GeneratedFunction& func) {
+	if (auto binOpExpr = std::dynamic_pointer_cast<BinaryOpExpressionAST>(mConditionExpression)) {
+		auto op = binOpExpr->op();
+
+		binOpExpr->rightHandSide()->generateCode(codeGen, func);
+		binOpExpr->leftHandSide()->generateCode(codeGen, func);
+		
+		int condIndex = func.numInstructions();
+		int elseIndex = -1;
+
+		if (op == Operator('<')) {
+			func.addInstruction("BGE");
+		} else if (op == Operator('>')) {
+			func.addInstruction("BLE");
+		} else if (op == Operator('<', '=')) {
+			func.addInstruction("BGT");
+		} else if (op == Operator('>', '=')) {
+			func.addInstruction("BLT");
+		} else if (op == Operator('=', '=')) {
+			func.addInstruction("BNE");
+		} else if (op == Operator('!', '=')) {
+			func.addInstruction("BEQ");
+		} else {
+			codeGen.codeGenError("'" + op.asString() + "' is not a boolean operator.");
+		}
+
+		mThenBlock->generateCode(codeGen, func);
+		
+		if (mElseBlock != nullptr) {
+			elseIndex = func.numInstructions();
+			func.addInstruction("BR");
+		}
+
+		func.instruction(condIndex) += " " + std::to_string(func.numInstructions());
+
+		if (mElseBlock != nullptr) {
+			mElseBlock->generateCode(codeGen, func);
+			func.instruction(elseIndex) += " " + std::to_string(func.numInstructions());
+		}
+	} else {
+		codeGen.codeGenError("If statement not implemented for current expression.");
+	}
 }
 
 //While loop statement AST
