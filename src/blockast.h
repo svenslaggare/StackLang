@@ -10,7 +10,7 @@ class TypeChecker;
 class CodeGenerator;
 
 //Represents a block AST
-class BlockAST : public AbstractSyntaxTree {
+class BlockAST : public StatementAST {
 private:
 	std::vector<std::shared_ptr<StatementAST>> mStatements;
 	std::shared_ptr<SymbolTable> mBlockTable;

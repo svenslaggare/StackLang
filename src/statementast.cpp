@@ -369,62 +369,74 @@ std::string ForLoopStatementAST::asString() const {
 	return "for (" + mInitExpression->asString() + "; " + mConditionExpression->asString() + "; " + mChangeExpression->asString() + ") " + mBodyBlock->asString();
 }
 
-void ForLoopStatementAST::rewrite() {
-	std::shared_ptr<AbstractSyntaxTree> newAST;
+// void ForLoopStatementAST::rewrite() {
+// 	std::shared_ptr<AbstractSyntaxTree> newAST;
 
-	if (mInitExpression->rewriteAST(newAST)) {
-		mInitExpression = std::dynamic_pointer_cast<ExpressionAST>(newAST);
-	}
+// 	if (mInitExpression->rewriteAST(newAST)) {
+// 		mInitExpression = std::dynamic_pointer_cast<ExpressionAST>(newAST);
+// 	}
 
-	if (mConditionExpression->rewriteAST(newAST)) {
-		mConditionExpression = std::dynamic_pointer_cast<ExpressionAST>(newAST);
-	}
+// 	if (mConditionExpression->rewriteAST(newAST)) {
+// 		mConditionExpression = std::dynamic_pointer_cast<ExpressionAST>(newAST);
+// 	}
 
-	if (mChangeExpression->rewriteAST(newAST)) {
-		mChangeExpression = std::dynamic_pointer_cast<ExpressionAST>(newAST);
-	}
+// 	if (mChangeExpression->rewriteAST(newAST)) {
+// 		mChangeExpression = std::dynamic_pointer_cast<ExpressionAST>(newAST);
+// 	}
 
-	if (mBodyBlock->rewriteAST(newAST)) {
-		mBodyBlock = std::dynamic_pointer_cast<BlockAST>(newAST);
-	}
+// 	if (mBodyBlock->rewriteAST(newAST)) {
+// 		mBodyBlock = std::dynamic_pointer_cast<BlockAST>(newAST);
+// 	}
 
-	mInitExpression->rewrite();
-	mConditionExpression->rewrite();
-	mChangeExpression->rewrite();
-	mBodyBlock->rewrite();
+// 	mInitExpression->rewrite();
+// 	mConditionExpression->rewrite();
+// 	mChangeExpression->rewrite();
+// 	mBodyBlock->rewrite();
+// }
+
+bool ForLoopStatementAST::rewriteAST(std::shared_ptr<AbstractSyntaxTree>& newAST) const {
+	auto bodyStatements = mBodyBlock->statements();
+	bodyStatements.push_back(std::make_shared<ExpressionStatementAST>(mChangeExpression));
+
+	std::vector<std::shared_ptr<StatementAST>> outerBlockStatements;
+	outerBlockStatements.push_back(std::make_shared<ExpressionStatementAST>(mInitExpression));
+	outerBlockStatements.push_back(std::make_shared<WhileLoopStatementAST>(mConditionExpression, std::make_shared<BlockAST>(bodyStatements)));
+
+	newAST = std::make_shared<BlockAST>(outerBlockStatements);
+	return true;
 }
 
-std::shared_ptr<AbstractSyntaxTree> ForLoopStatementAST::findAST(std::function<bool (std::shared_ptr<AbstractSyntaxTree> ast)> predicate) const {
-	std::shared_ptr<AbstractSyntaxTree> result;
+// std::shared_ptr<AbstractSyntaxTree> ForLoopStatementAST::findAST(std::function<bool (std::shared_ptr<AbstractSyntaxTree> ast)> predicate) const {
+// 	std::shared_ptr<AbstractSyntaxTree> result;
 
-	if (ASTHelpers::findAST(mInitExpression, predicate, result)
-		|| ASTHelpers::findAST(mConditionExpression, predicate, result)
-		|| ASTHelpers::findAST(mChangeExpression, predicate, result)
-		|| ASTHelpers::findAST(mBodyBlock, predicate, result)) {
-		return result;
-	}
+// 	if (ASTHelpers::findAST(mInitExpression, predicate, result)
+// 		|| ASTHelpers::findAST(mConditionExpression, predicate, result)
+// 		|| ASTHelpers::findAST(mChangeExpression, predicate, result)
+// 		|| ASTHelpers::findAST(mBodyBlock, predicate, result)) {
+// 		return result;
+// 	}
 
-	return nullptr;
-}
+// 	return nullptr;
+// }
 
-void ForLoopStatementAST::generateSymbols(Binder& binder, std::shared_ptr<SymbolTable> symbolTable) {
-	AbstractSyntaxTree::generateSymbols(binder, symbolTable);
+// void ForLoopStatementAST::generateSymbols(Binder& binder, std::shared_ptr<SymbolTable> symbolTable) {
+// 	AbstractSyntaxTree::generateSymbols(binder, symbolTable);
 
-	auto inner = SymbolTable::newInner(symbolTable);
+// 	auto inner = SymbolTable::newInner(symbolTable);
 
-	mInitExpression->generateSymbols(binder, inner);
-	mConditionExpression->generateSymbols(binder, inner);
-	mChangeExpression->generateSymbols(binder, inner);
-	mBodyBlock->generateSymbols(binder, inner);
-}
+// 	mInitExpression->generateSymbols(binder, inner);
+// 	mConditionExpression->generateSymbols(binder, inner);
+// 	mChangeExpression->generateSymbols(binder, inner);
+// 	mBodyBlock->generateSymbols(binder, inner);
+// }
 
-void ForLoopStatementAST::typeCheck(TypeChecker& checker) {
-	mInitExpression->typeCheck(checker);
-	mConditionExpression->typeCheck(checker);
-	mChangeExpression->typeCheck(checker);
-	mBodyBlock->typeCheck(checker);
-}
+// void ForLoopStatementAST::typeCheck(TypeChecker& checker) {
+// 	mInitExpression->typeCheck(checker);
+// 	mConditionExpression->typeCheck(checker);
+// 	mChangeExpression->typeCheck(checker);
+// 	mBodyBlock->typeCheck(checker);
+// }
 
-void ForLoopStatementAST::generateCode(CodeGenerator& codeGen, GeneratedFunction& func) {
+// void ForLoopStatementAST::generateCode(CodeGenerator& codeGen, GeneratedFunction& func) {
 	
-}
+// }

@@ -146,13 +146,15 @@ public:
 
 	std::string asString() const override;
 
-	virtual void rewrite() override;
+	// virtual void rewrite() override;
 	
-	virtual std::shared_ptr<AbstractSyntaxTree> findAST(std::function<bool (std::shared_ptr<AbstractSyntaxTree> ast)> predicate) const override;
+	virtual bool rewriteAST(std::shared_ptr<AbstractSyntaxTree>& newAST) const override;
+	
+	// virtual std::shared_ptr<AbstractSyntaxTree> findAST(std::function<bool (std::shared_ptr<AbstractSyntaxTree> ast)> predicate) const override;
 
-	virtual void generateSymbols(Binder& binder, std::shared_ptr<SymbolTable> symbolTable) override;
+	// virtual void generateSymbols(Binder& binder, std::shared_ptr<SymbolTable> symbolTable) override;
 
-	virtual void typeCheck(TypeChecker& checker) override;
+	// virtual void typeCheck(TypeChecker& checker) override;
 
-	virtual void generateCode(CodeGenerator& codeGen, GeneratedFunction& func) override;
+	// virtual void generateCode(CodeGenerator& codeGen, GeneratedFunction& func) override;
 };

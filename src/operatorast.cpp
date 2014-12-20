@@ -6,65 +6,6 @@
 #include "codegenerator.h"
 #include "expressionast.h"
 
-//Operator
-Operator::Operator(char op1)
-	: mOp1(op1), mOp2(0), mIsTwoChars(false) {
-
-}
-
-Operator::Operator(char op1, char op2)
-	: mOp1(op1), mOp2(op2), mIsTwoChars(true) {
-
-}
-
-bool Operator::isTwoChars() const {
-	return mIsTwoChars;
-}
-
-char Operator::op1() const {
-	return mOp1;
-}
-
-char Operator::op2() const {
-	if (!mIsTwoChars) {
-		throw std::logic_error("The current operator isn't a two-char operator.");
-	}
-
-	return mOp2;
-}
-
-bool Operator::operator<(const Operator& rhs) const {
-	if (mIsTwoChars < rhs.mIsTwoChars) {
-		return true;
-	} else if (mIsTwoChars > rhs.mIsTwoChars) {
-		return false;
-	} else {
-		if (mIsTwoChars) {
-			if (mOp1 < rhs.mOp1) {
-				return true;
-			} else if (mOp1 > rhs.mOp1) {
-				return false;
-			} else {
-				return mOp2 < rhs.mOp2;
-			}
-		} else {
-			return mOp1 < rhs.mOp1;
-		}
-	}
-}
-
-bool Operator::operator==(const Operator& rhs) const {
-	return mIsTwoChars == rhs.mIsTwoChars && mOp1 == rhs.mOp1 && mOp2 == rhs.mOp2;
-}
-
-bool Operator::operator!=(const Operator& rhs) const {
-	return !((*this) == rhs);
-}
-
-std::string Operator::asString() const {
-	return mIsTwoChars ? (std::string("") + mOp1 + mOp2) : std::string("") + mOp1;
-}
-
 //Binary OP expression AST
 const std::map<Operator, std::shared_ptr<Type>> BinaryOpExpressionAST::mBoolTypes {
 	{ Operator('<'), std::make_shared<PrimitiveType>(PrimitiveType(PrimitiveTypes::Bool)) },

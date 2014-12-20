@@ -4,40 +4,11 @@
 #include <map>
 
 #include "ast.h"
+#include "operators.h"
 
 class TypeChecker;
 class Type;
 class CodeGenerator;
-
-//Represents an operator
-class Operator {
-private:
-	bool mIsTwoChars;
-	char mOp1;
-	char mOp2;
-public:
-	//Creates a new single-character operator
-	explicit Operator(char op1);
-
-	//Creates a new two-characters operator
-	Operator(char op1, char op2);
-
-	//Indicates if the current operator consists of two characters
-	bool isTwoChars() const;
-
-	//Returns the first op character
-	char op1() const;
-
-	//Returns the second op character. If not a two-character operator the functions throws an exception.
-	char op2() const;
-
-	bool operator<(const Operator& rhs) const;
-	bool operator==(const Operator& rhs) const;
-	bool operator!=(const Operator& rhs) const;
-
-	//Returns the current operator as a string
-	std::string asString() const;
-};
 
 //Represents a binary operation expression
 class BinaryOpExpressionAST : public ExpressionAST {

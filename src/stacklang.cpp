@@ -19,9 +19,8 @@ int main() {
 	Parser parser(tokens);
 	auto programAST = parser.parse();
 
-	//std::cout << *programAST << std::endl;
-
 	programAST->rewrite();
+	//std::cout << *programAST << std::endl;
 
 	Binder binder;
 	binder.addFunction("println", { { "Int", "x" } }, "Void");
