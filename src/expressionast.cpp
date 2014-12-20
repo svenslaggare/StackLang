@@ -169,6 +169,16 @@ std::string CallExpressionAST::asString() const {
 	return callStr;
 }
 
+void CallExpressionAST::rewrite() {
+	for (auto& arg : mArguments) {
+		std::shared_ptr<AbstractSyntaxTree> newAST;
+
+		if (arg->rewriteAST(newAST)) {
+			arg = std::dynamic_pointer_cast<ExpressionAST>(newAST);
+		}
+	}
+}
+
 void CallExpressionAST::generateSymbols(Binder& binder, std::shared_ptr<SymbolTable> symbolTable) {
 	AbstractSyntaxTree::generateSymbols(binder, symbolTable);
 	

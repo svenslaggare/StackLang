@@ -5,14 +5,19 @@
 
 class Type;
 class ProgramAST;
+class OperatorContainer;
 
 //Represents a type checker
 class TypeChecker {
 private:
 	std::map<std::string, std::shared_ptr<Type>> mTypes;
+	const OperatorContainer& mOperators;
 public:
 	//Creates a new type checker
-	TypeChecker(std::map<std::string, std::shared_ptr<Type>> types);
+	TypeChecker(const OperatorContainer& operators, std::map<std::string, std::shared_ptr<Type>> types);
+
+	//Returns the defined operators
+	const OperatorContainer& operators() const;
 
 	//Returns the given type. Nullptr if not found.
 	std::shared_ptr<Type> getType(std::string typeName) const;

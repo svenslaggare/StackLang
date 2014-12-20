@@ -16,7 +16,6 @@ private:
 	std::shared_ptr<ExpressionAST> mLeftHandSide;
 	std::shared_ptr<ExpressionAST> mRightHandSide;
 	Operator mOp;
-	static const std::map<Operator, std::shared_ptr<Type>> mBoolTypes;
 public:
 	//Creates a new binary operator expression
 	BinaryOpExpressionAST(std::shared_ptr<ExpressionAST> leftHandSide, std::shared_ptr<ExpressionAST> rightHandSide, Operator op);
@@ -60,6 +59,8 @@ public:
 
 	std::string asString() const override;
 	
+	virtual bool rewriteAST(std::shared_ptr<AbstractSyntaxTree>& newAST) const override;
+
 	virtual void generateSymbols(Binder& binder, std::shared_ptr<SymbolTable> symbolTable) override;
 
 	virtual void typeCheck(TypeChecker& checker) override;

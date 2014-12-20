@@ -3,9 +3,13 @@
 #include "programast.h"
 #include <stdexcept>
 
-TypeChecker::TypeChecker(std::map<std::string, std::shared_ptr<Type>> types)
-	: mTypes(types) {
+TypeChecker::TypeChecker(const OperatorContainer& operators, std::map<std::string, std::shared_ptr<Type>> types)
+	: mOperators(operators), mTypes(types) {
 
+}
+
+const OperatorContainer& TypeChecker::operators() const {
+	return mOperators;
 }
 
 std::shared_ptr<Type> TypeChecker::getType(std::string typeName) const {

@@ -44,7 +44,7 @@ int main() {
 	binder.addFunction("println", { { "Int", "x" } }, "Void");
 	binder.generateSymbolTable(programAST);
 
-	TypeChecker typeChecker({
+	TypeChecker typeChecker(operators, {
 		{ "Int", std::make_shared<PrimitiveType>(PrimitiveType(PrimitiveTypes::Int)) },
 		{ "Bool", boolType },
 		{ "Void", std::make_shared<PrimitiveType>(PrimitiveType(PrimitiveTypes::Void)) }

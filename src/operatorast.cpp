@@ -7,17 +7,6 @@
 #include "expressionast.h"
 
 //Binary OP expression AST
-const std::map<Operator, std::shared_ptr<Type>> BinaryOpExpressionAST::mBoolTypes {
-	{ Operator('<'), std::make_shared<PrimitiveType>(PrimitiveType(PrimitiveTypes::Bool)) },
-	{ Operator('>'), std::make_shared<PrimitiveType>(PrimitiveType(PrimitiveTypes::Bool)) },
-	{ Operator('<', '='), std::make_shared<PrimitiveType>(PrimitiveType(PrimitiveTypes::Bool)) },
-	{ Operator('>', '='), std::make_shared<PrimitiveType>(PrimitiveType(PrimitiveTypes::Bool)) },
-	{ Operator('=', '='), std::make_shared<PrimitiveType>(PrimitiveType(PrimitiveTypes::Bool)) },
-	{ Operator('!', '='), std::make_shared<PrimitiveType>(PrimitiveType(PrimitiveTypes::Bool)) },
-	{ Operator('&', '&'), std::make_shared<PrimitiveType>(PrimitiveType(PrimitiveTypes::Bool)) },
-	{ Operator('|', '|'), std::make_shared<PrimitiveType>(PrimitiveType(PrimitiveTypes::Bool)) }
-};
-
 BinaryOpExpressionAST::BinaryOpExpressionAST(std::shared_ptr<ExpressionAST> leftHandSide, std::shared_ptr<ExpressionAST> rightHandSide, Operator op)
 	: mLeftHandSide(leftHandSide), mRightHandSide(rightHandSide), mOp(op) {
 }
@@ -91,8 +80,10 @@ void BinaryOpExpressionAST::typeCheck(TypeChecker& checker) {
 }
 
 std::shared_ptr<Type> BinaryOpExpressionAST::expressionType(const TypeChecker& checker) const {
-	if (mBoolTypes.count(mOp) > 0) {
-		return mBoolTypes.at(mOp);
+	auto& boolTypes = checker.operators().binaryOpReturnTypes();
+
+	if (boolTypes.count(mOp) > 0) {
+		return boolTypes.at(mOp);
 	} else {
 		return mLeftHandSide->expressionType(checker);
 	}
@@ -153,6 +144,20 @@ Operator UnaryOpExpressionAST::op() const {
 
 std::string UnaryOpExpressionAST::asString() const {
 	return mOp.asString() + mOperand->asString();
+}
+
+bool UnaryOpExpressionAST::rewriteAST(std::shared_ptr<AbstractSyntaxTree>& newAST) const {
+	//Rewrite -int as an int expression
+	if (mOp == Operator('-')) {
+		auto intExpr = std::dynamic_pointer_cast<IntegerExpressionAST>(mOperand);
+
+		if (intExpr != nullptr) {
+			newAST = std::make_shared<IntegerExpressionAST>(-intExpr->value());
+			return true;
+		}
+	}
+
+	return false;
 }
 
 void UnaryOpExpressionAST::generateSymbols(Binder& binder, std::shared_ptr<SymbolTable> symbolTable) {
