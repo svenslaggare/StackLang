@@ -3,30 +3,30 @@
 #include "lexer.h"
 #include "asts.h"
 
-Parser::Parser(std::vector<Token> tokens)
-	: tokens(tokens), tokenIndex(-1) {
-	binOpPrecedence['<'] = 5;
-	binOpPrecedence['>'] = 5;
-	binOpPrecedence['+'] = 6;
-	binOpPrecedence['-'] = 6;
-	binOpPrecedence['*'] = 7;
-	binOpPrecedence['/'] = 7;
-	binOpPrecedence['='] = 1;
+Parser::Parser(const OperatorContainer& operators, std::vector<Token> tokens)
+	: operators(operators), tokens(tokens), tokenIndex(-1) {
+	// binOpPrecedence['<'] = 5;
+	// binOpPrecedence['>'] = 5;
+	// binOpPrecedence['+'] = 6;
+	// binOpPrecedence['-'] = 6;
+	// binOpPrecedence['*'] = 7;
+	// binOpPrecedence['/'] = 7;
+	// binOpPrecedence['='] = 1;
 
-	twoCharOpPrecedence[std::make_pair('<', '=')] = 5;
-	twoCharOpPrecedence[std::make_pair('>', '=')] = 5;
-	twoCharOpPrecedence[std::make_pair('=', '=')] = 4;
-	twoCharOpPrecedence[std::make_pair('!', '=')] = 4;
+	// twoCharOpPrecedence[std::make_pair('<', '=')] = 5;
+	// twoCharOpPrecedence[std::make_pair('>', '=')] = 5;
+	// twoCharOpPrecedence[std::make_pair('=', '=')] = 4;
+	// twoCharOpPrecedence[std::make_pair('!', '=')] = 4;
 
-	twoCharOpPrecedence[std::make_pair('&', '&')] = 3;
-	twoCharOpPrecedence[std::make_pair('|', '|')] = 2;
+	// twoCharOpPrecedence[std::make_pair('&', '&')] = 3;
+	// twoCharOpPrecedence[std::make_pair('|', '|')] = 2;
 
-	twoCharOpPrecedence[std::make_pair('+', '=')] = 1;
-	twoCharOpPrecedence[std::make_pair('-', '=')] = 1;
-	twoCharOpPrecedence[std::make_pair('*', '=')] = 1;
-	twoCharOpPrecedence[std::make_pair('-', '=')] = 1;
+	// twoCharOpPrecedence[std::make_pair('+', '=')] = 1;
+	// twoCharOpPrecedence[std::make_pair('-', '=')] = 1;
+	// twoCharOpPrecedence[std::make_pair('*', '=')] = 1;
+	// twoCharOpPrecedence[std::make_pair('-', '=')] = 1;
 
-	assignmentOperators = { '+', '-', '*', '/' };
+	// assignmentOperators = { '+', '-', '*', '/' };
 }
 
 void Parser::compileError(std::string message) {
@@ -78,17 +78,21 @@ int Parser::getTokenPrecedence() {
 		return -1;
 	}
 
-	auto twoCharsKey = std::make_pair(currentToken.charValue, currentToken.charValue2);
+	if (currentToken.type() == TokenType::TwoChars) {
+		Operator op(currentToken.charValue, currentToken.charValue2);
 
-	if (!(binOpPrecedence.count(currentToken.charValue) > 0 || twoCharOpPrecedence.count(twoCharsKey) > 0)) {
-		return -1;
-	}
-
-	if (currentToken.type() == TokenType::SingleChar) {
-		return binOpPrecedence[currentToken.charValue];
+		if (operators.isBinaryDefined(op)) {
+			return operators.getPrecedence(op);
+		}
 	} else {
-		return twoCharOpPrecedence[twoCharsKey];
+		Operator op(currentToken.charValue);
+
+		if (operators.isBinaryDefined(op)) {
+			return operators.getPrecedence(op);
+		}
 	}
+
+	return -1;
 }
 
 std::shared_ptr<ExpressionAST> Parser::parseIntegerExpression() {
@@ -214,11 +218,11 @@ std::shared_ptr<ExpressionAST> Parser::parseBinaryOpRHS(int exprPrecedence, std:
 
 		if (!op.isTwoChars()) {
 			if (!allowEqualAssign && op.op1() == '=') {
-				compileError("Operator '=' not allowed in this expression.");
+				compileError("Operator '=' not allowed in current expression.");
 			}
 		} else {
-			if (!allowEqualAssign && assignmentOperators.count(op.op1()) > 0 && op.op2() == '=') {
-				compileError("Operator '=' not allowed in this expression.");
+			if (!allowEqualAssign && operators.assignmentOperators().count(op.op1()) > 0 && op.op2() == '=') {
+				compileError("Operator '=' not allowed in current expression.");
 			}
 		}
 

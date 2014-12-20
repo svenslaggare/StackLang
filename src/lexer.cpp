@@ -63,6 +63,11 @@ std::ostream& operator<<(std::ostream& os, const Token& token) {
 	return os;
 }
 
+Lexer::Lexer(const std::unordered_set<char>& opTable)
+	: mOpTable(opTable) {
+
+}
+
 std::vector<Token> Lexer::tokenize(std::istream& stream) const {
 	std::vector<Token> tokens;
 

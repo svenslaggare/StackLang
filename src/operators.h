@@ -1,6 +1,7 @@
 #pragma once
 #include <map>
 #include <set>
+#include <unordered_set>
 #include <vector>
 #include <memory>
 
@@ -41,18 +42,27 @@ class OperatorContainer {
 private:
 	std::map<Operator, int> mBinaryOperators;
 	std::set<Operator> mUnaryOperators;
-	std::set<char> mAssignmentOperators;
+	std::unordered_set<char> mAssignmentOperators;
 	std::map<Operator, std::shared_ptr<Type>> mBinaryOpReturnTypes;
+
+	std::vector<Operator> mBinaryOperatorChars;
+	std::unordered_set<char> mOperatorChars;
 public:
 	//Creates a new operator container
 	OperatorContainer(std::map<Operator, int> binaryOperators, std::set<Operator> unaryOperators,
-					  std::set<char> assignmentOperators, std::map<Operator, std::shared_ptr<Type>> binaryOpReturnTypes);
+					  std::unordered_set<char> assignmentOperators, std::map<Operator, std::shared_ptr<Type>> binaryOpReturnTypes);
+
+	//Returns the characters used by the operators
+	const std::unordered_set<char>& operatorChars() const;
 
 	//Returns the binary operators
-	std::vector<Operator> binaryOperators() const;
+	const std::vector<Operator>& binaryOperators() const;
 
 	//Returns the precedence for the binary operators
 	const std::map<Operator, int>& binaryOperatorPrecedences() const;
+
+	//Returns the assignment operators
+	const std::unordered_set<char>& assignmentOperators() const;
 
 	//Returns the unary opertators
 	const std::set<Operator>& unaryOperators() const;

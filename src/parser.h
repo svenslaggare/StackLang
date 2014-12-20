@@ -5,6 +5,7 @@
 #include <memory>
 #include "lexer.h"
 
+class OperatorContainer;
 class ProgramAST;
 class FunctionAST;
 class BlockAST;
@@ -18,9 +19,10 @@ private:
 	Token currentToken;
 	int tokenIndex;
 
-	std::map<char, int> binOpPrecedence;
-	std::map<std::pair<char, char>, int> twoCharOpPrecedence;
-	std::set<char> assignmentOperators;
+	// std::map<char, int> binOpPrecedence;
+	// std::map<std::pair<char, char>, int> twoCharOpPrecedence;
+	// std::set<char> assignmentOperators;
+	const OperatorContainer& operators;
 
 	//Signals that a compile error has occured
 	void compileError(std::string message);
@@ -86,7 +88,7 @@ private:
 	std::shared_ptr<FunctionAST> parseFunctionDef();
 public:
 	//Creates a new parser
-	Parser(std::vector<Token> tokens);
+	Parser(const OperatorContainer& operators, std::vector<Token> tokens);
 
 	//Parses the tokens
 	std::shared_ptr<ProgramAST> parse();

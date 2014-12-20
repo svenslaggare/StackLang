@@ -11,12 +11,6 @@ func printInt(Int x): Void {
 }
 
 func main(): Int {
-	Int x = -10;
-	while (x < 0) {
-		printInt(abs(x));
-		x += 1;
-	}
-
 	for (Int x = 0; x < 10; x += 1) {
 		println(x);
 	}

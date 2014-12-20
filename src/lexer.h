@@ -48,8 +48,11 @@ std::ostream& operator<<(std::ostream& os, const Token& token);
 //Represents a lexer
 class Lexer {
 private:
-	std::unordered_set<char> mOpTable = { '<', '>', '=', '!', '+', '-', '*', '/', '&', '|' };
+	const std::unordered_set<char>& mOpTable;
 public:
+	//Creates a new lexer
+	Lexer(const std::unordered_set<char>& opTable);
+
 	//Tokenizes the given input streaqm
 	std::vector<Token> tokenize(std::istream& stream) const;
 };

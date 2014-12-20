@@ -62,23 +62,37 @@ std::string Operator::asString() const {
 //OperatorContainer
 OperatorContainer::OperatorContainer(
 	std::map<Operator, int> binaryOperators, std::set<Operator> unaryOperators,
-	std::set<char> assignmentOperators, std::map<Operator, std::shared_ptr<Type>> binaryOpReturnTypes)
+	std::unordered_set<char> assignmentOperators, std::map<Operator, std::shared_ptr<Type>> binaryOpReturnTypes)
 	: mBinaryOperators(binaryOperators), mUnaryOperators(unaryOperators), mAssignmentOperators(assignmentOperators), mBinaryOpReturnTypes(binaryOpReturnTypes) {
-
-}
-
-std::vector<Operator> OperatorContainer::binaryOperators() const {
-	std::vector<Operator> operators;
-
+	
 	for (auto op : mBinaryOperators) {
-		operators.push_back(op.first);
+		mBinaryOperatorChars.push_back(op.first);
+		mOperatorChars.insert(op.first.op1());
+
+		if (op.first.isTwoChars()) {
+			mOperatorChars.insert(op.first.op2());
+		}
 	}
 
-	return operators;
+	for (auto op : mUnaryOperators) {
+		mOperatorChars.insert(op.op1());
+	}
+}
+
+const std::unordered_set<char>& OperatorContainer::operatorChars() const {
+	return mOperatorChars;
+}
+
+const std::vector<Operator>& OperatorContainer::binaryOperators() const {
+	return mBinaryOperatorChars;
 }
 
 const std::map<Operator, int>& OperatorContainer::binaryOperatorPrecedences() const {
 	return mBinaryOperators;
+}
+
+const std::unordered_set<char>& OperatorContainer::assignmentOperators() const {
+	return mAssignmentOperators;
 }
 
 const std::set<Operator>& OperatorContainer::unaryOperators() const {

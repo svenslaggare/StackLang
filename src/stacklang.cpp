@@ -10,13 +10,31 @@
 #include "type.h"
 #include "typechecker.h"
 #include "codegenerator.h"
+#include "operators.h"
 
 int main() {
-	Lexer lexer;
+	auto boolType = std::make_shared<PrimitiveType>(PrimitiveType(PrimitiveTypes::Bool));
+
+	OperatorContainer operators(
+		{
+			{ Operator('<'), 5 }, { Operator('>'), 5 }, { Operator('+'), 6 }, { Operator('-'), 6 },
+			{ Operator('*'), 7 }, { Operator('/'), 7 }, { Operator('='), 1 },
+			{ Operator('<', '='), 5 }, { Operator('>', '='), 5 }, 
+			{ Operator('=', '='), 4 }, { Operator('!', '='), 4 }, { Operator('&', '&'), 3 }, { Operator('|', '|'), 2 },
+			{ Operator('+', '='), 1 }, { Operator('-', '='), 1 }, { Operator('*', '='), 1 }, { Operator('/', '='), 1 },
+		},
+		{ Operator('!'), Operator('-'), Operator('+') },
+		{ '+', '-', '*', '/' },
+		{
+			{ Operator('<'), boolType }, { Operator('>'), boolType }, { Operator('<', '='), boolType }, { Operator('>', '='), boolType }, 
+			{ Operator('=', '='), boolType }, { Operator('!', '='), boolType }, { Operator('&', '&'), boolType }, { Operator('|', '|'), boolType }, 
+		});
+
+	Lexer lexer(operators.operatorChars());
 	std::fstream programText("programs/program2.txt");
 	auto tokens = lexer.tokenize(programText); 
 
-	Parser parser(tokens);
+	Parser parser(operators, tokens);
 	auto programAST = parser.parse();
 
 	programAST->rewrite();
@@ -28,7 +46,7 @@ int main() {
 
 	TypeChecker typeChecker({
 		{ "Int", std::make_shared<PrimitiveType>(PrimitiveType(PrimitiveTypes::Int)) },
-		{ "Bool", std::make_shared<PrimitiveType>(PrimitiveType(PrimitiveTypes::Bool)) },
+		{ "Bool", boolType },
 		{ "Void", std::make_shared<PrimitiveType>(PrimitiveType(PrimitiveTypes::Void)) }
 	});
 
