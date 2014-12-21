@@ -63,7 +63,7 @@ public:
 };
 
 //Represents a variable decleration expression
-class VariableDeclerationExpressionAST : public ExpressionAST {
+class VariableDeclerationExpressionAST : public ExpressionAST, public std::enable_shared_from_this<VariableDeclerationExpressionAST> {
 private:
 	std::string mVarType;
 	std::string mVarName;

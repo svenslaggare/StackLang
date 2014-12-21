@@ -103,6 +103,7 @@ void FunctionAST::rewrite() {
 
 void FunctionAST::generateSymbols(Binder& binder, std::shared_ptr<SymbolTable> symbolTable) {
 	AbstractSyntaxTree::generateSymbols(binder, symbolTable);
+
 	auto inner = SymbolTable::newInner(symbolTable);
 	mPrototype->generateSymbols(binder, inner);
 	mBody->setBlockTable(inner);

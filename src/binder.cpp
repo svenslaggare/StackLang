@@ -14,10 +14,10 @@ void Binder::addFunction(std::string name, const std::vector<std::pair<std::stri
 	std::vector<std::shared_ptr<VariableDeclerationExpressionAST>> parameterDecls;
 
 	for (auto param : parameters) {
-		parameterDecls.push_back(std::make_shared<VariableDeclerationExpressionAST>(VariableDeclerationExpressionAST(param.first, param.second)));
+		parameterDecls.push_back(std::make_shared<VariableDeclerationExpressionAST>(param.first, param.second));
 	}
 
-	mSymbolTable->add(name, std::make_shared<FunctionPrototypeAST>(FunctionPrototypeAST(name, parameterDecls, returnType)));
+	mSymbolTable->add(name, std::make_shared<FunctionPrototypeAST>(name, parameterDecls, returnType));
 }
 
 void Binder::generateSymbolTable(std::shared_ptr<ProgramAST> programAST) {

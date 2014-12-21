@@ -2,6 +2,7 @@
 #include <stdexcept>
 #include "typechecker.h"
 #include "symboltable.h"
+#include "binder.h"
 
 void AbstractSyntaxTree::generateSymbols(Binder& binder, std::shared_ptr<SymbolTable> symbolTable) {
 	mSymbolTable = symbolTable;

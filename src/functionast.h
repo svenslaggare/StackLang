@@ -17,7 +17,6 @@ private:
 	std::string mName;
 	std::vector<std::shared_ptr<VariableDeclerationExpressionAST>> mParameters;
 	std::string mReturnType;
-	std::shared_ptr<BlockAST> mBody;
 public:
 	//Creates a new function prototype
 	FunctionPrototypeAST(std::string name, const std::vector<std::shared_ptr<VariableDeclerationExpressionAST>>& parameters, std::string returnType);

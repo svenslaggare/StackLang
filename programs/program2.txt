@@ -6,10 +6,6 @@ func abs(Int x): Int {
 	}
 }
 
-func printInt(Int x): Void {
-	println(x);
-}
-
 func main(): Int {
 	for (Int x = 0; x < 10; x += 1) {
 		println(x);

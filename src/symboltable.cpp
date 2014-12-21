@@ -44,7 +44,7 @@ std::shared_ptr<SymbolTable> SymbolTable::outer() const {
 }
 
 std::shared_ptr<SymbolTable> SymbolTable::newInner(std::shared_ptr<SymbolTable> outer) {
-	return std::make_shared<SymbolTable>(SymbolTable(outer));
+	return std::make_shared<SymbolTable>(outer);
 }
 
 void printSymbolTable(std::ostream& os, const SymbolTable& symbolTable, int indentLevel = 0) {

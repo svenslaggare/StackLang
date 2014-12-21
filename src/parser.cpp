@@ -5,28 +5,7 @@
 
 Parser::Parser(const OperatorContainer& operators, std::vector<Token> tokens)
 	: operators(operators), tokens(tokens), tokenIndex(-1) {
-	// binOpPrecedence['<'] = 5;
-	// binOpPrecedence['>'] = 5;
-	// binOpPrecedence['+'] = 6;
-	// binOpPrecedence['-'] = 6;
-	// binOpPrecedence['*'] = 7;
-	// binOpPrecedence['/'] = 7;
-	// binOpPrecedence['='] = 1;
 
-	// twoCharOpPrecedence[std::make_pair('<', '=')] = 5;
-	// twoCharOpPrecedence[std::make_pair('>', '=')] = 5;
-	// twoCharOpPrecedence[std::make_pair('=', '=')] = 4;
-	// twoCharOpPrecedence[std::make_pair('!', '=')] = 4;
-
-	// twoCharOpPrecedence[std::make_pair('&', '&')] = 3;
-	// twoCharOpPrecedence[std::make_pair('|', '|')] = 2;
-
-	// twoCharOpPrecedence[std::make_pair('+', '=')] = 1;
-	// twoCharOpPrecedence[std::make_pair('-', '=')] = 1;
-	// twoCharOpPrecedence[std::make_pair('*', '=')] = 1;
-	// twoCharOpPrecedence[std::make_pair('-', '=')] = 1;
-
-	// assignmentOperators = { '+', '-', '*', '/' };
 }
 
 void Parser::compileError(std::string message) {
@@ -436,7 +415,7 @@ std::shared_ptr<FunctionAST> Parser::parseFunctionDef() {
 				nextToken(); //Eat the type
 
 				if (currentToken.type() == TokenType::Identifier) {
-					arguments.push_back(std::make_shared<VariableDeclerationExpressionAST>(VariableDeclerationExpressionAST(varType, currentToken.strValue, true)));
+					arguments.push_back(std::make_shared<VariableDeclerationExpressionAST>(varType, currentToken.strValue, true));
 				}
 			}
 
@@ -473,8 +452,7 @@ std::shared_ptr<FunctionAST> Parser::parseFunctionDef() {
 
 	auto body = parseBlock();
 
-	auto prototype = std::make_shared<FunctionPrototypeAST>(FunctionPrototypeAST(name, arguments, returnType));
-	return std::make_shared<FunctionAST>(FunctionAST(prototype, body));
+	return std::make_shared<FunctionAST>(std::make_shared<FunctionPrototypeAST>(name, arguments, returnType), body);
 }
 
 std::shared_ptr<ProgramAST> Parser::parse() {
@@ -484,13 +462,10 @@ std::shared_ptr<ProgramAST> Parser::parse() {
 	while (true) {
 		switch (currentToken.type()) {
 			case TokenType::EndOfFile:
-				return std::make_shared<ProgramAST>(ProgramAST(functions));
+				return std::make_shared<ProgramAST>(functions);
 			case TokenType::Func:
-				{
-					auto funcDef = parseFunctionDef();
-					functions.push_back(funcDef);
-					nextToken();
-				}
+				functions.push_back(parseFunctionDef());
+				nextToken();
 				break;
 			default:
 				break;

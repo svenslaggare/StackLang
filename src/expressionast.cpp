@@ -128,7 +128,9 @@ std::string VariableDeclerationExpressionAST::asString() const {
 void VariableDeclerationExpressionAST::generateSymbols(Binder& binder, std::shared_ptr<SymbolTable> symbolTable) {
 	AbstractSyntaxTree::generateSymbols(binder, symbolTable);
 
-	if (!symbolTable->add(varName(), std::make_shared<VariableDeclerationExpressionAST>(*this))) {
+	//TODO: fix this.
+	//if (!symbolTable->add(varName(), std::make_shared<VariableDeclerationExpressionAST>(*this))) {
+	if (!symbolTable->add(varName(), shared_from_this())) {
 		binder.error("The symbol '" + varName() + "' is already defined.");
 	}
 }

@@ -13,7 +13,7 @@
 #include "operators.h"
 
 int main() {
-	auto boolType = std::make_shared<PrimitiveType>(PrimitiveType(PrimitiveTypes::Bool));
+	auto boolType = std::make_shared<PrimitiveType>(PrimitiveTypes::Bool);
 
 	OperatorContainer operators(
 		{
@@ -38,16 +38,17 @@ int main() {
 	auto programAST = parser.parse();
 
 	programAST->rewrite();
-	//std::cout << *programAST << std::endl;
+	// std::cout << *programAST << std::endl;
 
 	Binder binder;
 	binder.addFunction("println", { { "Int", "x" } }, "Void");
+	binder.addFunction("print", { { "Int", "x" } }, "Void");
 	binder.generateSymbolTable(programAST);
 
 	TypeChecker typeChecker(operators, {
-		{ "Int", std::make_shared<PrimitiveType>(PrimitiveType(PrimitiveTypes::Int)) },
+		{ "Int", std::make_shared<PrimitiveType>(PrimitiveTypes::Int) },
 		{ "Bool", boolType },
-		{ "Void", std::make_shared<PrimitiveType>(PrimitiveType(PrimitiveTypes::Void)) }
+		{ "Void", std::make_shared<PrimitiveType>(PrimitiveTypes::Void) }
 	});
 
 	typeChecker.checkTypes(programAST);
