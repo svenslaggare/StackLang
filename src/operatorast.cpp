@@ -212,7 +212,7 @@ void UnaryOpExpressionAST::generateCode(CodeGenerator& codeGen, GeneratedFunctio
 		func.addInstruction("SUB");
 	} else if (mOp == Operator('!')) {
 		mOperand->generateCode(codeGen, func);
-		func.addInstruction("NEG");
+		func.addInstruction("NOT");
 	} else {
 		codeGen.codeGenError("Operator '" + mOp.asString() + "' is not defined.");
 	}
