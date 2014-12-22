@@ -40,7 +40,7 @@ public:
 	virtual void typeCheck(TypeChecker& checker);
 
 	//Generates code
-	virtual void generateCode(CodeGenerator& codeGen, GeneratedFunction& func) {}
+	virtual void generateCode(CodeGenerator& codeGen, GeneratedFunction& func) {};
 };
 
 std::ostream& operator<<(std::ostream& os, const AbstractSyntaxTree& ast);

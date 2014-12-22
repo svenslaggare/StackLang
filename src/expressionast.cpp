@@ -51,6 +51,14 @@ std::shared_ptr<Type> BoolExpressionAST::expressionType(const TypeChecker& check
 	return checker.getType("Bool");
 }
 
+void BoolExpressionAST::generateCode(CodeGenerator& codeGen, GeneratedFunction& func) {
+	if (mValue) {
+		func.addInstruction("PUSHTRUE");
+	} else {
+		func.addInstruction("PUSHFALSE");
+	}
+}
+
 //Variable reference expression AST
 VariableReferenceExpressionAST::VariableReferenceExpressionAST(std::string varName)
 	: mVarName(varName) {

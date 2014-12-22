@@ -123,6 +123,38 @@ void BinaryOpExpressionAST::generateCode(CodeGenerator& codeGen, GeneratedFuncti
 		} else {
 			codeGen.codeGenError("Left hand side is not decleration or variable reference.");
 		}
+	} else if(mOp == Operator('=', '=')) {
+		mLeftHandSide->generateCode(codeGen, func);
+		mRightHandSide->generateCode(codeGen, func);
+		func.addInstruction("CMPEQ");
+	} else if(mOp == Operator('!', '=')) {
+		mLeftHandSide->generateCode(codeGen, func);
+		mRightHandSide->generateCode(codeGen, func);
+		func.addInstruction("CMPNE");
+	} else if(mOp == Operator('>')) {
+		mLeftHandSide->generateCode(codeGen, func);
+		mRightHandSide->generateCode(codeGen, func);
+		func.addInstruction("CMPGT");
+	} else if(mOp == Operator('>', '=')) {
+		mLeftHandSide->generateCode(codeGen, func);
+		mRightHandSide->generateCode(codeGen, func);
+		func.addInstruction("CMPGE");
+	} else if(mOp == Operator('<')) {
+		mLeftHandSide->generateCode(codeGen, func);
+		mRightHandSide->generateCode(codeGen, func);
+		func.addInstruction("CMPLT");
+	} else if(mOp == Operator('<', '=')) {
+		mLeftHandSide->generateCode(codeGen, func);
+		mRightHandSide->generateCode(codeGen, func);
+		func.addInstruction("CMPLE");
+	} else if(mOp == Operator('&', '&')) {
+		mLeftHandSide->generateCode(codeGen, func);
+		mRightHandSide->generateCode(codeGen, func);
+		func.addInstruction("AND");
+	} else if(mOp == Operator('|', '|')) {
+		mLeftHandSide->generateCode(codeGen, func);
+		mRightHandSide->generateCode(codeGen, func);
+		func.addInstruction("OR");
 	} else {
 		codeGen.codeGenError("Operator '" + mOp.asString() + "' is not defined.");
 	}
@@ -178,6 +210,9 @@ void UnaryOpExpressionAST::generateCode(CodeGenerator& codeGen, GeneratedFunctio
 		func.addInstruction("PUSH 0");
 		mOperand->generateCode(codeGen, func);
 		func.addInstruction("SUB");
+	} else if (mOp == Operator('!')) {
+		mOperand->generateCode(codeGen, func);
+		func.addInstruction("NEG");
 	} else {
 		codeGen.codeGenError("Operator '" + mOp.asString() + "' is not defined.");
 	}

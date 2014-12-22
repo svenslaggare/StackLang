@@ -4,6 +4,7 @@
 #include "typechecker.h"
 #include "symboltable.h"
 #include "asthelpers.h"
+#include "type.h"
 #include "codegenerator.h"
 
 //Expresssion statement AST
@@ -197,46 +198,70 @@ void IfElseStatementAST::typeCheck(TypeChecker& checker) {
 }
 
 void IfElseStatementAST::generateCode(CodeGenerator& codeGen, GeneratedFunction& func) {
+	int condIndex = -1;
+
+	//If simple expression, use branch instructions
 	if (auto binOpExpr = std::dynamic_pointer_cast<BinaryOpExpressionAST>(mConditionExpression)) {
 		auto op = binOpExpr->op();
 
-		binOpExpr->rightHandSide()->generateCode(codeGen, func);
-		binOpExpr->leftHandSide()->generateCode(codeGen, func);
-		
-		int condIndex = func.numInstructions();
-		int elseIndex = -1;
-
 		if (op == Operator('<')) {
+			binOpExpr->rightHandSide()->generateCode(codeGen, func);
+			binOpExpr->leftHandSide()->generateCode(codeGen, func);
+			condIndex = func.numInstructions();
 			func.addInstruction("BGE");
 		} else if (op == Operator('>')) {
+			binOpExpr->rightHandSide()->generateCode(codeGen, func);
+			binOpExpr->leftHandSide()->generateCode(codeGen, func);
+			condIndex = func.numInstructions();
 			func.addInstruction("BLE");
 		} else if (op == Operator('<', '=')) {
+			binOpExpr->rightHandSide()->generateCode(codeGen, func);
+			binOpExpr->leftHandSide()->generateCode(codeGen, func);
+			condIndex = func.numInstructions();
 			func.addInstruction("BGT");
 		} else if (op == Operator('>', '=')) {
+			binOpExpr->rightHandSide()->generateCode(codeGen, func);
+			binOpExpr->leftHandSide()->generateCode(codeGen, func);
+			condIndex = func.numInstructions();
 			func.addInstruction("BLT");
 		} else if (op == Operator('=', '=')) {
+			binOpExpr->rightHandSide()->generateCode(codeGen, func);
+			binOpExpr->leftHandSide()->generateCode(codeGen, func);
+			condIndex = func.numInstructions();
 			func.addInstruction("BNE");
 		} else if (op == Operator('!', '=')) {
+			binOpExpr->rightHandSide()->generateCode(codeGen, func);
+			binOpExpr->leftHandSide()->generateCode(codeGen, func);
+			condIndex = func.numInstructions();
 			func.addInstruction("BEQ");
+		}
+	}
+
+	//Else use compare & jump instructions
+	if (condIndex == -1) {
+		if (mConditionExpression->expressionType(codeGen.typeChecker())->name() == "Bool") {
+			mConditionExpression->generateCode(codeGen, func);
+			func.addInstruction("PUSHTRUE");
+			condIndex = func.numInstructions();
+			func.addInstruction("BNE");
 		} else {
-			codeGen.codeGenError("'" + op.asString() + "' is not a boolean operator.");
+			codeGen.codeGenError("The condition must be a boolean expression.");
 		}
+	}
 
-		mThenBlock->generateCode(codeGen, func);
-		
-		if (mElseBlock != nullptr) {
-			elseIndex = func.numInstructions();
-			func.addInstruction("BR");
-		}
+	mThenBlock->generateCode(codeGen, func);
+	int elseIndex = -1;
 
-		func.instruction(condIndex) += " " + std::to_string(func.numInstructions());
+	if (mElseBlock != nullptr) {
+		elseIndex = func.numInstructions();
+		func.addInstruction("BR");
+	}
 
-		if (mElseBlock != nullptr) {
-			mElseBlock->generateCode(codeGen, func);
-			func.instruction(elseIndex) += " " + std::to_string(func.numInstructions());
-		}
-	} else {
-		codeGen.codeGenError("If statement not implemented for current expression.");
+	func.instruction(condIndex) += " " + std::to_string(func.numInstructions());
+
+	if (mElseBlock != nullptr) {
+		mElseBlock->generateCode(codeGen, func);
+		func.instruction(elseIndex) += " " + std::to_string(func.numInstructions());
 	}
 }
 
@@ -306,39 +331,96 @@ void WhileLoopStatementAST::typeCheck(TypeChecker& checker) {
 }
 
 void WhileLoopStatementAST::generateCode(CodeGenerator& codeGen, GeneratedFunction& func) {
+	// if (auto binOpExpr = std::dynamic_pointer_cast<BinaryOpExpressionAST>(mConditionExpression)) {
+	// 	auto op = binOpExpr->op();
+
+	// 	int condStart = func.numInstructions();
+		
+	// 	binOpExpr->rightHandSide()->generateCode(codeGen, func);
+	// 	binOpExpr->leftHandSide()->generateCode(codeGen, func);
+		
+	// 	int condIndex = func.numInstructions();
+
+	// 	if (op == Operator('<')) {
+	// 		func.addInstruction("BGE");
+	// 	} else if (op == Operator('>')) {
+	// 		func.addInstruction("BLE");
+	// 	} else if (op == Operator('<', '=')) {
+	// 		func.addInstruction("BGT");
+	// 	} else if (op == Operator('>', '=')) {
+	// 		func.addInstruction("BLT");
+	// 	} else if (op == Operator('=', '=')) {
+	// 		func.addInstruction("BNE");
+	// 	} else if (op == Operator('!', '=')) {
+	// 		func.addInstruction("BEQ");
+	// 	} else {
+	// 		codeGen.codeGenError("'" + op.asString() + "' is not a boolean operator.");
+	// 	}
+
+	// 	mBodyBlock->generateCode(codeGen, func);
+	// 	func.addInstruction("BR " + std::to_string(condStart));
+
+	// 	func.instruction(condIndex) += " " + std::to_string(func.numInstructions());
+	// } else {
+	// 	codeGen.codeGenError("While statement not implemented for current expression.");
+	// }
+
+	int condStart = func.numInstructions();
+	int condIndex = -1;
+
+	//If simple expression, use branch instructions
 	if (auto binOpExpr = std::dynamic_pointer_cast<BinaryOpExpressionAST>(mConditionExpression)) {
 		auto op = binOpExpr->op();
 
-		int condStart = func.numInstructions();
-		
-		binOpExpr->rightHandSide()->generateCode(codeGen, func);
-		binOpExpr->leftHandSide()->generateCode(codeGen, func);
-		
-		int condIndex = func.numInstructions();
-
 		if (op == Operator('<')) {
+			binOpExpr->rightHandSide()->generateCode(codeGen, func);
+			binOpExpr->leftHandSide()->generateCode(codeGen, func);
+			condIndex = func.numInstructions();
 			func.addInstruction("BGE");
 		} else if (op == Operator('>')) {
+			binOpExpr->rightHandSide()->generateCode(codeGen, func);
+			binOpExpr->leftHandSide()->generateCode(codeGen, func);
+			condIndex = func.numInstructions();
 			func.addInstruction("BLE");
 		} else if (op == Operator('<', '=')) {
+			binOpExpr->rightHandSide()->generateCode(codeGen, func);
+			binOpExpr->leftHandSide()->generateCode(codeGen, func);
+			condIndex = func.numInstructions();
 			func.addInstruction("BGT");
 		} else if (op == Operator('>', '=')) {
+			binOpExpr->rightHandSide()->generateCode(codeGen, func);
+			binOpExpr->leftHandSide()->generateCode(codeGen, func);
+			condIndex = func.numInstructions();
 			func.addInstruction("BLT");
 		} else if (op == Operator('=', '=')) {
+			binOpExpr->rightHandSide()->generateCode(codeGen, func);
+			binOpExpr->leftHandSide()->generateCode(codeGen, func);
+			condIndex = func.numInstructions();
 			func.addInstruction("BNE");
 		} else if (op == Operator('!', '=')) {
+			binOpExpr->rightHandSide()->generateCode(codeGen, func);
+			binOpExpr->leftHandSide()->generateCode(codeGen, func);
+			condIndex = func.numInstructions();
 			func.addInstruction("BEQ");
-		} else {
-			codeGen.codeGenError("'" + op.asString() + "' is not a boolean operator.");
 		}
-
-		mBodyBlock->generateCode(codeGen, func);
-		func.addInstruction("BR " + std::to_string(condStart));
-
-		func.instruction(condIndex) += " " + std::to_string(func.numInstructions());
-	} else {
-		codeGen.codeGenError("While statement not implemented for current expression.");
 	}
+
+	//Else use compare & jump instructions
+	if (condIndex == -1) {
+		if (mConditionExpression->expressionType(codeGen.typeChecker())->name() == "Bool") {
+			mConditionExpression->generateCode(codeGen, func);
+			func.addInstruction("PUSHTRUE");
+			condIndex = func.numInstructions();
+			func.addInstruction("BNE");
+		} else {
+			codeGen.codeGenError("The condition must be a boolean expression.");
+		}
+	}
+
+	mBodyBlock->generateCode(codeGen, func);
+	func.addInstruction("BR " + std::to_string(condStart));
+
+	func.instruction(condIndex) += " " + std::to_string(func.numInstructions());
 }
 
 //For loop statement AST
