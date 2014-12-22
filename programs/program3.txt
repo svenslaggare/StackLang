@@ -1,0 +1,19 @@
+func factorial(Int n): Int {
+	if (n <= 1) {
+		return 1;
+	} else {
+		return n * factorial(n - 1);
+	}
+}
+
+func fib(Int n): Int {
+	if (n <= 1) {
+		return n;
+	} else {
+		return fib(n - 1) + fib(n - 2);
+	}
+}
+
+func main(): Int {
+	return fib(20);
+}

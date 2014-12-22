@@ -91,20 +91,20 @@ std::shared_ptr<Type> BinaryOpExpressionAST::expressionType(const TypeChecker& c
 
 void BinaryOpExpressionAST::generateCode(CodeGenerator& codeGen, GeneratedFunction& func) {
 	if (mOp == Operator('+')) {
-		mRightHandSide->generateCode(codeGen, func);
 		mLeftHandSide->generateCode(codeGen, func);
+		mRightHandSide->generateCode(codeGen, func);
 		func.addInstruction("ADD");
 	} else if (mOp == Operator('-')) {
-		mRightHandSide->generateCode(codeGen, func);
 		mLeftHandSide->generateCode(codeGen, func);
+		mRightHandSide->generateCode(codeGen, func);
 		func.addInstruction("SUB");
 	} else if (mOp == Operator('*')) {
-		mRightHandSide->generateCode(codeGen, func);
 		mLeftHandSide->generateCode(codeGen, func);
+		mRightHandSide->generateCode(codeGen, func);
 		func.addInstruction("MUL");
 	} else if (mOp == Operator('/')) {
-		mRightHandSide->generateCode(codeGen, func);
 		mLeftHandSide->generateCode(codeGen, func);
+		mRightHandSide->generateCode(codeGen, func);
 		func.addInstruction("DIV");
 	} else if (mOp == Operator('=')) {
 		mRightHandSide->generateCode(codeGen, func);

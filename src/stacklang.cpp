@@ -31,7 +31,7 @@ int main() {
 		});
 
 	Lexer lexer(operators.operatorChars());
-	std::fstream programText("programs/program2.txt");
+	std::fstream programText("programs/program3.txt");
 	auto tokens = lexer.tokenize(programText); 
 
 	Parser parser(operators, tokens);
