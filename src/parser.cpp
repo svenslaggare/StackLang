@@ -242,7 +242,12 @@ std::shared_ptr<ExpressionAST> Parser::parseUnaryExpression(bool allowDecleratio
 	auto operand = parseUnaryExpression(allowDecleration);
 
 	if (operand != nullptr) {
-		return std::make_shared<UnaryOpExpressionAST>(UnaryOpExpressionAST(operand, Operator(opChar)));
+		auto op = Operator(opChar);
+		if (!operators.isUnaryDefined(op)) {
+			compileError("'" + op.asString() + "' is not a defined unary operator.");
+		}
+
+		return std::make_shared<UnaryOpExpressionAST>(UnaryOpExpressionAST(operand, op));
 	} 
 
 	return operand;

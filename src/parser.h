@@ -19,9 +19,6 @@ private:
 	Token currentToken;
 	int tokenIndex;
 
-	// std::map<char, int> binOpPrecedence;
-	// std::map<std::pair<char, char>, int> twoCharOpPrecedence;
-	// std::set<char> assignmentOperators;
 	const OperatorContainer& operators;
 
 	//Signals that a compile error has occured

@@ -14,7 +14,9 @@
 #include "standardlibrary.h"
 
 int main() {
+	auto intType = std::make_shared<PrimitiveType>(PrimitiveTypes::Int);
 	auto boolType = std::make_shared<PrimitiveType>(PrimitiveTypes::Bool);
+	auto voidType = std::make_shared<PrimitiveType>(PrimitiveTypes::Void);
 
 	OperatorContainer operators(
 		{
@@ -24,7 +26,7 @@ int main() {
 			{ Operator('=', '='), 4 }, { Operator('!', '='), 4 }, { Operator('&', '&'), 3 }, { Operator('|', '|'), 2 },
 			{ Operator('+', '='), 1 }, { Operator('-', '='), 1 }, { Operator('*', '='), 1 }, { Operator('/', '='), 1 },
 		},
-		{ Operator('!'), Operator('-'), Operator('+') },
+		{ Operator('!'), Operator('-') },
 		{ '+', '-', '*', '/' },
 		{
 			{ Operator('<'), boolType }, { Operator('>'), boolType }, { Operator('<', '='), boolType }, { Operator('>', '='), boolType }, 
@@ -46,9 +48,9 @@ int main() {
 	binder.generateSymbolTable(programAST);
 
 	TypeChecker typeChecker(operators, {
-		{ "Int", std::make_shared<PrimitiveType>(PrimitiveTypes::Int) },
+		{ "Int", intType },
 		{ "Bool", boolType },
-		{ "Void", std::make_shared<PrimitiveType>(PrimitiveTypes::Void) }
+		{ "Void", voidType }
 	});
 
 	typeChecker.checkTypes(programAST);
