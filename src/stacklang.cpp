@@ -11,6 +11,7 @@
 #include "typechecker.h"
 #include "codegenerator.h"
 #include "operators.h"
+#include "standardlibrary.h"
 
 int main() {
 	auto boolType = std::make_shared<PrimitiveType>(PrimitiveTypes::Bool);
@@ -41,8 +42,7 @@ int main() {
 	// std::cout << *programAST << std::endl;
 
 	Binder binder;
-	binder.addFunction("println", { { "Int", "x" } }, "Void");
-	binder.addFunction("print", { { "Int", "x" } }, "Void");
+	StandardLibrary::add(binder);
 	binder.generateSymbolTable(programAST);
 
 	TypeChecker typeChecker(operators, {
