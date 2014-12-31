@@ -50,6 +50,11 @@ std::shared_ptr<AbstractSyntaxTree> ExpressionStatementAST::findAST(std::functio
 
 void ExpressionStatementAST::generateCode(CodeGenerator& codeGen, GeneratedFunction& func) {
 	mExpression->generateCode(codeGen, func);
+
+	//If the return type is not void, pop the top value
+	if (mExpression->expressionType(codeGen.typeChecker())->name() != "Void") {
+		func.addInstruction("POP");
+	}
 }
 
 //Return statement AST

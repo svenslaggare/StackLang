@@ -85,7 +85,11 @@ std::shared_ptr<Type> BinaryOpExpressionAST::expressionType(const TypeChecker& c
 	if (boolTypes.count(mOp) > 0) {
 		return boolTypes.at(mOp);
 	} else {
-		return mLeftHandSide->expressionType(checker);
+		if (mOp == Operator('=')) {
+			return checker.getType("Void");
+		} else {
+			return mLeftHandSide->expressionType(checker);
+		}
 	}
 }
 

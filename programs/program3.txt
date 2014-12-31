@@ -23,6 +23,6 @@ func boolToInt(Bool b): Int {
 }
 
 func main(): Int {
-	println(boolToInt(1 > 2 || 2 == 2));
+	2 + 4;
 	return fib(20);
 }
