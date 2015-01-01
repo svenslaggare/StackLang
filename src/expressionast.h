@@ -109,7 +109,7 @@ public:
 	std::string functionName() const;
 
 	//Returns the arguments to call with
-	std::vector<std::shared_ptr<ExpressionAST>> arguments() const;
+	const std::vector<std::shared_ptr<ExpressionAST>>& arguments() const;
 
 	std::string asString() const override;
 

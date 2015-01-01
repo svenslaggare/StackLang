@@ -167,7 +167,7 @@ std::string CallExpressionAST::functionName() const {
 	return mFunctionName;
 }
 
-std::vector<std::shared_ptr<ExpressionAST>> CallExpressionAST::arguments() const {
+const std::vector<std::shared_ptr<ExpressionAST>>& CallExpressionAST::arguments() const {
 	return mArguments;
 }
 
