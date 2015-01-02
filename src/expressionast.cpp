@@ -26,7 +26,7 @@ std::shared_ptr<Type> IntegerExpressionAST::expressionType(const TypeChecker& ch
 }
 
 void IntegerExpressionAST::generateCode(CodeGenerator& codeGen, GeneratedFunction& func) {
-	func.addInstruction("PUSH " + std::to_string(mValue));
+	func.addInstruction("PUSHINT " + std::to_string(mValue));
 }
 
 //Bool expression AST
