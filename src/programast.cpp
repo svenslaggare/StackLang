@@ -1,7 +1,9 @@
 #include "programast.h"
 #include "functionast.h"
+#include "expressionast.h"
 #include "symboltable.h"
 #include "binder.h"
+#include "symbol.h"
 
 ProgramAST::ProgramAST(const std::vector<std::shared_ptr<FunctionAST>>& functions)
 	: mFunctions(functions) {
@@ -37,7 +39,15 @@ void ProgramAST::generateSymbols(Binder& binder, std::shared_ptr<SymbolTable> sy
 
 	for (auto func : mFunctions) {
 		auto funcName = func->prototype()->name();
-		if (!symbolTable->add(funcName, func)) {
+		std::vector<std::shared_ptr<VariableSymbol>> parameters;
+
+		for (auto param : func->prototype()->parameters()) {
+			parameters.push_back(std::make_shared<VariableSymbol>(param->varName(), param->varType(), true));
+		}
+
+		auto funcSymbol = std::make_shared<FunctionSymbol>(funcName, parameters, func->prototype()->returnType());
+
+		if (!symbolTable->add(funcName, funcSymbol)) {
 			binder.error("The symbol '" + funcName + "' is already defined.");
 		}
 	}

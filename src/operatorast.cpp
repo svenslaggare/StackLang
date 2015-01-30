@@ -5,6 +5,7 @@
 #include "symboltable.h"
 #include "codegenerator.h"
 #include "expressionast.h"
+#include "symbol.h"
 
 //Binary OP expression AST
 BinaryOpExpressionAST::BinaryOpExpressionAST(std::shared_ptr<ExpressionAST> leftHandSide, std::shared_ptr<ExpressionAST> rightHandSide, Operator op)
@@ -117,7 +118,7 @@ void BinaryOpExpressionAST::generateCode(CodeGenerator& codeGen, GeneratedFuncti
 			mLeftHandSide->generateCode(codeGen, func);
 			func.addInstruction("STLOC " + std::to_string(func.getLocal(varDec->varName()).first));
 		} else if (auto varRef = std::dynamic_pointer_cast<VariableReferenceExpressionAST>(mLeftHandSide)) {
-			auto varDec = std::dynamic_pointer_cast<VariableDeclerationExpressionAST>(mSymbolTable->find(varRef->varName()));
+			auto varDec = std::dynamic_pointer_cast<VariableSymbol>(mSymbolTable->find(varRef->varName()));
 
 			if (!varDec->isFunctionParameter()) {
 				func.addInstruction("STLOC " + std::to_string(func.getLocal(varRef->varName()).first));

@@ -6,6 +6,7 @@
 #include "symboltable.h"
 
 class ProgramAST;
+class TypeChecker;
 
 //Binds references
 class Binder {

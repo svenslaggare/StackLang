@@ -83,7 +83,9 @@ void ReturnStatementAST::rewrite() {
 		mReturnExpression = std::dynamic_pointer_cast<ExpressionAST>(newAST);
 	}
 
-	mReturnExpression->rewrite();
+	if (mReturnExpression != nullptr) {
+		mReturnExpression->rewrite();
+	}
 }
 
 std::shared_ptr<AbstractSyntaxTree> ReturnStatementAST::findAST(std::function<bool (std::shared_ptr<AbstractSyntaxTree> ast)> predicate) const {

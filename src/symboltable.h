@@ -6,27 +6,28 @@
 #include <iostream>
 
 class AbstractSyntaxTree;
+class Symbol;
 
 //Represents a symbol table;
 class SymbolTable {
 private:
 	std::shared_ptr<SymbolTable> mOuter;
-	std::map<std::string, std::shared_ptr<AbstractSyntaxTree>> mInner;
+	std::map<std::string, std::shared_ptr<Symbol>> mInner;
 public:
 	//Creates a new symbol table
 	SymbolTable(std::shared_ptr<SymbolTable> outer = nullptr);
 
 	//Adds the given symbol to the table. True if added else false.
-	bool add(std::string name, std::shared_ptr<AbstractSyntaxTree> symbol);
+	bool add(std::string name, std::shared_ptr<Symbol> symbol);
 
 	//Adds the given table to the current
 	void add(const SymbolTable& symbolTable);
 
 	//Finds the given symbol. Nullptr if it doesn't exists.
-	std::shared_ptr<AbstractSyntaxTree> find(std::string name) const;
+	std::shared_ptr<Symbol> find(std::string name) const;
 
 	//Returns the entries in the inner table
-	const std::map<std::string, std::shared_ptr<AbstractSyntaxTree>>& inner() const;
+	const std::map<std::string, std::shared_ptr<Symbol>>& inner() const;
 
 	//Returns the outer table
 	std::shared_ptr<SymbolTable> outer() const;

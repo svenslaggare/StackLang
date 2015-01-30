@@ -6,6 +6,7 @@
 #include "type.h"
 #include "asthelpers.h"
 #include "codegenerator.h"
+#include "symbol.h"
 
 //Integer expression AST
 IntegerExpressionAST::IntegerExpressionAST(int value)
@@ -81,24 +82,24 @@ void VariableReferenceExpressionAST::generateSymbols(Binder& binder, std::shared
 	if (symbol == nullptr) {
 		binder.error("The variable '" + varName() + "' is not defined.");
 	} else {
-		if (std::dynamic_pointer_cast<VariableDeclerationExpressionAST>(symbol) == nullptr) {
-			binder.error("'" + varName() + "' is a variable.");
+		if (std::dynamic_pointer_cast<VariableSymbol>(symbol) == nullptr) {
+			binder.error("'" + varName() + "' is not a variable.");
 		}
 	}
 }
 
 std::shared_ptr<Type> VariableReferenceExpressionAST::expressionType(const TypeChecker& checker) const {
-	auto expressionSymbol = std::dynamic_pointer_cast<ExpressionAST>(mSymbolTable->find(varName()));
+	auto varSymbol = std::dynamic_pointer_cast<VariableSymbol>(mSymbolTable->find(varName()));
 
-	if (expressionSymbol != nullptr) {
-		return expressionSymbol->expressionType(checker);
+	if (varSymbol != nullptr) {
+		return checker.getType(varSymbol->variableType());
 	} else {
 		return checker.getType("Void");
 	}
 }
 
 void VariableReferenceExpressionAST::generateCode(CodeGenerator& codeGen, GeneratedFunction& func) {
-	bool isFuncParam = std::dynamic_pointer_cast<VariableDeclerationExpressionAST>(mSymbolTable->find(varName()))->isFunctionParameter();
+	bool isFuncParam = std::dynamic_pointer_cast<VariableSymbol>(mSymbolTable->find(varName()))->isFunctionParameter();
 
 	if (isFuncParam) {
 		func.addInstruction("LDARG " + std::to_string(func.functionParameterIndex(mVarName)));
@@ -136,9 +137,7 @@ std::string VariableDeclerationExpressionAST::asString() const {
 void VariableDeclerationExpressionAST::generateSymbols(Binder& binder, std::shared_ptr<SymbolTable> symbolTable) {
 	AbstractSyntaxTree::generateSymbols(binder, symbolTable);
 
-	//TODO: fix this.
-	//if (!symbolTable->add(varName(), std::make_shared<VariableDeclerationExpressionAST>(*this))) {
-	if (!symbolTable->add(varName(), shared_from_this())) {
+	if (!symbolTable->add(varName(), std::make_shared<VariableSymbol>(varName(), varType(), mIsFunctionParameter))) {
 		binder.error("The symbol '" + varName() + "' is already defined.");
 	}
 }
@@ -197,47 +196,41 @@ void CallExpressionAST::generateSymbols(Binder& binder, std::shared_ptr<SymbolTa
 	if (symbol == nullptr) {
 		binder.error("The function '" + functionName() + "' is not defined.");
 	} else {
+		auto func = std::dynamic_pointer_cast<FunctionSymbol>(symbol);
+
 		for (auto arg : mArguments) {
 			arg->generateSymbols(binder, symbolTable);
 		}
 
-		auto func = std::dynamic_pointer_cast<FunctionAST>(symbol);
-		auto funcPrototype = std::dynamic_pointer_cast<FunctionPrototypeAST>(symbol);
-
-		if (func == nullptr && funcPrototype == nullptr) {
+		if (func == nullptr) {
 			binder.error("'" + functionName() + "' is not a function.");
 		}
 
-		if (func != nullptr) {
-			funcPrototype = func->prototype();
-		}
-
-		if (funcPrototype->parameters().size() != arguments().size()) {
-			binder.error("Expected " + std::to_string(funcPrototype->parameters().size()) + " arguments but got: " + std::to_string(arguments().size()));
+		if (func->parameters().size() != arguments().size()) {
+			binder.error("Expected " + std::to_string(func->parameters().size()) + " arguments but got: " + std::to_string(arguments().size()));
 		}
 	}
 }
 
 void CallExpressionAST::typeCheck(TypeChecker& checker) {
-	auto func = mSymbolTable->find(functionName());
-	std::shared_ptr<FunctionPrototypeAST> funcPrototype = ASTHelpers::asPrototype(func);
+	auto func = std::dynamic_pointer_cast<FunctionSymbol>(mSymbolTable->find(functionName()));
 
 	for (int i = 0; i < arguments().size(); i++) {
-		auto arg = arguments()[i];
+		auto arg = arguments().at(i);
 		arg->typeCheck(checker);
 
-		auto param = funcPrototype->parameters()[i];
+		auto param = func->parameters().at(i);
 
 		auto argType = arg->expressionType(checker);
-		auto paramType = param->expressionType(checker);
+		auto paramType = checker.getType(param->variableType());
 
 		checker.assertSameType(*paramType, *argType);
 	}
 }
 
 std::shared_ptr<Type> CallExpressionAST::expressionType(const TypeChecker& checker) const {
-	auto func = mSymbolTable->find(functionName());
-	return checker.getType(ASTHelpers::asPrototype(func)->returnType());
+	auto func = std::dynamic_pointer_cast<FunctionSymbol>(mSymbolTable->find(functionName()));
+	return checker.getType(func->returnType());
 }
 
 void CallExpressionAST::generateCode(CodeGenerator& codeGen, GeneratedFunction& func) {

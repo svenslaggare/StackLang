@@ -6,7 +6,6 @@
 #include "parser.h"
 #include "asts.h"
 #include "binder.h"
-#include "program.h"
 #include "type.h"
 #include "typechecker.h"
 #include "codegenerator.h"

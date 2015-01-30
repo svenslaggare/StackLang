@@ -1,12 +1,13 @@
 #include "symboltable.h"
 #include "ast.h"
+#include "symbol.h"
 
 SymbolTable::SymbolTable(std::shared_ptr<SymbolTable> outer)
 	: mOuter(outer) {
 
 }
 
-bool SymbolTable::add(std::string name, std::shared_ptr<AbstractSyntaxTree> symbol) {
+bool SymbolTable::add(std::string name, std::shared_ptr<Symbol> symbol) {
 	if (mInner.count(name) == 0) {
 		mInner.insert({ name, symbol });
 		return true;
@@ -21,7 +22,7 @@ void SymbolTable::add(const SymbolTable& symbolTable) {
 	} 
 }
 
-std::shared_ptr<AbstractSyntaxTree> SymbolTable::find(std::string name) const {
+std::shared_ptr<Symbol> SymbolTable::find(std::string name) const {
 	//First check in the inner
 	if (mInner.count(name) > 0) {
 		return mInner.at(name);
@@ -35,7 +36,7 @@ std::shared_ptr<AbstractSyntaxTree> SymbolTable::find(std::string name) const {
 	}
 }
 
-const std::map<std::string, std::shared_ptr<AbstractSyntaxTree>>& SymbolTable::inner() const {
+const std::map<std::string, std::shared_ptr<Symbol>>& SymbolTable::inner() const {
 	return mInner;
 }
 
