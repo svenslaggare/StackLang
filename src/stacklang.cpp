@@ -45,16 +45,16 @@ int main() {
 	//std::cout << *programAST << std::endl;
 
 	Binder binder;
-	StandardLibrary::add(binder);
+	TypeChecker typeChecker(operators, TypeSystem::defaultTypes());
+	SemanticVerifier verifier(binder, typeChecker);
+	CodeGenerator codeGenerator(typeChecker);
+
+	StandardLibrary::add(binder, typeChecker);
 	binder.generateSymbolTable(programAST);
 
-	TypeChecker typeChecker(operators, TypeSystem::defaultTypes());
 	programAST->typeCheck(typeChecker);
-
-	SemanticVerifier verifier(binder, typeChecker);
 	programAST->verify(verifier);
 
-	CodeGenerator codeGenerator(typeChecker);
 	codeGenerator.generateProgram(programAST);
 	codeGenerator.printGeneratedCode();
 }

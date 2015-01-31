@@ -203,13 +203,7 @@ std::shared_ptr<Type> BinaryOpExpressionAST::expressionType(const TypeChecker& c
 			if (lhsFloatConvertable(checker)) {
 				return checker.getType("Float");
 			} else {
-				auto lhsType = mLeftHandSide->expressionType(checker);
-
-				if (lhsType->name() == "Auto") {
-					return mRightHandSide->expressionType(checker);
-				} else {
-					return mLeftHandSide->expressionType(checker);
-				}
+				return mLeftHandSide->expressionType(checker);
 			}
 		}
 	}

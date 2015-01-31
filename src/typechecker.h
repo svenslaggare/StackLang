@@ -12,6 +12,7 @@ class TypeChecker {
 private:
 	std::map<std::string, std::shared_ptr<Type>> mTypes;
 	const OperatorContainer& mOperators;
+	std::multimap<std::shared_ptr<Type>, std::shared_ptr<Type>> mExplicitConversions;
 public:
 	//Creates a new type checker
 	TypeChecker(const OperatorContainer& operators, std::map<std::string, std::shared_ptr<Type>> types);
@@ -36,4 +37,10 @@ public:
 
 	//Asserts that the types are equal
 	bool assertSameType(const Type& expected, const Type& actual, std::string errorMessage = "");
+
+	//Defines an explicit conversion
+	void defineExplicitConversion(std::shared_ptr<Type> fromType, std::shared_ptr<Type> toType);
+
+	//Indicates if its an explicit conversion between the given types
+	bool existsExplicitConversion(std::shared_ptr<Type> fromType, std::shared_ptr<Type> toType) const;
 };

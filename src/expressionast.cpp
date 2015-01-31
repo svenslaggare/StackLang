@@ -266,5 +266,11 @@ void CallExpressionAST::generateCode(CodeGenerator& codeGen, GeneratedFunction& 
 		arg->generateCode(codeGen, func);
 	}
 
-	func.addInstruction("CALL " + mFunctionName);
+	//Check if conversion
+	if (arguments().size() == 1 && codeGen.typeChecker().getType(mFunctionName) != nullptr) {
+		auto fromType = arguments().at(0)->expressionType(codeGen.typeChecker());
+		func.addInstruction("CONV" + fromType->name() + "TO" + mFunctionName);
+	} else {
+		func.addInstruction("CALL " + mFunctionName);
+	}
 }

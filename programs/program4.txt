@@ -17,9 +17,8 @@ func absInt(Int x): Int {
 func main(): Int {
 	var x = absFloat(-5.5);
 	var y = absInt(-5);
-	var z = 5.5;
 
-	printfln(x);
+	printfln(Float(y));
 	println(y);
 	return 0;
 }

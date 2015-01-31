@@ -68,3 +68,21 @@ bool TypeChecker::assertSameType(const Type& expected, const Type& actual, std::
 
 	return true;
 }
+
+void TypeChecker::defineExplicitConversion(std::shared_ptr<Type> fromType, std::shared_ptr<Type> toType) {
+	mExplicitConversions.insert({ fromType, toType });
+}
+
+bool TypeChecker::existsExplicitConversion(std::shared_ptr<Type> fromType, std::shared_ptr<Type> toType) const {
+	auto conversions = mExplicitConversions.find(fromType);
+
+	for (auto it = conversions; it != mExplicitConversions.end(); ++it) {
+		auto current = *it;
+
+		if (*current.second == *toType) {
+			return true;
+		}
+	}
+
+	return false;
+}
