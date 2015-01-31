@@ -6,6 +6,7 @@
 #include "codegenerator.h"
 #include "expressionast.h"
 #include "symbol.h"
+#include "semantics.h"
 
 //Binary OP expression AST
 std::set<std::string> BinaryOpExpressionAST::arithmeticTypes = {
@@ -122,28 +123,49 @@ void BinaryOpExpressionAST::typeCheck(TypeChecker& checker) {
 			*rhsType,
 			asString());
 	}
+}
+
+void BinaryOpExpressionAST::verify(SemanticVerifier& verifier) {
+	mRightHandSide->verify(verifier);
+	mLeftHandSide->verify(verifier);
+
+	auto checker = verifier.typeChecker();
+	auto lhsType = mLeftHandSide->expressionType(checker);
+	auto rhsType = mRightHandSide->expressionType(checker);
 
 	if (mOp == Operator('+') || mOp == Operator('-') || mOp == Operator('*') || mOp == Operator('/')) {
 		if (arithmeticTypes.count(lhsType->name()) == 0) {
-			checker.typeError("The type '" + lhsType->name() + "' doesn't support arithmetic operators.");
+			verifier.semanticError("The type '" + lhsType->name() + "' doesn't support arithmetic operators.");
 		}
 	}
 
 	if (mOp == Operator('!', '=') || mOp == Operator('=', '=')) {
 		if (equalityTypes.count(lhsType->name()) == 0) {
-			checker.typeError("The type '" + lhsType->name() + "' doesn't support equality operators.");
+			verifier.semanticError("The type '" + lhsType->name() + "' doesn't support equality operators.");
 		}
 	}
 
 	if (mOp == Operator('&', '&') || mOp == Operator('|', '|')) {
 		if (logicalTypes.count(lhsType->name()) == 0) {
-			checker.typeError("The type '" + lhsType->name() + "' doesn't support logical operators.");
+			verifier.semanticError("The type '" + lhsType->name() + "' doesn't support logical operators.");
 		}
 	}
 
 	if (mOp == Operator('<') || mOp == Operator('<', '=') || mOp == Operator('>') || mOp == Operator('>', '=')) {
 		if (comparableTypes.count(lhsType->name()) == 0) {
-			checker.typeError("The type '" + lhsType->name() + "' doesn't support compare operators.");
+			verifier.semanticError("The type '" + lhsType->name() + "' doesn't support compare operators.");
+		}
+	}
+
+	if (mOp == Operator('=')) {
+		if (auto varRef = std::dynamic_pointer_cast<VariableReferenceExpressionAST>(mLeftHandSide)) {
+			auto varDec = std::dynamic_pointer_cast<VariableSymbol>(mSymbolTable->find(varRef->varName()));
+
+			if (varDec->isFunctionParameter()) {
+				verifier.semanticError("Assignment to function parameter is not allowed.");
+			}
+		} else if (std::dynamic_pointer_cast<VariableDeclerationExpressionAST>(mLeftHandSide) == nullptr) {
+			verifier.semanticError("Left hand side is not decleration or variable reference.");
 		}
 	}
 }
@@ -210,11 +232,7 @@ void BinaryOpExpressionAST::generateCode(CodeGenerator& codeGen, GeneratedFuncti
 
 			if (!varDec->isFunctionParameter()) {
 				func.addInstruction("STLOC " + std::to_string(func.getLocal(varRef->varName()).first));
-			} else {
-				codeGen.codeGenError("Assignment to function parameter.");
 			}
-		} else {
-			codeGen.codeGenError("Left hand side is not decleration or variable reference.");
 		}
 	} else if(mOp == Operator('=', '=')) {
 		generateSidesCode(codeGen, func);
@@ -264,12 +282,19 @@ std::string UnaryOpExpressionAST::asString() const {
 }
 
 bool UnaryOpExpressionAST::rewriteAST(std::shared_ptr<AbstractSyntaxTree>& newAST) const {
-	//Rewrite -int as an int expression
+	//Rewrite -constant as a constant expression
 	if (mOp == Operator('-')) {
 		auto intExpr = std::dynamic_pointer_cast<IntegerExpressionAST>(mOperand);
 
 		if (intExpr != nullptr) {
 			newAST = std::make_shared<IntegerExpressionAST>(-intExpr->value());
+			return true;
+		}
+
+		auto floatExpr = std::dynamic_pointer_cast<FloatExpressionAST>(mOperand);
+
+		if (floatExpr != nullptr) {
+			newAST = std::make_shared<FloatExpressionAST>(-floatExpr->value());
 			return true;
 		}
 	}
@@ -284,6 +309,22 @@ void UnaryOpExpressionAST::generateSymbols(Binder& binder, std::shared_ptr<Symbo
 
 void UnaryOpExpressionAST::typeCheck(TypeChecker& checker) {
 	mOperand->typeCheck(checker);
+
+	auto opType = mOperand->expressionType(checker);
+
+	if (mOp == Operator('!') && opType != checker.getType("Bool")) {
+		checker.typeError("The '!' operator can only be applied to values/variables of type 'Bool'.");
+	} else if (mOp == Operator('-') && opType != checker.getType("Int") && opType != checker.getType("Float")) {
+		checker.typeError("The '-' operator can only be applied to values/variables of type 'Int' or 'Float'.");
+	}
+}
+
+void UnaryOpExpressionAST::verify(SemanticVerifier& verifier) {
+	mOperand->verify(verifier);
+
+	// if (mOp != Operator('-') && mOp != Operator('!')) {
+	// 	verifier.semanticError("Operator '" + mOp.asString() + "' is not defined.");
+	// }
 }
 
 std::shared_ptr<Type> UnaryOpExpressionAST::expressionType(const TypeChecker& checker) const {
@@ -292,13 +333,18 @@ std::shared_ptr<Type> UnaryOpExpressionAST::expressionType(const TypeChecker& ch
 
 void UnaryOpExpressionAST::generateCode(CodeGenerator& codeGen, GeneratedFunction& func) {
 	if (mOp == Operator('-')) {
-		func.addInstruction("PUSH 0");
+		auto opType = mOperand->expressionType(codeGen.typeChecker());
+
+		if (*opType == *codeGen.typeChecker().getType("Int")) {
+			func.addInstruction("PUSHINT 0");
+		} else if (*opType == *codeGen.typeChecker().getType("Float")) {
+			func.addInstruction("PUSHFLOAT 0");
+		}
+
 		mOperand->generateCode(codeGen, func);
 		func.addInstruction("SUB");
 	} else if (mOp == Operator('!')) {
 		mOperand->generateCode(codeGen, func);
 		func.addInstruction("NOT");
-	} else {
-		codeGen.codeGenError("Operator '" + mOp.asString() + "' is not defined.");
 	}
 }

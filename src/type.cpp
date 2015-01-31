@@ -31,6 +31,20 @@ std::shared_ptr<Type> ArrayType::elementType() const {
 	return mElementType;
 }
 
+std::map<std::string, std::shared_ptr<Type>> TypeSystem::defaultTypes() {
+	auto intType = std::make_shared<PrimitiveType>(PrimitiveTypes::Int);
+	auto boolType = std::make_shared<PrimitiveType>(PrimitiveTypes::Bool);
+	auto floatType = std::make_shared<PrimitiveType>(PrimitiveTypes::Float);
+	auto voidType = std::make_shared<PrimitiveType>(PrimitiveTypes::Void);
+
+	return {
+		{ intType->name(), intType },
+		{ boolType->name(), boolType },
+		{ floatType->name(), floatType },
+		{ voidType->name(), voidType }
+	};
+}
+
 bool TypeSystem::fromString(std::string typeName, PrimitiveTypes& type) {
 	if (typeName == "Int") {
 		type = PrimitiveTypes::Int;

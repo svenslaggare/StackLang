@@ -10,6 +10,7 @@
 #include "typechecker.h"
 #include "codegenerator.h"
 #include "operators.h"
+#include "semantics.h"
 #include "standardlibrary.h"
 
 int main() {
@@ -47,14 +48,13 @@ int main() {
 	StandardLibrary::add(binder);
 	binder.generateSymbolTable(programAST);
 
-	TypeChecker typeChecker(operators, {
-		{ intType->name(), intType },
-		{ boolType->name(), boolType },
-		{ floatType->name(), floatType },
-		{ voidType->name(), voidType }
-	});
+	TypeChecker typeChecker(operators, TypeSystem::defaultTypes());
 
 	typeChecker.checkTypes(programAST);
+
+	SemanticVerifier verifier(binder, typeChecker);
+
+	programAST->verify(verifier);
 
 	CodeGenerator codeGenerator(typeChecker);
 	codeGenerator.generateProgram(programAST);

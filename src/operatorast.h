@@ -54,6 +54,8 @@ public:
 
 	virtual void typeCheck(TypeChecker& checker) override;
 
+	virtual void verify(SemanticVerifier& verifier) override;
+
 	virtual std::shared_ptr<Type> expressionType(const TypeChecker& checker) const override; 
 
 	virtual void generateCode(CodeGenerator& codeGen, GeneratedFunction& func) override;
@@ -81,6 +83,8 @@ public:
 	virtual void generateSymbols(Binder& binder, std::shared_ptr<SymbolTable> symbolTable) override;
 
 	virtual void typeCheck(TypeChecker& checker) override;
+
+	virtual void verify(SemanticVerifier& verifier) override;
 
 	virtual std::shared_ptr<Type> expressionType(const TypeChecker& checker) const override; 
 

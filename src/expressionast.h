@@ -136,6 +136,8 @@ public:
 
 	virtual void typeCheck(TypeChecker& checker) override;
 
+	virtual void verify(SemanticVerifier& verifier) override;
+
 	virtual std::shared_ptr<Type> expressionType(const TypeChecker& checker) const override; 
 
 	virtual void generateCode(CodeGenerator& codeGen, GeneratedFunction& func) override;

@@ -6,6 +6,7 @@
 #include "binder.h"
 #include "typechecker.h"
 #include "type.h"
+#include "semantics.h"
 
 //Function prototype AST
 FunctionPrototypeAST::FunctionPrototypeAST(std::string name, const std::vector<std::shared_ptr<VariableDeclerationExpressionAST>>& parameters, std::string returnType)
@@ -50,10 +51,6 @@ std::string FunctionPrototypeAST::asString() const {
 void FunctionPrototypeAST::generateSymbols(Binder& binder, std::shared_ptr<SymbolTable> symbolTable) {
 	AbstractSyntaxTree::generateSymbols(binder, symbolTable);
 	
-	// if (!symbolTable->add(name(), std::make_shared<FunctionAST>(*this))) {
-	// 	binder.error("The symbol '" + name() + "' is already defined.");
-	// }
-
 	for (auto param : mParameters) {
 		param->generateSymbols(binder, symbolTable);
 	}
@@ -65,6 +62,12 @@ void FunctionPrototypeAST::typeCheck(TypeChecker& checker) {
 	}
 
 	checker.assertTypeExists(mReturnType);
+}
+
+void FunctionPrototypeAST::verify(SemanticVerifier& verifier) {
+	for (auto param : mParameters) {
+		param->verify(verifier);
+	}
 }
 
 //Function AST
@@ -113,12 +116,17 @@ void FunctionAST::generateSymbols(Binder& binder, std::shared_ptr<SymbolTable> s
 void FunctionAST::typeCheck(TypeChecker& checker) {
 	mPrototype->typeCheck(checker);
 	mBody->typeCheck(checker);
+}
 
-	auto funcName = mPrototype->name();
+void FunctionAST::verify(SemanticVerifier& verifier) {
+	mPrototype->verify(verifier);
+	mBody->verify(verifier);
 
 	//Check the return statement(s)
-	bool anyReturn = false;
+	auto checker = verifier.typeChecker();
 
+	auto funcName = mPrototype->name();
+	bool anyReturn = false;
 	auto returnType = checker.getType(mPrototype->returnType());
 
 	for (auto statement : mBody->statements()) {
@@ -135,20 +143,20 @@ void FunctionAST::typeCheck(TypeChecker& checker) {
 
 			if (returnType->name() != "Void") {
 				if (returnStatement->returnExpression() == nullptr) {
-					checker.typeError(returnStatement->asString() + ": Empty return only allowed in void functions.");
+					verifier.semanticError(returnStatement->asString() + ": Empty return only allowed in void functions.");
 				}
 
 				checker.assertSameType(*returnType, *returnStatement->returnExpression()->expressionType(checker), returnStatement->asString());
 			} else {
 				if (returnStatement->returnExpression() != nullptr) {
-					checker.typeError(returnStatement->asString() + ": Found expression after return in void function.");
+					verifier.semanticError(returnStatement->asString() + ": Found expression after return in void function.");
 				}
 			}
 		}
 	}
 
 	if (returnType->name() != "Void" && !anyReturn) {
-		checker.typeError("Expected return statement in function '" + funcName + "'.");
+		verifier.semanticError("Expected return statement in function '" + funcName + "'.");
 	}
 }
 

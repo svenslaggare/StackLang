@@ -1,6 +1,7 @@
 #pragma once
 #include <string>
 #include <memory>
+#include <map>
 
 //Represents a type
 class Type {
@@ -45,6 +46,9 @@ public:
 };
 
 namespace TypeSystem {
+	//Returns the default types
+	std::map<std::string, std::shared_ptr<Type>> defaultTypes();
+
 	//Creates a primitive type from a string
 	bool fromString(std::string typeName, PrimitiveTypes& type);
 

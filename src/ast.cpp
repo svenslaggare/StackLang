@@ -8,16 +8,28 @@ void AbstractSyntaxTree::generateSymbols(Binder& binder, std::shared_ptr<SymbolT
 	mSymbolTable = symbolTable;
 }
 
-void AbstractSyntaxTree::typeCheck(TypeChecker& checker) {
-
-}
-
 std::shared_ptr<AbstractSyntaxTree> AbstractSyntaxTree::findAST(std::function<bool (std::shared_ptr<AbstractSyntaxTree> ast)> predicate) const {
 	return nullptr;
 }
 
+void AbstractSyntaxTree::rewrite() {
+
+}
+
 bool AbstractSyntaxTree::rewriteAST(std::shared_ptr<AbstractSyntaxTree>& newAST) const {
 	return false;
+}
+
+void AbstractSyntaxTree::typeCheck(TypeChecker& checker) {
+
+}
+
+void AbstractSyntaxTree::verify(SemanticVerifier& verifier) {
+
+}
+
+void AbstractSyntaxTree::generateCode(CodeGenerator& codeGen, GeneratedFunction& func) {
+
 }
 
 std::ostream& operator<<(std::ostream& os, const AbstractSyntaxTree& ast) {

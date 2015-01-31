@@ -48,6 +48,10 @@ std::shared_ptr<AbstractSyntaxTree> ExpressionStatementAST::findAST(std::functio
 	return mExpression->findAST(predicate);
 }
 
+void ExpressionStatementAST::verify(SemanticVerifier& verifier) {
+	mExpression->verify(verifier);
+}
+
 void ExpressionStatementAST::generateCode(CodeGenerator& codeGen, GeneratedFunction& func) {
 	mExpression->generateCode(codeGen, func);
 
@@ -111,6 +115,12 @@ void ReturnStatementAST::generateSymbols(Binder& binder, std::shared_ptr<SymbolT
 void ReturnStatementAST::typeCheck(TypeChecker& checker) {
 	if (mReturnExpression != nullptr) {
 		mReturnExpression->typeCheck(checker);
+	}
+}
+
+void ReturnStatementAST::verify(SemanticVerifier& verifier) {
+	if (mReturnExpression != nullptr) {
+		mReturnExpression->verify(verifier);
 	}
 }
 
@@ -201,6 +211,16 @@ void IfElseStatementAST::typeCheck(TypeChecker& checker) {
 
 	if (mElseBlock != nullptr) {
 		mElseBlock->typeCheck(checker);
+	}
+}
+
+void IfElseStatementAST::verify(SemanticVerifier& verifier) {
+	mConditionExpression->verify(verifier);
+
+	mThenBlock->verify(verifier);
+
+	if (mElseBlock != nullptr) {
+		mElseBlock->verify(verifier);
 	}
 }
 
@@ -335,6 +355,11 @@ void WhileLoopStatementAST::generateSymbols(Binder& binder, std::shared_ptr<Symb
 void WhileLoopStatementAST::typeCheck(TypeChecker& checker) {
 	mConditionExpression->typeCheck(checker);
 	mBodyBlock->typeCheck(checker);
+}
+
+void WhileLoopStatementAST::verify(SemanticVerifier& verifier) {
+	mConditionExpression->verify(verifier);
+	mBodyBlock->verify(verifier);
 }
 
 void WhileLoopStatementAST::generateCode(CodeGenerator& codeGen, GeneratedFunction& func) {

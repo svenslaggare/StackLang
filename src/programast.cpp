@@ -62,3 +62,9 @@ void ProgramAST::typeCheck(TypeChecker& checker) {
 		func->typeCheck(checker);
 	}
 }
+
+void ProgramAST::verify(SemanticVerifier& verifier) {
+	for (auto func : mFunctions) {
+		func->verify(verifier);
+	}
+}

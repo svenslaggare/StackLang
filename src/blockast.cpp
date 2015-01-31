@@ -74,6 +74,12 @@ void BlockAST::typeCheck(TypeChecker& checker) {
 	}
 }
 
+void BlockAST::verify(SemanticVerifier& verifier) {
+	for (auto statement : mStatements) {
+		statement->verify(verifier);
+	}
+}
+
 void BlockAST::generateCode(CodeGenerator& codeGen, GeneratedFunction& func) {
 	for (auto statement : mStatements) {
 		statement->generateCode(codeGen, func);

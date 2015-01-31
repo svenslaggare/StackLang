@@ -37,6 +37,8 @@ public:
 	virtual void generateSymbols(Binder& binder, std::shared_ptr<SymbolTable> symbolTable) override;
 
 	virtual void typeCheck(TypeChecker& checker) override;
+
+	virtual void verify(SemanticVerifier& verifier) override;
 };
 
 //Represents a function AST
@@ -63,6 +65,8 @@ public:
 	virtual void generateSymbols(Binder& binder, std::shared_ptr<SymbolTable> symbolTable) override;
 
 	virtual void typeCheck(TypeChecker& checker) override;
+
+	virtual void verify(SemanticVerifier& verifier) override;
 
 	virtual void generateCode(CodeGenerator& codeGen, GeneratedFunction& func) override;
 };

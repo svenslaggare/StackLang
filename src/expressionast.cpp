@@ -250,6 +250,12 @@ void CallExpressionAST::typeCheck(TypeChecker& checker) {
 	}
 }
 
+void CallExpressionAST::verify(SemanticVerifier& verifier) {
+	for (auto arg : arguments()) {
+		arg->verify(verifier);
+	}
+}
+
 std::shared_ptr<Type> CallExpressionAST::expressionType(const TypeChecker& checker) const {
 	auto func = std::dynamic_pointer_cast<FunctionSymbol>(mSymbolTable->find(functionName()));
 	return checker.getType(func->returnType());

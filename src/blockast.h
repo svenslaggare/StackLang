@@ -34,5 +34,7 @@ public:
 
 	virtual void typeCheck(TypeChecker& checker) override;
 
+	virtual void verify(SemanticVerifier& verifier) override;
+
 	virtual void generateCode(CodeGenerator& codeGen, GeneratedFunction& func) override;
 };

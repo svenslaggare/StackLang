@@ -10,6 +10,7 @@ class TypeChecker;
 class Type;
 class CodeGenerator;
 class GeneratedFunction;
+class SemanticVerifier;
 
 //Represents an abstract syntax tree
 class AbstractSyntaxTree {
@@ -28,7 +29,7 @@ public:
 	virtual std::shared_ptr<AbstractSyntaxTree> findAST(std::function<bool (std::shared_ptr<AbstractSyntaxTree> ast)> predicate) const;
 
 	//Rewrites the children of the current tree
-	virtual void rewrite() {};
+	virtual void rewrite();
 
 	//Rewrites the current tree and returns the result
 	virtual bool rewriteAST(std::shared_ptr<AbstractSyntaxTree>& newAST) const;
@@ -39,8 +40,11 @@ public:
 	//Type checks
 	virtual void typeCheck(TypeChecker& checker);
 
+	//Verifies the AST according to the semantic rules
+	virtual void verify(SemanticVerifier& verifier);
+
 	//Generates code
-	virtual void generateCode(CodeGenerator& codeGen, GeneratedFunction& func) {};
+	virtual void generateCode(CodeGenerator& codeGen, GeneratedFunction& func);
 };
 
 std::ostream& operator<<(std::ostream& os, const AbstractSyntaxTree& ast);
@@ -54,6 +58,7 @@ public:
 
 //Represents a statement AST
 class StatementAST : public AbstractSyntaxTree {
+
 };
 
 namespace AST {
