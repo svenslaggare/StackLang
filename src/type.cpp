@@ -17,6 +17,11 @@ bool Type::operator!=(const Type& other) const {
 	return !(*this == other);
 }
 
+AutoType::AutoType()
+	: Type("Auto") {
+
+}
+
 PrimitiveType::PrimitiveType(PrimitiveTypes type)
 	: Type(TypeSystem::toString(type)) {
 
@@ -38,6 +43,7 @@ std::map<std::string, std::shared_ptr<Type>> TypeSystem::defaultTypes() {
 	auto voidType = std::make_shared<PrimitiveType>(PrimitiveTypes::Void);
 
 	return {
+		{ "var", std::make_shared<AutoType>() },
 		{ intType->name(), intType },
 		{ boolType->name(), boolType },
 		{ floatType->name(), floatType },

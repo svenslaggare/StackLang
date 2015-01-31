@@ -32,11 +32,8 @@ public:
 	void typeError(std::string message);
 
 	//Asserts that a type with the given name exists
-	bool assertTypeExists(std::string name);
+	bool assertTypeExists(std::string name, bool allowAuto = true);
 
 	//Asserts that the types are equal
 	bool assertSameType(const Type& expected, const Type& actual, std::string errorMessage = "");
-
-	//Checkes the types for the given program
-	void checkTypes(std::shared_ptr<ProgramAST> program);
 };

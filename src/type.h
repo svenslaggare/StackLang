@@ -23,6 +23,13 @@ public:
 	bool operator!=(const Type& other) const;
 };
 
+//Represents a type to be inferred
+class AutoType : public Type {
+public:
+	//Creates a new auto type
+	AutoType();
+};
+
 //The primitive types
 enum class PrimitiveTypes { Void, Int, Bool, Float };
 

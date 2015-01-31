@@ -36,6 +36,12 @@ std::shared_ptr<Symbol> SymbolTable::find(std::string name) const {
 	}
 }
 
+void SymbolTable::set(std::string name, std::shared_ptr<Symbol> symbol) {
+	if (mInner.count(name) > 0) {
+		mInner[name] = symbol;
+	}
+}
+
 const std::map<std::string, std::shared_ptr<Symbol>>& SymbolTable::inner() const {
 	return mInner;
 }

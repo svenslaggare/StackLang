@@ -108,20 +108,41 @@ void BinaryOpExpressionAST::generateSymbols(Binder& binder, std::shared_ptr<Symb
 
 void BinaryOpExpressionAST::typeCheck(TypeChecker& checker) {
 	mRightHandSide->typeCheck(checker);
-	mLeftHandSide->typeCheck(checker);
 
 	auto lhsType = mLeftHandSide->expressionType(checker);
 	auto rhsType = mRightHandSide->expressionType(checker);
 
-	auto intType = checker.getType("Int");
-	auto floatType = checker.getType("Float");
+	if (lhsType->name() != "Auto") {
+		mLeftHandSide->typeCheck(checker);
 
-	//We allow integer constants to be implicitly converted to float constants
-	if (!lhsFloatConvertable(checker) && !rhsFloatConvertable(checker)) {
-		checker.assertSameType(
-			*lhsType, 
-			*rhsType,
-			asString());
+		auto intType = checker.getType("Int");
+		auto floatType = checker.getType("Float");
+
+		//We allow integer constants to be implicitly converted to float constants
+		if (!lhsFloatConvertable(checker) && !rhsFloatConvertable(checker)) {
+			checker.assertSameType(
+				*lhsType, 
+				*rhsType,
+				asString());
+		}
+	} else {
+		//Infer the type
+		auto lhsVarDec = std::dynamic_pointer_cast<VariableDeclerationExpressionAST>(mLeftHandSide);
+
+		if (lhsVarDec != nullptr) {
+			mLeftHandSide = std::make_shared<VariableDeclerationExpressionAST>(
+				rhsType->name(),
+				lhsVarDec->varName(),
+				lhsVarDec->isFunctionParameter());
+
+			//Update the symbol
+			mSymbolTable->set(
+				lhsVarDec->varName(),
+				std::make_shared<VariableSymbol>(lhsVarDec->varName(), rhsType->name(), lhsVarDec->isFunctionParameter()));
+		} else {
+			//Should never happen
+			checker.typeError("Auto type is only allowed in variable declaration.");
+		}
 	}
 }
 
@@ -182,7 +203,13 @@ std::shared_ptr<Type> BinaryOpExpressionAST::expressionType(const TypeChecker& c
 			if (lhsFloatConvertable(checker)) {
 				return checker.getType("Float");
 			} else {
-				return mLeftHandSide->expressionType(checker);
+				auto lhsType = mLeftHandSide->expressionType(checker);
+
+				if (lhsType->name() == "Auto") {
+					return mRightHandSide->expressionType(checker);
+				} else {
+					return mLeftHandSide->expressionType(checker);
+				}
 			}
 		}
 	}
@@ -321,10 +348,6 @@ void UnaryOpExpressionAST::typeCheck(TypeChecker& checker) {
 
 void UnaryOpExpressionAST::verify(SemanticVerifier& verifier) {
 	mOperand->verify(verifier);
-
-	// if (mOp != Operator('-') && mOp != Operator('!')) {
-	// 	verifier.semanticError("Operator '" + mOp.asString() + "' is not defined.");
-	// }
 }
 
 std::shared_ptr<Type> UnaryOpExpressionAST::expressionType(const TypeChecker& checker) const {

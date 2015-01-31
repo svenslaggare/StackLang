@@ -49,11 +49,9 @@ int main() {
 	binder.generateSymbolTable(programAST);
 
 	TypeChecker typeChecker(operators, TypeSystem::defaultTypes());
-
-	typeChecker.checkTypes(programAST);
+	programAST->typeCheck(typeChecker);
 
 	SemanticVerifier verifier(binder, typeChecker);
-
 	programAST->verify(verifier);
 
 	CodeGenerator codeGenerator(typeChecker);

@@ -38,8 +38,14 @@ void TypeChecker::typeError(std::string message) {
 	throw std::runtime_error(message);
 }
 
-bool TypeChecker::assertTypeExists(std::string name) {
-	if (!typeExists(name)) {
+bool TypeChecker::assertTypeExists(std::string name, bool allowAuto) {
+	bool exists = typeExists(name);
+
+	if (!allowAuto && name == "var") {
+		exists = false;
+	}
+
+	if (!exists) {
 		typeError("There is no type named '" + name + "'.");
 		return false;
 	}
@@ -61,8 +67,4 @@ bool TypeChecker::assertSameType(const Type& expected, const Type& actual, std::
 	}
 
 	return true;
-}
-
-void TypeChecker::checkTypes(std::shared_ptr<ProgramAST> program) {
-	program->typeCheck(*this);
 }

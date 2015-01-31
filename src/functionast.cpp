@@ -61,7 +61,7 @@ void FunctionPrototypeAST::typeCheck(TypeChecker& checker) {
 		param->typeCheck(checker);
 	}
 
-	checker.assertTypeExists(mReturnType);
+	checker.assertTypeExists(mReturnType, false);
 }
 
 void FunctionPrototypeAST::verify(SemanticVerifier& verifier) {

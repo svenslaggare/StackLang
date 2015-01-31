@@ -26,6 +26,9 @@ public:
 	//Finds the given symbol. Nullptr if it doesn't exists.
 	std::shared_ptr<Symbol> find(std::string name) const;
 
+	//Updates the given symbol.
+	void set(std::string name, std::shared_ptr<Symbol> symbol);
+
 	//Returns the entries in the inner table
 	const std::map<std::string, std::shared_ptr<Symbol>>& inner() const;
 
