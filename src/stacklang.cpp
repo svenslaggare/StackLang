@@ -15,6 +15,7 @@
 int main() {
 	auto intType = std::make_shared<PrimitiveType>(PrimitiveTypes::Int);
 	auto boolType = std::make_shared<PrimitiveType>(PrimitiveTypes::Bool);
+	auto floatType = std::make_shared<PrimitiveType>(PrimitiveTypes::Float);
 	auto voidType = std::make_shared<PrimitiveType>(PrimitiveTypes::Void);
 
 	OperatorContainer operators(
@@ -33,23 +34,24 @@ int main() {
 		});
 
 	Lexer lexer(operators.operatorChars());
-	std::fstream programText("programs/program3.txt");
+	std::fstream programText("programs/program4.txt");
 	auto tokens = lexer.tokenize(programText); 
 
 	Parser parser(operators, tokens);
 	auto programAST = parser.parse();
 
 	programAST->rewrite();
-	// std::cout << *programAST << std::endl;
+	//std::cout << *programAST << std::endl;
 
 	Binder binder;
 	StandardLibrary::add(binder);
 	binder.generateSymbolTable(programAST);
 
 	TypeChecker typeChecker(operators, {
-		{ "Int", intType },
-		{ "Bool", boolType },
-		{ "Void", voidType }
+		{ intType->name(), intType },
+		{ boolType->name(), boolType },
+		{ floatType->name(), floatType },
+		{ voidType->name(), voidType }
 	});
 
 	typeChecker.checkTypes(programAST);

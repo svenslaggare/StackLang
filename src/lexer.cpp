@@ -31,6 +31,9 @@ std::ostream& operator<<(std::ostream& os, const Token& token) {
 		case TokenType::Integer:
 			os << token.intValue;
 			break;
+		case TokenType::Float:
+			os << token.floatValue;
+			break;
 		case TokenType::True:
 			os << "true";
 			break;
@@ -66,6 +69,10 @@ std::ostream& operator<<(std::ostream& os, const Token& token) {
 Lexer::Lexer(const std::unordered_set<char>& opTable)
 	: mOpTable(opTable) {
 
+}
+
+void Lexer::error(std::string message) const {
+	throw std::runtime_error(message);
 }
 
 std::vector<Token> Lexer::tokenize(std::istream& stream) const {
@@ -135,15 +142,35 @@ std::vector<Token> Lexer::tokenize(std::istream& stream) const {
 			if (isdigit(currentChar)) {
 				std::string numStr = "";
 				numStr += currentChar;
+				bool containsDecimalPoint = false;
 
-				while ((currentChar = stream.peek()) && isdigit(currentChar)) {
+				while ((currentChar = stream.peek()) && (isdigit(currentChar) || currentChar == '.')) {
+					if (currentChar == '.') {
+						if (!containsDecimalPoint) {
+							containsDecimalPoint = true;
+						} else {
+							error("The current number already contains a decimal point.");
+						}
+					}
 					numStr += currentChar;
 					currentChar = stream.peek();
 					stream.get(currentChar);
 				}
 
-				auto newToken = Token(TokenType::Integer);
-				newToken.intValue = std::stoi(numStr);
+				auto tokenType = TokenType::Integer;
+
+				if (containsDecimalPoint) {
+					tokenType = TokenType::Float;
+				}
+
+				auto newToken = Token(tokenType);
+
+				if (!containsDecimalPoint) {
+					newToken.intValue = std::stoi(numStr);
+				} else {
+					newToken.floatValue = std::stof(numStr);
+				}
+
 				tokens.push_back(newToken);
 				prevToken = newToken;
 				continue;

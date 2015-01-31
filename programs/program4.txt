@@ -1,0 +1,6 @@
+func main(): Int {
+	Float x = 5;
+	printfln(5 + 3.5);
+	printfln(3.5 + 5);
+	return 0;
+}

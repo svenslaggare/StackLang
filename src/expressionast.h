@@ -43,6 +43,23 @@ public:
 	virtual void generateCode(CodeGenerator& codeGen, GeneratedFunction& func) override;
 };
 
+//Represents a float expression
+class FloatExpressionAST : public ExpressionAST {
+private:
+	float mValue;
+public:
+	//Creates a new integer expression
+	FloatExpressionAST(float value);
+
+	//Returns the value
+	float value() const;
+
+	std::string asString() const override;
+
+	virtual std::shared_ptr<Type> expressionType(const TypeChecker& checker) const override; 
+
+	virtual void generateCode(CodeGenerator& codeGen, GeneratedFunction& func) override;
+};
 
 //Represents a variable reference expression
 class VariableReferenceExpressionAST : public ExpressionAST {

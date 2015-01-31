@@ -6,4 +6,6 @@ void StandardLibrary::add(Binder& binder) {
 	binder.addFunction("println", { { "Int", "x" } }, "Void");
 	binder.addFunction("print", { { "Int", "x" } }, "Void");
 	binder.addFunction("printchar", { { "Int", "x" } }, "Void");
+
+	binder.addFunction("printfln", { { "Float", "x" } }, "Void");
 }

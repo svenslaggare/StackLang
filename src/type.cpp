@@ -38,6 +38,9 @@ bool TypeSystem::fromString(std::string typeName, PrimitiveTypes& type) {
 	} else if (typeName == "Bool") {
 		type = PrimitiveTypes::Bool;
 		return true;
+	} else if (typeName == "Float") {
+		type = PrimitiveTypes::Float;
+		return true;
 	} else if (typeName == "Void") {
 		type = PrimitiveTypes::Void;
 		return true;
@@ -52,6 +55,8 @@ std::string TypeSystem::toString(PrimitiveTypes type) {
 		return "Int";
 	case PrimitiveTypes::Bool:
 		return "Bool";
+	case PrimitiveTypes::Float:
+		return "Float";
 	case PrimitiveTypes::Void:
 		return "Void";
 	}

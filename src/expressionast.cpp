@@ -60,6 +60,28 @@ void BoolExpressionAST::generateCode(CodeGenerator& codeGen, GeneratedFunction& 
 	}
 }
 
+//Float expression AST
+FloatExpressionAST::FloatExpressionAST(float value)
+	: mValue(value) {
+
+}
+
+float FloatExpressionAST::value() const {
+	return mValue;
+}
+
+std::string FloatExpressionAST::asString() const {
+	return std::to_string(mValue);
+}
+
+std::shared_ptr<Type> FloatExpressionAST::expressionType(const TypeChecker& checker) const {
+	return checker.getType("Float");
+}
+
+void FloatExpressionAST::generateCode(CodeGenerator& codeGen, GeneratedFunction& func) {
+	func.addInstruction("PUSHFLOAT " + std::to_string(mValue));
+}
+
 //Variable reference expression AST
 VariableReferenceExpressionAST::VariableReferenceExpressionAST(std::string varName)
 	: mVarName(varName) {

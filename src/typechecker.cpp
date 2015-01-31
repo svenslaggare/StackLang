@@ -47,7 +47,7 @@ bool TypeChecker::assertTypeExists(std::string name) {
 	return true;
 }
 
-bool TypeChecker::assertSameType(const Type& expected, const Type&  actual, std::string errorMessage) {
+bool TypeChecker::assertSameType(const Type& expected, const Type& actual, std::string errorMessage) {
 	if (expected != actual) {
 		auto errorMsg = errorMessage;
 
@@ -55,7 +55,7 @@ bool TypeChecker::assertSameType(const Type& expected, const Type&  actual, std:
 			errorMsg += ": ";
 		}
 
-		errorMsg += "Expected type '" + expected.name() + "' but got '" + actual.name() + "'.";
+		errorMsg += "Expected type '" + expected.name() + "' but got type '" + actual.name() + "'.";
 		typeError(errorMsg);
 		return false;
 	}

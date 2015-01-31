@@ -75,15 +75,21 @@ int Parser::getTokenPrecedence() {
 }
 
 std::shared_ptr<ExpressionAST> Parser::parseIntegerExpression() {
-	auto intAst = std::make_shared<IntegerExpressionAST>(IntegerExpressionAST(currentToken.intValue));
+	auto intAst = std::make_shared<IntegerExpressionAST>(currentToken.intValue);
 	nextToken(); //Consume the int
 	return intAst;
 }
 
 std::shared_ptr<ExpressionAST> Parser::parseBoolExpression() {
-	auto boolAst = std::make_shared<BoolExpressionAST>(BoolExpressionAST(currentToken.type() == TokenType::True));
+	auto boolAst = std::make_shared<BoolExpressionAST>(currentToken.type() == TokenType::True);
 	nextToken(); //Consume the bool value
 	return boolAst;
+}
+
+std::shared_ptr<ExpressionAST> Parser::parseFloatExpression() {
+	auto floatAst = std::make_shared<FloatExpressionAST>(currentToken.floatValue);
+	nextToken(); //Consume the float
+	return floatAst;
 }
 
 std::shared_ptr<ExpressionAST> Parser::parseIdentifierExpression(bool allowDecleration) {
@@ -167,6 +173,8 @@ std::shared_ptr<ExpressionAST> Parser::parsePrimaryExpression(bool allowDeclerat
 		return parseBoolExpression();
 	case TokenType::False:
 		return parseBoolExpression();	
+	case TokenType::Float:
+		return parseFloatExpression();
 	case TokenType::Identifier:
 		return parseIdentifierExpression(allowDecleration);
 	case TokenType::SingleChar:

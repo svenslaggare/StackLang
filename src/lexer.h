@@ -12,6 +12,7 @@ enum class TokenType : unsigned char {
 	Identifier,
 	Func,
 	Integer,
+	Float,
 	True,
 	False,
 	If,
@@ -39,8 +40,11 @@ public:
 	//The values
 	char charValue;
 	char charValue2;
+
 	std::string strValue;
+
 	int intValue;
+	float floatValue;
 };
 
 std::ostream& operator<<(std::ostream& os, const Token& token);
@@ -49,6 +53,9 @@ std::ostream& operator<<(std::ostream& os, const Token& token);
 class Lexer {
 private:
 	const std::unordered_set<char>& mOpTable;
+
+	//Signals that an error has occurred
+	void error(std::string message) const;
 public:
 	//Creates a new lexer
 	Lexer(const std::unordered_set<char>& opTable);

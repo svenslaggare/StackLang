@@ -16,6 +16,23 @@ private:
 	std::shared_ptr<ExpressionAST> mLeftHandSide;
 	std::shared_ptr<ExpressionAST> mRightHandSide;
 	Operator mOp;
+
+	static std::set<std::string> arithmeticTypes;
+	static std::set<std::string> equalityTypes;
+	static std::set<std::string> comparableTypes;
+	static std::set<std::string> logicalTypes;
+
+	//Indicates if the left hand side is convertable to float
+	bool lhsFloatConvertable(const TypeChecker& typeChecker) const;
+
+	//Indicates if the right hand side is convertable to float
+	bool rhsFloatConvertable(const TypeChecker& typeChecker) const;
+
+	//Generates code for the rhs
+	void generateRHSCode(CodeGenerator& codeGen, GeneratedFunction& func);
+
+	//Generates the code for lhs and rhs
+	void generateSidesCode(CodeGenerator& codeGen, GeneratedFunction& func);
 public:
 	//Creates a new binary operator expression
 	BinaryOpExpressionAST(std::shared_ptr<ExpressionAST> leftHandSide, std::shared_ptr<ExpressionAST> rightHandSide, Operator op);

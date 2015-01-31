@@ -23,7 +23,7 @@ public:
 };
 
 //The primitive types
-enum class PrimitiveTypes { Void, Int, Bool };
+enum class PrimitiveTypes { Void, Int, Bool, Float };
 
 //Represents a primitive type
 class PrimitiveType : public Type {

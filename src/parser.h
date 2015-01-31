@@ -48,6 +48,9 @@ private:
 	//Parses a bool expression
 	std::shared_ptr<ExpressionAST> parseBoolExpression();
 
+	//Parses a float expression
+	std::shared_ptr<ExpressionAST> parseFloatExpression();
+
 	//Parses an identifier expression
 	std::shared_ptr<ExpressionAST> parseIdentifierExpression(bool allowDecleration = false);
 

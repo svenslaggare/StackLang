@@ -8,6 +8,26 @@
 #include "symbol.h"
 
 //Binary OP expression AST
+std::set<std::string> BinaryOpExpressionAST::arithmeticTypes = {
+	TypeSystem::toString(PrimitiveTypes::Int),
+	TypeSystem::toString(PrimitiveTypes::Float)
+};
+
+std::set<std::string> BinaryOpExpressionAST::equalityTypes = {
+	TypeSystem::toString(PrimitiveTypes::Int),
+	TypeSystem::toString(PrimitiveTypes::Bool),
+	TypeSystem::toString(PrimitiveTypes::Float)
+};
+
+std::set<std::string> BinaryOpExpressionAST::comparableTypes = {
+	TypeSystem::toString(PrimitiveTypes::Int),
+	TypeSystem::toString(PrimitiveTypes::Float)
+};
+
+std::set<std::string> BinaryOpExpressionAST::logicalTypes = {
+	TypeSystem::toString(PrimitiveTypes::Bool)
+};
+
 BinaryOpExpressionAST::BinaryOpExpressionAST(std::shared_ptr<ExpressionAST> leftHandSide, std::shared_ptr<ExpressionAST> rightHandSide, Operator op)
 	: mLeftHandSide(leftHandSide), mRightHandSide(rightHandSide), mOp(op) {
 }
@@ -26,6 +46,20 @@ Operator BinaryOpExpressionAST::op() const {
 
 std::string BinaryOpExpressionAST::asString() const {
 	return mLeftHandSide->asString() + " " + mOp.asString() + " " + mRightHandSide->asString();
+}
+
+bool BinaryOpExpressionAST::lhsFloatConvertable(const TypeChecker& typeChecker) const {
+	return 
+		*mLeftHandSide->expressionType(typeChecker) == *typeChecker.getType("Int")
+		&& *mRightHandSide->expressionType(typeChecker) == *typeChecker.getType("Float")
+		&& std::dynamic_pointer_cast<IntegerExpressionAST>(mLeftHandSide) != nullptr;
+}
+
+bool BinaryOpExpressionAST::rhsFloatConvertable(const TypeChecker& typeChecker) const {
+	return
+		*mRightHandSide->expressionType(typeChecker) == *typeChecker.getType("Int")
+		&& *mLeftHandSide->expressionType(typeChecker) == *typeChecker.getType("Float") 
+		&& std::dynamic_pointer_cast<IntegerExpressionAST>(mRightHandSide) != nullptr;
 }
 
 bool BinaryOpExpressionAST::rewriteAST(std::shared_ptr<AbstractSyntaxTree>& newAST) const {
@@ -74,10 +108,44 @@ void BinaryOpExpressionAST::generateSymbols(Binder& binder, std::shared_ptr<Symb
 void BinaryOpExpressionAST::typeCheck(TypeChecker& checker) {
 	mRightHandSide->typeCheck(checker);
 	mLeftHandSide->typeCheck(checker);
-	checker.assertSameType(
-		*mLeftHandSide->expressionType(checker), 
-		*mRightHandSide->expressionType(checker),
-		asString());
+
+	auto lhsType = mLeftHandSide->expressionType(checker);
+	auto rhsType = mRightHandSide->expressionType(checker);
+
+	auto intType = checker.getType("Int");
+	auto floatType = checker.getType("Float");
+
+	//We allow integer constants to be implicitly converted to float constants
+	if (!lhsFloatConvertable(checker) && !rhsFloatConvertable(checker)) {
+		checker.assertSameType(
+			*lhsType, 
+			*rhsType,
+			asString());
+	}
+
+	if (mOp == Operator('+') || mOp == Operator('-') || mOp == Operator('*') || mOp == Operator('/')) {
+		if (arithmeticTypes.count(lhsType->name()) == 0) {
+			checker.typeError("The type '" + lhsType->name() + "' doesn't support arithmetic operators.");
+		}
+	}
+
+	if (mOp == Operator('!', '=') || mOp == Operator('=', '=')) {
+		if (equalityTypes.count(lhsType->name()) == 0) {
+			checker.typeError("The type '" + lhsType->name() + "' doesn't support equality operators.");
+		}
+	}
+
+	if (mOp == Operator('&', '&') || mOp == Operator('|', '|')) {
+		if (logicalTypes.count(lhsType->name()) == 0) {
+			checker.typeError("The type '" + lhsType->name() + "' doesn't support logical operators.");
+		}
+	}
+
+	if (mOp == Operator('<') || mOp == Operator('<', '=') || mOp == Operator('>') || mOp == Operator('>', '=')) {
+		if (comparableTypes.count(lhsType->name()) == 0) {
+			checker.typeError("The type '" + lhsType->name() + "' doesn't support compare operators.");
+		}
+	}
 }
 
 std::shared_ptr<Type> BinaryOpExpressionAST::expressionType(const TypeChecker& checker) const {
@@ -89,30 +157,50 @@ std::shared_ptr<Type> BinaryOpExpressionAST::expressionType(const TypeChecker& c
 		if (mOp == Operator('=')) {
 			return checker.getType("Void");
 		} else {
-			return mLeftHandSide->expressionType(checker);
+			if (lhsFloatConvertable(checker)) {
+				return checker.getType("Float");
+			} else {
+				return mLeftHandSide->expressionType(checker);
+			}
 		}
 	}
 }
 
+void BinaryOpExpressionAST::generateRHSCode(CodeGenerator& codeGen, GeneratedFunction& func) {
+	if (rhsFloatConvertable(codeGen.typeChecker())) {
+		auto floatRHS = FloatExpressionAST(std::dynamic_pointer_cast<IntegerExpressionAST>(mRightHandSide)->value());
+		floatRHS.generateCode(codeGen, func);
+	} else {
+		mRightHandSide->generateCode(codeGen, func);
+	}
+}
+
+void BinaryOpExpressionAST::generateSidesCode(CodeGenerator& codeGen, GeneratedFunction& func) {
+	if (lhsFloatConvertable(codeGen.typeChecker())) {
+		auto floatLHS = FloatExpressionAST(std::dynamic_pointer_cast<IntegerExpressionAST>(mLeftHandSide)->value());
+		floatLHS.generateCode(codeGen, func);
+	} else {
+		mLeftHandSide->generateCode(codeGen, func);
+	}
+
+	generateRHSCode(codeGen, func);
+}
+
 void BinaryOpExpressionAST::generateCode(CodeGenerator& codeGen, GeneratedFunction& func) {
 	if (mOp == Operator('+')) {
-		mLeftHandSide->generateCode(codeGen, func);
-		mRightHandSide->generateCode(codeGen, func);
+		generateSidesCode(codeGen, func);
 		func.addInstruction("ADD");
 	} else if (mOp == Operator('-')) {
-		mLeftHandSide->generateCode(codeGen, func);
-		mRightHandSide->generateCode(codeGen, func);
+		generateSidesCode(codeGen, func);
 		func.addInstruction("SUB");
 	} else if (mOp == Operator('*')) {
-		mLeftHandSide->generateCode(codeGen, func);
-		mRightHandSide->generateCode(codeGen, func);
+		generateSidesCode(codeGen, func);
 		func.addInstruction("MUL");
 	} else if (mOp == Operator('/')) {
-		mLeftHandSide->generateCode(codeGen, func);
-		mRightHandSide->generateCode(codeGen, func);
+		generateSidesCode(codeGen, func);
 		func.addInstruction("DIV");
 	} else if (mOp == Operator('=')) {
-		mRightHandSide->generateCode(codeGen, func);
+		generateRHSCode(codeGen, func);
 
 		if (auto varDec = std::dynamic_pointer_cast<VariableDeclerationExpressionAST>(mLeftHandSide)) {
 			mLeftHandSide->generateCode(codeGen, func);
@@ -129,36 +217,28 @@ void BinaryOpExpressionAST::generateCode(CodeGenerator& codeGen, GeneratedFuncti
 			codeGen.codeGenError("Left hand side is not decleration or variable reference.");
 		}
 	} else if(mOp == Operator('=', '=')) {
-		mLeftHandSide->generateCode(codeGen, func);
-		mRightHandSide->generateCode(codeGen, func);
+		generateSidesCode(codeGen, func);
 		func.addInstruction("CMPEQ");
 	} else if(mOp == Operator('!', '=')) {
-		mLeftHandSide->generateCode(codeGen, func);
-		mRightHandSide->generateCode(codeGen, func);
+		generateSidesCode(codeGen, func);
 		func.addInstruction("CMPNE");
 	} else if(mOp == Operator('>')) {
-		mLeftHandSide->generateCode(codeGen, func);
-		mRightHandSide->generateCode(codeGen, func);
+		generateSidesCode(codeGen, func);
 		func.addInstruction("CMPGT");
 	} else if(mOp == Operator('>', '=')) {
-		mLeftHandSide->generateCode(codeGen, func);
-		mRightHandSide->generateCode(codeGen, func);
+		generateSidesCode(codeGen, func);
 		func.addInstruction("CMPGE");
 	} else if(mOp == Operator('<')) {
-		mLeftHandSide->generateCode(codeGen, func);
-		mRightHandSide->generateCode(codeGen, func);
+		generateSidesCode(codeGen, func);
 		func.addInstruction("CMPLT");
 	} else if(mOp == Operator('<', '=')) {
-		mLeftHandSide->generateCode(codeGen, func);
-		mRightHandSide->generateCode(codeGen, func);
+		generateSidesCode(codeGen, func);
 		func.addInstruction("CMPLE");
 	} else if(mOp == Operator('&', '&')) {
-		mLeftHandSide->generateCode(codeGen, func);
-		mRightHandSide->generateCode(codeGen, func);
+		generateSidesCode(codeGen, func);
 		func.addInstruction("AND");
 	} else if(mOp == Operator('|', '|')) {
-		mLeftHandSide->generateCode(codeGen, func);
-		mRightHandSide->generateCode(codeGen, func);
+		generateSidesCode(codeGen, func);
 		func.addInstruction("OR");
 	} else {
 		codeGen.codeGenError("Operator '" + mOp.asString() + "' is not defined.");
