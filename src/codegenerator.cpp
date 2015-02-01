@@ -7,14 +7,25 @@
 #include "typechecker.h"
 #include <stdexcept>
 
+//Function parameter
+FunctionParameter::FunctionParameter(std::string name, std::shared_ptr<Type> type)
+	: name(name), type(type) {
+
+}
+
+FunctionParameter::FunctionParameter()
+	: name(""), type(nullptr) {
+
+}
+
 //Generated function
-GeneratedFunction::GeneratedFunction(std::shared_ptr<FunctionPrototypeAST> prototype)
-	: mPrototype(prototype) {
+GeneratedFunction::GeneratedFunction(std::string functionName, std::vector<FunctionParameter> parameters, std::shared_ptr<Type> returnType)
+	: mFunctionName(functionName), mParameters(parameters), mReturnType(returnType) {
 
 }
 
 GeneratedFunction::GeneratedFunction()
-	: mPrototype(nullptr) {
+	: mFunctionName(""), mReturnType(nullptr) {
 
 }
 
@@ -37,8 +48,8 @@ Local GeneratedFunction::getLocal(std::string name) const {
 }
 
 int GeneratedFunction::functionParameterIndex(std::string paramName) const {
-	for (int i = 0; i < mPrototype->parameters().size(); i++) {
-		if (mPrototype->parameters().at(i)->varName() == paramName) {
+	for (int i = 0; i < mParameters.size(); i++) {
+		if (mParameters.at(i).name == paramName) {
 			return i;
 		}
 	}
@@ -65,26 +76,26 @@ void GeneratedFunction::addReturnBranch(int index) {
 void GeneratedFunction::outputGeneratedCode(std::ostream& os) {
 	bool isFirst = true;
 
-	os << "func " << mPrototype->name() << "(";
+	os << "func " << mFunctionName << "(";
 
-	for (auto param : mPrototype->parameters()) {
+	for (auto param : mParameters) {
 		if (!isFirst) {
 			os << " ";
 		} else {
 			isFirst = false;
 		}
 
-		os << param->varType();
+		os << param.type->vmType();
 	}
 
-	os << ") " << mPrototype->returnType() << std::endl;
+	os << ") " << mReturnType->vmType() << std::endl;
 	os << "{";
 
 	if (mLocals.size() > 0) {
 		os << std::endl << "   .locals " << mLocals.size() << std::endl;
 
 		for (auto local : mLocals) {
-			os << "   .local " << local.second.first << " " << local.second.second->name() << std::endl;
+			os << "   .local " << local.second.first << " " << local.second.second->vmType() << std::endl;
 		}
 	}
 
@@ -92,7 +103,7 @@ void GeneratedFunction::outputGeneratedCode(std::ostream& os) {
 	int returnInst = mInstructions.size();
 	auto genInstructions = mInstructions;
 
-	if (mPrototype->returnType() != "Void") {
+	if (mReturnType->name() != "Void") {
 		genInstructions.push_back("LDLOC " + std::to_string(getLocal(CodeGenerator::returnValueLocal).first));
 	}
 
@@ -136,12 +147,21 @@ void CodeGenerator::generateProgram(std::shared_ptr<ProgramAST> programAST) {
 }
 
 GeneratedFunction& CodeGenerator::newFunction(std::shared_ptr<FunctionPrototypeAST> functionPrototype) {
-	mFunctions.insert({ functionPrototype->name(), GeneratedFunction(functionPrototype) });
+	std::vector<FunctionParameter> parameters;
+
+	for (auto param : functionPrototype->parameters()) {
+		parameters.push_back(FunctionParameter(param->varName(), mTypeChecker.findType(param->varType())));
+	}
+
+	mFunctions.insert({ 
+		functionPrototype->name(),
+		GeneratedFunction(functionPrototype->name(), parameters, mTypeChecker.findType(functionPrototype->returnType()))
+	});
 
 	auto& newFunc = mFunctions[functionPrototype->name()];
 
 	if (functionPrototype->returnType() != "Void") {
-		newFunc.newLocal(CodeGenerator::returnValueLocal, mTypeChecker.getType(functionPrototype->returnType()));
+		newFunc.newLocal(CodeGenerator::returnValueLocal, mTypeChecker.findType(functionPrototype->returnType()));
 	}
 
 	return newFunc;
@@ -168,4 +188,4 @@ void CodeGenerator::codeGenError(std::string errorMessage) {
 	throw std::runtime_error(errorMessage);
 }
 
-std::string CodeGenerator::returnValueLocal = "$COMPILER_INTERNAL$_RETURN_VALUE";
+std::string CodeGenerator::returnValueLocal = "$COMPILER_INTERNAL_RETURN_VALUE$";

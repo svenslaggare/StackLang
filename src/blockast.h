@@ -1,10 +1,10 @@
 #pragma once
+#include "ast.h"
+
 #include <memory>
 #include <string>
 #include <vector>
 #include <functional>
-
-#include "ast.h"
 
 class TypeChecker;
 class CodeGenerator;

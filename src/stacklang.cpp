@@ -35,14 +35,14 @@ int main() {
 		});
 
 	Lexer lexer(operators.operatorChars());
-	std::fstream programText("programs/program4.txt");
+	std::fstream programText("programs/program5.txt");
 	auto tokens = lexer.tokenize(programText); 
 
 	Parser parser(operators, tokens);
 	auto programAST = parser.parse();
 
 	programAST->rewrite();
-	//std::cout << *programAST << std::endl;
+	// std::cout << *programAST << std::endl;
 
 	Binder binder;
 	TypeChecker typeChecker(operators, TypeSystem::defaultTypes());

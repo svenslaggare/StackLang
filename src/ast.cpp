@@ -38,5 +38,5 @@ std::ostream& operator<<(std::ostream& os, const AbstractSyntaxTree& ast) {
 }
 
 std::shared_ptr<Type> ExpressionAST::expressionType(const TypeChecker& checker) const {
-	return checker.getType("Void");
+	return checker.findType("Void");
 }

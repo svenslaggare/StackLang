@@ -21,6 +21,9 @@ public:
 
 	//Determines if the current type not equals the given
 	bool operator!=(const Type& other) const;
+
+	//Returns the VM type
+	virtual std::string vmType() const;
 };
 
 //Represents a type to be inferred
@@ -50,6 +53,8 @@ public:
 
 	//Returns the element type
 	std::shared_ptr<Type> elementType() const;
+
+	virtual std::string vmType() const override;
 };
 
 namespace TypeSystem {

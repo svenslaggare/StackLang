@@ -17,6 +17,10 @@ bool Type::operator!=(const Type& other) const {
 	return !(*this == other);
 }
 
+std::string Type::vmType() const {
+	return name();
+}
+
 AutoType::AutoType()
 	: Type("Auto") {
 
@@ -28,12 +32,16 @@ PrimitiveType::PrimitiveType(PrimitiveTypes type)
 }
 
 ArrayType::ArrayType(std::shared_ptr<Type> elementType)
-	: Type("Array[" + elementType->name() + "]") {
+	: Type(elementType->name() + "[]"), mElementType(elementType) {
 
 }
 
 std::shared_ptr<Type> ArrayType::elementType() const {
 	return mElementType;
+}
+
+std::string ArrayType::vmType() const {
+	return "Ref.Array[" + elementType()->vmType() + "]";
 }
 
 std::map<std::string, std::shared_ptr<Type>> TypeSystem::defaultTypes() {
@@ -86,7 +94,15 @@ std::shared_ptr<Type> TypeSystem::makeType(std::string typeName) {
 	PrimitiveTypes primType;
 	if (TypeSystem::fromString(typeName, primType)) {
 		return std::make_shared<PrimitiveType>(PrimitiveType(primType));
-	} else {
-		return std::make_shared<Type>(Type(typeName));
+	} else if (typeName.at(typeName.length() - 1) == ']' && typeName.at(typeName.length() - 2) == '[') {
+		auto elementType = makeType(typeName.substr(0, typeName.length() - 2));
+
+		if (elementType == nullptr) {
+			return nullptr;
+		}
+
+		return std::make_shared<ArrayType>(elementType);
 	}
+
+	return nullptr;
 }

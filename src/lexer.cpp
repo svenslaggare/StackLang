@@ -58,6 +58,9 @@ std::ostream& operator<<(std::ostream& os, const Token& token) {
 		case TokenType::Return:
 			os << "return";
 			break;
+		case TokenType::New:
+			os << "new";
+			break;
 		case TokenType::EndOfFile:
 			os << "EOF";
 			break;
@@ -128,6 +131,8 @@ std::vector<Token> Lexer::tokenize(std::istream& stream) const {
 					tokens.push_back(Token(TokenType::Break));
 				} else if (identStr == "return") {
 					tokens.push_back(Token(TokenType::Return));
+				} else if (identStr == "new") {
+					tokens.push_back(Token(TokenType::New));
 				} else {
 					auto newToken = Token(TokenType::Identifier);
 					newToken.strValue = identStr;

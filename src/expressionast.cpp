@@ -23,7 +23,7 @@ std::string IntegerExpressionAST::asString() const {
 }
 
 std::shared_ptr<Type> IntegerExpressionAST::expressionType(const TypeChecker& checker) const {
-	return checker.getType("Int");
+	return checker.findType("Int");
 }
 
 void IntegerExpressionAST::generateCode(CodeGenerator& codeGen, GeneratedFunction& func) {
@@ -49,7 +49,7 @@ std::string BoolExpressionAST::asString() const {
 }
 
 std::shared_ptr<Type> BoolExpressionAST::expressionType(const TypeChecker& checker) const {
-	return checker.getType("Bool");
+	return checker.findType("Bool");
 }
 
 void BoolExpressionAST::generateCode(CodeGenerator& codeGen, GeneratedFunction& func) {
@@ -75,7 +75,7 @@ std::string FloatExpressionAST::asString() const {
 }
 
 std::shared_ptr<Type> FloatExpressionAST::expressionType(const TypeChecker& checker) const {
-	return checker.getType("Float");
+	return checker.findType("Float");
 }
 
 void FloatExpressionAST::generateCode(CodeGenerator& codeGen, GeneratedFunction& func) {
@@ -114,9 +114,9 @@ std::shared_ptr<Type> VariableReferenceExpressionAST::expressionType(const TypeC
 	auto varSymbol = std::dynamic_pointer_cast<VariableSymbol>(mSymbolTable->find(varName()));
 
 	if (varSymbol != nullptr) {
-		return checker.getType(varSymbol->variableType());
+		return checker.findType(varSymbol->variableType());
 	} else {
-		return checker.getType("Void");
+		return checker.findType("Void");
 	}
 }
 
@@ -169,12 +169,12 @@ void VariableDeclerationExpressionAST::typeCheck(TypeChecker& checker) {
 }
 
 std::shared_ptr<Type> VariableDeclerationExpressionAST::expressionType(const TypeChecker& checker) const {
-	return checker.getType(mVarType);
+	return checker.findType(mVarType);
 }
 
 void VariableDeclerationExpressionAST::generateCode(CodeGenerator& codeGen, GeneratedFunction& func) {
 	if (!mIsFunctionParameter) {
-		func.newLocal(mVarName, codeGen.typeChecker().getType(mVarType));
+		func.newLocal(mVarName, codeGen.typeChecker().findType(mVarType));
 	}
 }
 
@@ -243,7 +243,7 @@ void CallExpressionAST::generateSymbols(Binder& binder, std::shared_ptr<SymbolTa
 
 void CallExpressionAST::typeCheck(TypeChecker& checker) {
 	//Check if conversion
-	auto toType = checker.getType(mFunctionName);
+	auto toType = checker.findType(mFunctionName);
 
 	if (arguments().size() == 1 && toType != nullptr) {	
 		auto arg = arguments().at(0);
@@ -264,7 +264,7 @@ void CallExpressionAST::typeCheck(TypeChecker& checker) {
 			auto param = func->parameters().at(i);
 
 			auto argType = arg->expressionType(checker);
-			auto paramType = checker.getType(param->variableType());
+			auto paramType = checker.findType(param->variableType());
 
 			checker.assertSameType(*paramType, *argType);
 		}
@@ -281,10 +281,10 @@ std::shared_ptr<Type> CallExpressionAST::expressionType(const TypeChecker& check
 	auto symbol = mSymbolTable->find(functionName());
 
 	if (auto conversion = std::dynamic_pointer_cast<ConversionSymbol>(symbol)) {
-		return checker.getType(conversion->name());
+		return checker.findType(conversion->name());
 	} else {
 		auto func = std::dynamic_pointer_cast<FunctionSymbol>(symbol);
-		return checker.getType(func->returnType());
+		return checker.findType(func->returnType());
 	}
 }
 
@@ -295,7 +295,7 @@ void CallExpressionAST::generateCode(CodeGenerator& codeGen, GeneratedFunction& 
 
 	//Check if conversion
 	auto& typeChecker = codeGen.typeChecker();
-	auto toType = typeChecker.getType(mFunctionName);
+	auto toType = typeChecker.findType(mFunctionName);
 
 	if (arguments().size() == 1 && toType != nullptr) {
 		auto fromType = arguments().at(0)->expressionType(typeChecker);

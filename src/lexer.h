@@ -21,6 +21,7 @@ enum class TokenType : unsigned char {
 	While,
 	Break,
 	Return,
+	New,
 	EndOfFile
 };
 

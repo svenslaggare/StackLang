@@ -1,0 +1,8 @@
+func newIntArray(Int len): Int[] {
+	return new Int[len];
+}
+
+func main(): Int {
+	Int[] xs = newIntArray(5);
+	return 0;
+}

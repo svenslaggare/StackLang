@@ -51,15 +51,15 @@ std::string BinaryOpExpressionAST::asString() const {
 
 bool BinaryOpExpressionAST::lhsFloatConvertable(const TypeChecker& typeChecker) const {
 	return 
-		*mLeftHandSide->expressionType(typeChecker) == *typeChecker.getType("Int")
-		&& *mRightHandSide->expressionType(typeChecker) == *typeChecker.getType("Float")
+		*mLeftHandSide->expressionType(typeChecker) == *typeChecker.findType("Int")
+		&& *mRightHandSide->expressionType(typeChecker) == *typeChecker.findType("Float")
 		&& std::dynamic_pointer_cast<IntegerExpressionAST>(mLeftHandSide) != nullptr;
 }
 
 bool BinaryOpExpressionAST::rhsFloatConvertable(const TypeChecker& typeChecker) const {
 	return
-		*mRightHandSide->expressionType(typeChecker) == *typeChecker.getType("Int")
-		&& *mLeftHandSide->expressionType(typeChecker) == *typeChecker.getType("Float") 
+		*mRightHandSide->expressionType(typeChecker) == *typeChecker.findType("Int")
+		&& *mLeftHandSide->expressionType(typeChecker) == *typeChecker.findType("Float") 
 		&& std::dynamic_pointer_cast<IntegerExpressionAST>(mRightHandSide) != nullptr;
 }
 
@@ -115,8 +115,8 @@ void BinaryOpExpressionAST::typeCheck(TypeChecker& checker) {
 	if (lhsType->name() != "Auto") {
 		mLeftHandSide->typeCheck(checker);
 
-		auto intType = checker.getType("Int");
-		auto floatType = checker.getType("Float");
+		auto intType = checker.findType("Int");
+		auto floatType = checker.findType("Float");
 
 		//We allow integer constants to be implicitly converted to float constants
 		if (!lhsFloatConvertable(checker) && !rhsFloatConvertable(checker)) {
@@ -198,10 +198,10 @@ std::shared_ptr<Type> BinaryOpExpressionAST::expressionType(const TypeChecker& c
 		return boolTypes.at(mOp);
 	} else {
 		if (mOp == Operator('=')) {
-			return checker.getType("Void");
+			return checker.findType("Void");
 		} else {
 			if (lhsFloatConvertable(checker)) {
-				return checker.getType("Float");
+				return checker.findType("Float");
 			} else {
 				return mLeftHandSide->expressionType(checker);
 			}
@@ -333,9 +333,9 @@ void UnaryOpExpressionAST::typeCheck(TypeChecker& checker) {
 
 	auto opType = mOperand->expressionType(checker);
 
-	if (mOp == Operator('!') && opType != checker.getType("Bool")) {
+	if (mOp == Operator('!') && opType != checker.findType("Bool")) {
 		checker.typeError("The '!' operator can only be applied to values/variables of type 'Bool'.");
-	} else if (mOp == Operator('-') && opType != checker.getType("Int") && opType != checker.getType("Float")) {
+	} else if (mOp == Operator('-') && opType != checker.findType("Int") && opType != checker.findType("Float")) {
 		checker.typeError("The '-' operator can only be applied to values/variables of type 'Int' or 'Float'.");
 	}
 }
@@ -352,9 +352,9 @@ void UnaryOpExpressionAST::generateCode(CodeGenerator& codeGen, GeneratedFunctio
 	if (mOp == Operator('-')) {
 		auto opType = mOperand->expressionType(codeGen.typeChecker());
 
-		if (*opType == *codeGen.typeChecker().getType("Int")) {
+		if (*opType == *codeGen.typeChecker().findType("Int")) {
 			func.addInstruction("PUSHINT 0");
-		} else if (*opType == *codeGen.typeChecker().getType("Float")) {
+		} else if (*opType == *codeGen.typeChecker().findType("Float")) {
 			func.addInstruction("PUSHFLOAT 0");
 		}
 

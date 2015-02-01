@@ -13,16 +13,29 @@ class TypeChecker;
 
 using Local = std::pair<int, std::shared_ptr<Type>>;
 
+//Represents a function parameter
+struct FunctionParameter {
+	const std::string name;
+	const std::shared_ptr<Type> type;
+
+	//Creates a new function parameter
+	FunctionParameter(std::string name, std::shared_ptr<Type> type);
+	FunctionParameter();
+};
+
 //Represents a generated function
 class GeneratedFunction {
 private:
-	std::shared_ptr<FunctionPrototypeAST> mPrototype;
+	std::string mFunctionName;
+	std::vector<FunctionParameter> mParameters;
+	std::shared_ptr<Type> mReturnType;
+
 	std::map<std::string, Local> mLocals;
 	std::vector<std::string> mInstructions;
 	std::vector<int> mReturnBranches;
 public:
 	//Creates a new generated function
-	GeneratedFunction(std::shared_ptr<FunctionPrototypeAST> prototype);
+	GeneratedFunction(std::string functionName, std::vector<FunctionParameter> parameters, std::shared_ptr<Type> returnType);
 	GeneratedFunction();
 
 	//Returns the number of locals

@@ -25,15 +25,38 @@ TypeChecker::TypeChecker(const OperatorContainer& operators, std::map<std::strin
 
 }
 
+bool TypeChecker::tryMakeType(std::string name) {
+	auto type = TypeSystem::makeType(name);
+
+	if (type != nullptr) {
+		mTypes.insert({ name, type });
+		return true;
+	} else {
+		return false;
+	}
+}
+
 const OperatorContainer& TypeChecker::operators() const {
 	return mOperators;
 }
 
-std::shared_ptr<Type> TypeChecker::getType(std::string typeName) const {
+std::shared_ptr<Type> TypeChecker::findType(std::string typeName) const {
 	if (mTypes.count(typeName) > 0) {
 		return mTypes.at(typeName);
 	} else {
 		return nullptr;
+	}
+}
+
+std::shared_ptr<Type> TypeChecker::getType(std::string typeName) {
+	if (mTypes.count(typeName) > 0) {
+		return mTypes.at(typeName);
+	} else {
+		if (tryMakeType(typeName)) {
+			return mTypes.at(typeName);
+		} else {
+			return nullptr;
+		}
 	}
 }
 
@@ -57,6 +80,10 @@ void TypeChecker::typeError(std::string message) {
 
 bool TypeChecker::assertTypeExists(std::string name, bool allowAuto) {
 	bool exists = typeExists(name);
+
+	if (!exists) {
+		exists = tryMakeType(name);
+	}
 
 	if (!allowAuto && name == "var") {
 		exists = false;

@@ -5,3 +5,4 @@
 #include "functionast.h"
 #include "operatorast.h"
 #include "blockast.h"
+#include "arrayast.h"

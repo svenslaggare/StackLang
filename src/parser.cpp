@@ -74,6 +74,23 @@ int Parser::getTokenPrecedence() {
 	return -1;
 }
 
+std::string Parser::parseTypeName() {
+	std::string typeName = currentToken.strValue;
+
+	nextToken(); //Eat the identifier
+
+	//Check if array type
+	if (isSingleCharToken('[')) {
+		nextToken(); //Eat the '['
+		assertCurrentTokenAsChar(']', "Expected ']'");
+		nextToken(); //Eat the ']'
+
+		typeName += "[]";
+	}
+
+	return typeName;
+}
+
 std::shared_ptr<ExpressionAST> Parser::parseIntegerExpression() {
 	auto intAst = std::make_shared<IntegerExpressionAST>(currentToken.intValue);
 	nextToken(); //Consume the int
@@ -94,12 +111,20 @@ std::shared_ptr<ExpressionAST> Parser::parseFloatExpression() {
 
 std::shared_ptr<ExpressionAST> Parser::parseIdentifierExpression(bool allowDecleration) {
 	std::string identifier = currentToken.strValue;
-
 	//Eat the identifier.
 	nextToken();
 
 	//Variable decleration/reference
 	if (!isSingleCharToken('(')) {
+		//Check if array type
+		if (isSingleCharToken('[')) {
+			nextToken(); //Eat the '['
+			assertCurrentTokenAsChar(']', "Expected ']'");
+			nextToken(); //Eat the ']'
+
+			identifier += "[]";
+		}
+
 		if (currentToken.type() == TokenType::Identifier) {
 			if (!allowDecleration) {
 				std::cout << identifier << " " << currentToken << std::endl;
@@ -181,6 +206,9 @@ std::shared_ptr<ExpressionAST> Parser::parsePrimaryExpression(bool allowDeclerat
 		if (currentToken.charValue == '(') {
 			return parseParenthesisExpression();
 		}
+		break;
+	case TokenType::New:
+		return parseArrayDeclaration();
 		break;
 	default:
 		break;
@@ -269,6 +297,34 @@ std::shared_ptr<ExpressionAST> Parser::parseExpression(bool allowEqualAssign) {
 	}
 
 	return parseBinaryOpRHS(0, lhs, allowEqualAssign);
+}
+
+std::shared_ptr<ExpressionAST> Parser::parseArrayDeclaration() {
+	//Eat the 'new'
+	nextToken();
+
+	//Get the type name
+	if (currentToken.type() != TokenType::Identifier) {
+		compileError("Expected identifier.");
+	}
+
+	auto elementTypeName = currentToken.strValue;
+	nextToken(); //Eat the identifier
+
+	assertCurrentTokenAsChar('[', "Expected '['.");
+	nextToken(); //Eat the ']'
+	
+	//Get the length expression
+	auto lengthExpression = parseExpression();
+
+	if (lengthExpression == nullptr) {
+		return nullptr;
+	}
+
+	assertCurrentTokenAsChar(']', "Expected ']'.");
+	nextToken(); //Eat the ']'
+
+	return std::make_shared<ArrayDeclarationAST>(elementTypeName, lengthExpression);
 }
 
 std::shared_ptr<StatementAST> Parser::parseIfElseStatement() {
@@ -424,8 +480,7 @@ std::shared_ptr<FunctionAST> Parser::parseFunctionDef() {
 	if (!(currentToken.type() == TokenType::SingleChar && currentToken.charValue == ')')) {
 		while (true) {
 			if (currentToken.type() == TokenType::Identifier) {
-				std::string varType = currentToken.strValue;
-				nextToken(); //Eat the type
+				std::string varType = parseTypeName();
 
 				if (currentToken.type() == TokenType::Identifier) {
 					arguments.push_back(std::make_shared<VariableDeclerationExpressionAST>(varType, currentToken.strValue, true));
@@ -458,11 +513,9 @@ std::shared_ptr<FunctionAST> Parser::parseFunctionDef() {
 		compileError("Expected identifier.");
 	}
 
-	std::string returnType = currentToken.strValue;
+	std::string returnType = parseTypeName();
 
 	//Body
-	nextToken(); //Eat the return type
-
 	auto body = parseBlock();
 
 	return std::make_shared<FunctionAST>(std::make_shared<FunctionPrototypeAST>(name, arguments, returnType), body);

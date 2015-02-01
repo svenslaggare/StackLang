@@ -38,6 +38,9 @@ private:
 	std::map<std::string, std::shared_ptr<Type>> mTypes;
 	const OperatorContainer& mOperators;
 	std::multimap<std::shared_ptr<Type>, ExplicitConversion> mExplicitConversions;
+
+	//Tries to construct the type if doesn't exist
+	bool tryMakeType(std::string name);
 public:
 	//Creates a new type checker
 	TypeChecker(const OperatorContainer& operators, std::map<std::string, std::shared_ptr<Type>> types);
@@ -46,7 +49,10 @@ public:
 	const OperatorContainer& operators() const;
 
 	//Returns the given type. Nullptr if not found.
-	std::shared_ptr<Type> getType(std::string typeName) const;
+	std::shared_ptr<Type> findType(std::string typeName) const;
+
+	//Returns the given type. It not found it will try to construct it else nullptr.
+	std::shared_ptr<Type> getType(std::string typeName);
 
 	//Adds the given type
 	bool addType(std::shared_ptr<Type> type);

@@ -42,6 +42,9 @@ private:
 	//Returns the precedence for the current token or -1 if not a operator
 	int getTokenPrecedence();
 
+	//Parses a type name
+	std::string parseTypeName();
+
 	//Parses an integer expression
 	std::shared_ptr<ExpressionAST> parseIntegerExpression();
 
@@ -68,6 +71,9 @@ private:
 
 	//Parses an expression
 	std::shared_ptr<ExpressionAST> parseExpression(bool allowEqualAssign = false);
+
+	//Parses an array declaration
+	std::shared_ptr<ExpressionAST> parseArrayDeclaration();
 
 	//Parses a if & else statement
 	std::shared_ptr<StatementAST> parseIfElseStatement();
