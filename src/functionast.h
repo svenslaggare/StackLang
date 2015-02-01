@@ -5,7 +5,7 @@
 
 #include "ast.h"
 
-class VariableDeclerationExpressionAST;
+class VariableDeclarationExpressionAST;
 class SymbolTable;
 class BlockAST;
 class TypeChecker;
@@ -15,17 +15,17 @@ class CodeGenerator;
 class FunctionPrototypeAST : public AbstractSyntaxTree {
 private:
 	std::string mName;
-	std::vector<std::shared_ptr<VariableDeclerationExpressionAST>> mParameters;
+	std::vector<std::shared_ptr<VariableDeclarationExpressionAST>> mParameters;
 	std::string mReturnType;
 public:
 	//Creates a new function prototype
-	FunctionPrototypeAST(std::string name, const std::vector<std::shared_ptr<VariableDeclerationExpressionAST>>& parameters, std::string returnType);
+	FunctionPrototypeAST(std::string name, const std::vector<std::shared_ptr<VariableDeclarationExpressionAST>>& parameters, std::string returnType);
 
 	//Returns the name
 	const std::string name() const;
 
 	//Returns the parameters
-	const std::vector<std::shared_ptr<VariableDeclerationExpressionAST>>& parameters() const;
+	const std::vector<std::shared_ptr<VariableDeclarationExpressionAST>>& parameters() const;
 
 	//Returns the type
 	const std::string returnType() const;

@@ -119,10 +119,22 @@ std::shared_ptr<ExpressionAST> Parser::parseIdentifierExpression(bool allowDecle
 		//Check if array type
 		if (isSingleCharToken('[')) {
 			nextToken(); //Eat the '['
+
+			//If not ']', its an array access
+			std::shared_ptr<ExpressionAST> accessExpression = nullptr;
+			if (!isSingleCharToken(']')) {
+				accessExpression = parseExpression();
+			}
+
 			assertCurrentTokenAsChar(']', "Expected ']'");
 			nextToken(); //Eat the ']'
-
-			identifier += "[]";
+	
+			if (accessExpression != nullptr) {
+				return std::make_shared<ArrayAccessAST>(identifier, accessExpression);
+			} else {
+				//Array type
+				identifier += "[]";
+			}
 		}
 
 		if (currentToken.type() == TokenType::Identifier) {
@@ -135,7 +147,7 @@ std::shared_ptr<ExpressionAST> Parser::parseIdentifierExpression(bool allowDecle
 			nextToken(); //Eat the identifier
 
 			//Decleration
-			return std::make_shared<VariableDeclerationExpressionAST>(VariableDeclerationExpressionAST(identifier, varName));
+			return std::make_shared<VariableDeclarationExpressionAST>(VariableDeclarationExpressionAST(identifier, varName));
 		} else {
 			//Reference
 			return std::make_shared<VariableReferenceExpressionAST>(VariableReferenceExpressionAST(identifier));
@@ -476,14 +488,14 @@ std::shared_ptr<FunctionAST> Parser::parseFunctionDef() {
 
 	nextToken(); //Eat the '('
 
-	std::vector<std::shared_ptr<VariableDeclerationExpressionAST>> arguments;
+	std::vector<std::shared_ptr<VariableDeclarationExpressionAST>> arguments;
 	if (!(currentToken.type() == TokenType::SingleChar && currentToken.charValue == ')')) {
 		while (true) {
 			if (currentToken.type() == TokenType::Identifier) {
 				std::string varType = parseTypeName();
 
 				if (currentToken.type() == TokenType::Identifier) {
-					arguments.push_back(std::make_shared<VariableDeclerationExpressionAST>(varType, currentToken.strValue, true));
+					arguments.push_back(std::make_shared<VariableDeclarationExpressionAST>(varType, currentToken.strValue, true));
 				}
 			}
 

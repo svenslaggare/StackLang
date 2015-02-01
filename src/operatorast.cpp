@@ -5,6 +5,7 @@
 #include "symboltable.h"
 #include "codegenerator.h"
 #include "expressionast.h"
+#include "arrayast.h"
 #include "symbol.h"
 #include "semantics.h"
 
@@ -84,7 +85,7 @@ bool BinaryOpExpressionAST::rewriteAST(std::shared_ptr<AbstractSyntaxTree>& newA
 	if (correctOp) {
 		std::shared_ptr<ExpressionAST> varRefExpr;
 
-		if (auto varDec = std::dynamic_pointer_cast<VariableDeclerationExpressionAST>(mLeftHandSide)) {
+		if (auto varDec = std::dynamic_pointer_cast<VariableDeclarationExpressionAST>(mLeftHandSide)) {
 			varRefExpr = std::make_shared<VariableReferenceExpressionAST>(varDec->varName());
 		} else if (auto varRef = std::dynamic_pointer_cast<VariableReferenceExpressionAST>(mLeftHandSide)) {
 			varRefExpr = std::make_shared<VariableReferenceExpressionAST>(varRef->varName());
@@ -127,10 +128,10 @@ void BinaryOpExpressionAST::typeCheck(TypeChecker& checker) {
 		}
 	} else {
 		//Infer the type
-		auto lhsVarDec = std::dynamic_pointer_cast<VariableDeclerationExpressionAST>(mLeftHandSide);
+		auto lhsVarDec = std::dynamic_pointer_cast<VariableDeclarationExpressionAST>(mLeftHandSide);
 
 		if (lhsVarDec != nullptr) {
-			mLeftHandSide = std::make_shared<VariableDeclerationExpressionAST>(
+			mLeftHandSide = std::make_shared<VariableDeclarationExpressionAST>(
 				rhsType->name(),
 				lhsVarDec->varName(),
 				lhsVarDec->isFunctionParameter());
@@ -185,8 +186,12 @@ void BinaryOpExpressionAST::verify(SemanticVerifier& verifier) {
 			if (varDec->isFunctionParameter()) {
 				verifier.semanticError("Assignment to function parameter is not allowed.");
 			}
-		} else if (std::dynamic_pointer_cast<VariableDeclerationExpressionAST>(mLeftHandSide) == nullptr) {
-			verifier.semanticError("Left hand side is not decleration or variable reference.");
+		} else if (std::dynamic_pointer_cast<VariableDeclarationExpressionAST>(mLeftHandSide) != nullptr) {
+			
+		} else if (std::dynamic_pointer_cast<ArrayAccessAST>(mLeftHandSide) != nullptr) {
+			
+		} else {
+			verifier.semanticError("Left hand side is not declaration or variable reference.");
 		}
 	}
 }
@@ -243,17 +248,29 @@ void BinaryOpExpressionAST::generateCode(CodeGenerator& codeGen, GeneratedFuncti
 		generateSidesCode(codeGen, func);
 		func.addInstruction("DIV");
 	} else if (mOp == Operator('=')) {
-		generateRHSCode(codeGen, func);
-
-		if (auto varDec = std::dynamic_pointer_cast<VariableDeclerationExpressionAST>(mLeftHandSide)) {
+		if (auto varDec = std::dynamic_pointer_cast<VariableDeclarationExpressionAST>(mLeftHandSide)) {
+			generateRHSCode(codeGen, func);
 			mLeftHandSide->generateCode(codeGen, func);
 			func.addInstruction("STLOC " + std::to_string(func.getLocal(varDec->varName()).first));
 		} else if (auto varRef = std::dynamic_pointer_cast<VariableReferenceExpressionAST>(mLeftHandSide)) {
-			auto varDec = std::dynamic_pointer_cast<VariableSymbol>(mSymbolTable->find(varRef->varName()));
+			generateRHSCode(codeGen, func);
+			auto varRefSymbol = std::dynamic_pointer_cast<VariableSymbol>(mSymbolTable->find(varRef->varName()));
 
-			if (!varDec->isFunctionParameter()) {
+			if (!varRefSymbol->isFunctionParameter()) {
 				func.addInstruction("STLOC " + std::to_string(func.getLocal(varRef->varName()).first));
 			}
+		} else if (auto arrayVarRef = std::dynamic_pointer_cast<ArrayAccessAST>(mLeftHandSide)) {
+			auto varRefSymbol = std::dynamic_pointer_cast<VariableSymbol>(mSymbolTable->find(arrayVarRef->arrayName()));
+
+			if (varRefSymbol->isFunctionParameter()) {
+				func.addInstruction("LDARG " + std::to_string(func.functionParameterIndex(arrayVarRef->arrayName())));
+			} else {
+				func.addInstruction("LDLOC " + std::to_string(func.getLocal(arrayVarRef->arrayName()).first));
+			}
+
+			arrayVarRef->accessExpression()->generateCode(codeGen, func);
+			generateRHSCode(codeGen, func);
+			func.addInstruction("STELEM " + arrayVarRef->expressionType(codeGen.typeChecker())->vmType());
 		}
 	} else if(mOp == Operator('=', '=')) {
 		generateSidesCode(codeGen, func);

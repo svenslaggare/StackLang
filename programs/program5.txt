@@ -4,5 +4,7 @@ func newIntArray(Int len): Int[] {
 
 func main(): Int {
 	Int[] xs = newIntArray(5);
+	xs[4] = 1337;
+	println(xs[4]);
 	return 0;
 }

@@ -81,15 +81,15 @@ public:
 	virtual void generateCode(CodeGenerator& codeGen, GeneratedFunction& func) override;
 };
 
-//Represents a variable decleration expression
-class VariableDeclerationExpressionAST : public ExpressionAST, public std::enable_shared_from_this<VariableDeclerationExpressionAST> {
+//Represents a variable declaration expression
+class VariableDeclarationExpressionAST : public ExpressionAST, public std::enable_shared_from_this<VariableDeclarationExpressionAST> {
 private:
 	std::string mVarType;
 	std::string mVarName;
 	bool mIsFunctionParameter;
 public:
-	//Creates a new variable decleration expression
-	VariableDeclerationExpressionAST(std::string varType, std::string varName, bool isFunctionParameter = false);
+	//Creates a new variable declaration expression
+	VariableDeclarationExpressionAST(std::string varType, std::string varName, bool isFunctionParameter = false);
 
 	//Returns the type of the varaible
 	std::string varType() const;

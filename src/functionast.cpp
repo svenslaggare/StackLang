@@ -9,7 +9,7 @@
 #include "semantics.h"
 
 //Function prototype AST
-FunctionPrototypeAST::FunctionPrototypeAST(std::string name, const std::vector<std::shared_ptr<VariableDeclerationExpressionAST>>& parameters, std::string returnType)
+FunctionPrototypeAST::FunctionPrototypeAST(std::string name, const std::vector<std::shared_ptr<VariableDeclarationExpressionAST>>& parameters, std::string returnType)
 	: mName(name), mParameters(parameters), mReturnType(returnType) {
 
 }
@@ -18,7 +18,7 @@ const std::string FunctionPrototypeAST::name() const {
 	return mName;
 }
 
-const std::vector<std::shared_ptr<VariableDeclerationExpressionAST>>& FunctionPrototypeAST::parameters() const {
+const std::vector<std::shared_ptr<VariableDeclarationExpressionAST>>& FunctionPrototypeAST::parameters() const {
 	return mParameters;
 }
 

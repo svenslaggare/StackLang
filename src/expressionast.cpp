@@ -130,33 +130,33 @@ void VariableReferenceExpressionAST::generateCode(CodeGenerator& codeGen, Genera
 	}
 }
 
-//Variable decleration expression AST
-VariableDeclerationExpressionAST::VariableDeclerationExpressionAST(std::string varType, std::string varName, bool isFunctionParameter)
+//Variable declaration expression AST
+VariableDeclarationExpressionAST::VariableDeclarationExpressionAST(std::string varType, std::string varName, bool isFunctionParameter)
 	: mVarType(varType), mVarName(varName), mIsFunctionParameter(isFunctionParameter) {
 
 }
 
-std::string VariableDeclerationExpressionAST::varType() const {
+std::string VariableDeclarationExpressionAST::varType() const {
 	return mVarType;
 }
 
-std::string VariableDeclerationExpressionAST::varName() const {
+std::string VariableDeclarationExpressionAST::varName() const {
 	return mVarName;
 }
 
-bool VariableDeclerationExpressionAST::isFunctionParameter() const {
+bool VariableDeclarationExpressionAST::isFunctionParameter() const {
 	return mIsFunctionParameter;
 }
 
-std::string VariableDeclerationExpressionAST::type() const {
+std::string VariableDeclarationExpressionAST::type() const {
 	return "Variable";
 }
 
-std::string VariableDeclerationExpressionAST::asString() const {
+std::string VariableDeclarationExpressionAST::asString() const {
 	return mVarType + " " + mVarName;
 }
 
-void VariableDeclerationExpressionAST::generateSymbols(Binder& binder, std::shared_ptr<SymbolTable> symbolTable) {
+void VariableDeclarationExpressionAST::generateSymbols(Binder& binder, std::shared_ptr<SymbolTable> symbolTable) {
 	AbstractSyntaxTree::generateSymbols(binder, symbolTable);
 
 	if (!symbolTable->add(varName(), std::make_shared<VariableSymbol>(varName(), varType(), mIsFunctionParameter))) {
@@ -164,15 +164,15 @@ void VariableDeclerationExpressionAST::generateSymbols(Binder& binder, std::shar
 	}
 }
 
-void VariableDeclerationExpressionAST::typeCheck(TypeChecker& checker) {
+void VariableDeclarationExpressionAST::typeCheck(TypeChecker& checker) {
 	checker.assertTypeExists(mVarType);
 }
 
-std::shared_ptr<Type> VariableDeclerationExpressionAST::expressionType(const TypeChecker& checker) const {
+std::shared_ptr<Type> VariableDeclarationExpressionAST::expressionType(const TypeChecker& checker) const {
 	return checker.findType(mVarType);
 }
 
-void VariableDeclerationExpressionAST::generateCode(CodeGenerator& codeGen, GeneratedFunction& func) {
+void VariableDeclarationExpressionAST::generateCode(CodeGenerator& codeGen, GeneratedFunction& func) {
 	if (!mIsFunctionParameter) {
 		func.newLocal(mVarName, codeGen.typeChecker().findType(mVarType));
 	}
