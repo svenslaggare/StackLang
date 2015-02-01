@@ -40,6 +40,9 @@ void ArrayDeclarationAST::typeCheck(TypeChecker& checker) {
 
 	//Check if the element type exists
 	checker.assertTypeExists(mElementType, false);
+
+	//Create the array type if not created
+	checker.getType(mElementType + "[]");
 }
 	
 std::shared_ptr<Type> ArrayDeclarationAST::expressionType(const TypeChecker& checker) const {

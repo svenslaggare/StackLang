@@ -2,9 +2,22 @@ func newIntArray(Int len): Int[] {
 	return new Int[len];
 }
 
+func printbool(Bool b): Void {
+	if (b) {
+		println(1);
+	} else {
+		println(0);
+	}
+}
+
 func main(): Int {
 	Int[] xs = newIntArray(5);
 	xs[4] = 1337;
 	println(xs[4]);
+
+	Bool[] bools = new Bool[5];
+	bools[4] = true;
+	printbool(bools[4]);
+
 	return 0;
 }
