@@ -3,6 +3,23 @@
 #include "programast.h"
 #include <stdexcept>
 
+ExplicitConversion::ExplicitConversion(std::shared_ptr<Type> fromType, std::shared_ptr<Type> toType, ExplicitConversionFunction conversionGenerator)
+	: mFromType(fromType), mToType(toType), mConversionGenerator(conversionGenerator) {
+
+}
+
+std::shared_ptr<Type> ExplicitConversion::fromType() const {
+	return mFromType;
+}
+
+std::shared_ptr<Type> ExplicitConversion::toType() const {
+	return mToType;
+}
+
+void ExplicitConversion::applyConversion(CodeGenerator& codeGen, GeneratedFunction& func) const {
+	mConversionGenerator(codeGen, func);
+}
+
 TypeChecker::TypeChecker(const OperatorContainer& operators, std::map<std::string, std::shared_ptr<Type>> types)
 	: mOperators(operators), mTypes(types) {
 
@@ -69,8 +86,8 @@ bool TypeChecker::assertSameType(const Type& expected, const Type& actual, std::
 	return true;
 }
 
-void TypeChecker::defineExplicitConversion(std::shared_ptr<Type> fromType, std::shared_ptr<Type> toType) {
-	mExplicitConversions.insert({ fromType, toType });
+void TypeChecker::defineExplicitConversion(std::shared_ptr<Type> fromType, std::shared_ptr<Type> toType, ExplicitConversionFunction conversionFunc) {
+	mExplicitConversions.insert({ fromType, ExplicitConversion(fromType, toType, conversionFunc) });
 }
 
 bool TypeChecker::existsExplicitConversion(std::shared_ptr<Type> fromType, std::shared_ptr<Type> toType) const {
@@ -79,10 +96,24 @@ bool TypeChecker::existsExplicitConversion(std::shared_ptr<Type> fromType, std::
 	for (auto it = conversions; it != mExplicitConversions.end(); ++it) {
 		auto current = *it;
 
-		if (*current.second == *toType) {
+		if (*current.second.toType() == *toType) {
 			return true;
 		}
 	}
 
 	return false;
+}
+
+const ExplicitConversion& TypeChecker::getExplicitConversion(std::shared_ptr<Type> fromType, std::shared_ptr<Type> toType) const {
+	auto conversions = mExplicitConversions.find(fromType);
+
+	for (auto it = conversions; it != mExplicitConversions.end(); ++it) {
+		auto current = *it;
+
+		if (*current.second.toType() == *toType) {
+			return it->second;
+		}
+	}
+
+	throw std::out_of_range("fromType or toType");
 }

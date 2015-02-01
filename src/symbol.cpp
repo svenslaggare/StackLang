@@ -56,3 +56,13 @@ const std::vector<std::shared_ptr<VariableSymbol>>& FunctionSymbol::parameters()
 std::string FunctionSymbol::returnType() const {
 	return mReturnType;
 }
+
+//Conversion
+ConversionSymbol::ConversionSymbol(std::string name)
+	: Symbol(name, "Conversion") {
+
+}
+
+std::string ConversionSymbol::asString() const {
+	return Symbol::asString() + ": Conversion";
+}

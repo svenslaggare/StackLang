@@ -219,34 +219,55 @@ void CallExpressionAST::generateSymbols(Binder& binder, std::shared_ptr<SymbolTa
 		binder.error("The function '" + functionName() + "' is not defined.");
 	} else {
 		auto func = std::dynamic_pointer_cast<FunctionSymbol>(symbol);
+		auto conversion = std::dynamic_pointer_cast<ConversionSymbol>(symbol);
 
 		for (auto arg : mArguments) {
 			arg->generateSymbols(binder, symbolTable);
 		}
 
-		if (func == nullptr) {
-			binder.error("'" + functionName() + "' is not a function.");
-		}
+		if (conversion != nullptr) {
+			if (arguments().size() != 1) {
+				binder.error("Expected 1 arguments but got: " + std::to_string(arguments().size()));
+			}
+		} else {
+			if (func == nullptr) {
+				binder.error("'" + functionName() + "' is not a function.");
+			}
 
-		if (func->parameters().size() != arguments().size()) {
-			binder.error("Expected " + std::to_string(func->parameters().size()) + " arguments but got: " + std::to_string(arguments().size()));
+			if (func->parameters().size() != arguments().size()) {
+				binder.error("Expected " + std::to_string(func->parameters().size()) + " arguments but got: " + std::to_string(arguments().size()));
+			}
 		}
 	}
 }
 
 void CallExpressionAST::typeCheck(TypeChecker& checker) {
-	auto func = std::dynamic_pointer_cast<FunctionSymbol>(mSymbolTable->find(functionName()));
+	//Check if conversion
+	auto toType = checker.getType(mFunctionName);
 
-	for (int i = 0; i < arguments().size(); i++) {
-		auto arg = arguments().at(i);
+	if (arguments().size() == 1 && toType != nullptr) {	
+		auto arg = arguments().at(0);
 		arg->typeCheck(checker);
 
-		auto param = func->parameters().at(i);
+		auto fromType = arg->expressionType(checker);
 
-		auto argType = arg->expressionType(checker);
-		auto paramType = checker.getType(param->variableType());
+		if (!checker.existsExplicitConversion(fromType, toType)) {
+			checker.typeError("There exists no explicit conversion from type '" + fromType->name() + "' to type '" + toType->name() + "'.");
+		}
+	} else {
+		auto func = std::dynamic_pointer_cast<FunctionSymbol>(mSymbolTable->find(functionName()));
 
-		checker.assertSameType(*paramType, *argType);
+		for (int i = 0; i < arguments().size(); i++) {
+			auto arg = arguments().at(i);
+			arg->typeCheck(checker);
+
+			auto param = func->parameters().at(i);
+
+			auto argType = arg->expressionType(checker);
+			auto paramType = checker.getType(param->variableType());
+
+			checker.assertSameType(*paramType, *argType);
+		}
 	}
 }
 
@@ -257,8 +278,14 @@ void CallExpressionAST::verify(SemanticVerifier& verifier) {
 }
 
 std::shared_ptr<Type> CallExpressionAST::expressionType(const TypeChecker& checker) const {
-	auto func = std::dynamic_pointer_cast<FunctionSymbol>(mSymbolTable->find(functionName()));
-	return checker.getType(func->returnType());
+	auto symbol = mSymbolTable->find(functionName());
+
+	if (auto conversion = std::dynamic_pointer_cast<ConversionSymbol>(symbol)) {
+		return checker.getType(conversion->name());
+	} else {
+		auto func = std::dynamic_pointer_cast<FunctionSymbol>(symbol);
+		return checker.getType(func->returnType());
+	}
 }
 
 void CallExpressionAST::generateCode(CodeGenerator& codeGen, GeneratedFunction& func) {
@@ -267,9 +294,12 @@ void CallExpressionAST::generateCode(CodeGenerator& codeGen, GeneratedFunction& 
 	}
 
 	//Check if conversion
-	if (arguments().size() == 1 && codeGen.typeChecker().getType(mFunctionName) != nullptr) {
-		auto fromType = arguments().at(0)->expressionType(codeGen.typeChecker());
-		func.addInstruction("CONV" + fromType->name() + "TO" + mFunctionName);
+	auto& typeChecker = codeGen.typeChecker();
+	auto toType = typeChecker.getType(mFunctionName);
+
+	if (arguments().size() == 1 && toType != nullptr) {
+		auto fromType = arguments().at(0)->expressionType(typeChecker);
+		typeChecker.getExplicitConversion(fromType, toType).applyConversion(codeGen, func);
 	} else {
 		func.addInstruction("CALL " + mFunctionName);
 	}
