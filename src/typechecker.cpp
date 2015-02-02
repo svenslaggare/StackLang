@@ -97,6 +97,19 @@ bool TypeChecker::assertTypeExists(std::string name, bool allowAuto) {
 	return true;
 }
 
+bool TypeChecker::assertNotVoid(const Type& type, std::string errorMessage) {
+	if (type.name() == "Void") {
+		if (errorMessage == "") {
+			typeError("The Void type is not allowed.");
+		} else {
+			typeError(errorMessage);
+		}
+		return false;
+	} else {
+		return true;
+	}
+}
+
 bool TypeChecker::assertSameType(const Type& expected, const Type& actual, std::string errorMessage) {
 	if (expected != actual) {
 		auto errorMsg = errorMessage;

@@ -66,6 +66,9 @@ public:
 	//Asserts that a type with the given name exists
 	bool assertTypeExists(std::string name, bool allowAuto = true);
 
+	//Asserts that the given type is not void
+	bool assertNotVoid(const Type& type, std::string errorMessage = "");
+
 	//Asserts that the types are equal
 	bool assertSameType(const Type& expected, const Type& actual, std::string errorMessage = "");
 

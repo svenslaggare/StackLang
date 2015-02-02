@@ -109,7 +109,7 @@ std::shared_ptr<ExpressionAST> Parser::parseFloatExpression() {
 	return floatAst;
 }
 
-std::shared_ptr<ExpressionAST> Parser::parseIdentifierExpression(bool allowDecleration) {
+std::shared_ptr<ExpressionAST> Parser::parseIdentifierExpression(bool allowDeclaration) {
 	std::string identifier = currentToken.strValue;
 	//Eat the identifier.
 	nextToken();
@@ -138,15 +138,15 @@ std::shared_ptr<ExpressionAST> Parser::parseIdentifierExpression(bool allowDecle
 		}
 
 		if (currentToken.type() == TokenType::Identifier) {
-			if (!allowDecleration) {
+			if (!allowDeclaration) {
 				std::cout << identifier << " " << currentToken << std::endl;
-				compileError("Decleration isn't allowed.");
+				compileError("Declaration isn't allowed.");
 			}
 
 			std::string varName = currentToken.strValue;
 			nextToken(); //Eat the identifier
 
-			//Decleration
+			//Declaration
 			return std::make_shared<VariableDeclarationExpressionAST>(VariableDeclarationExpressionAST(identifier, varName));
 		} else {
 			//Reference
@@ -202,7 +202,7 @@ std::shared_ptr<ExpressionAST> Parser::parseParenthesisExpression() {
 	return expr;
 }
 
-std::shared_ptr<ExpressionAST> Parser::parsePrimaryExpression(bool allowDecleration) {
+std::shared_ptr<ExpressionAST> Parser::parsePrimaryExpression(bool allowDeclaration) {
 	switch (currentToken.type()) {
 	case TokenType::Integer:
 		return parseIntegerExpression();
@@ -213,7 +213,7 @@ std::shared_ptr<ExpressionAST> Parser::parsePrimaryExpression(bool allowDeclerat
 	case TokenType::Float:
 		return parseFloatExpression();
 	case TokenType::Identifier:
-		return parseIdentifierExpression(allowDecleration);
+		return parseIdentifierExpression(allowDeclaration);
 	case TokenType::SingleChar:
 		if (currentToken.charValue == '(') {
 			return parseParenthesisExpression();
@@ -277,17 +277,17 @@ std::shared_ptr<ExpressionAST> Parser::parseBinaryOpRHS(int exprPrecedence, std:
 	}
 }
 
-std::shared_ptr<ExpressionAST> Parser::parseUnaryExpression(bool allowDecleration) {
+std::shared_ptr<ExpressionAST> Parser::parseUnaryExpression(bool allowDeclaration) {
 	//If the current token isn't an operator, is must be a primary expression
 	if (currentToken.type() != TokenType::SingleChar || (isSingleCharToken('(') || isSingleCharToken(','))) {
-		return parsePrimaryExpression(allowDecleration);
+		return parsePrimaryExpression(allowDeclaration);
 	}
 
 	//If this is a unary operator, read it.
 	int opChar = currentToken.charValue;
 	nextToken(); //Eat the operator
 
-	auto operand = parseUnaryExpression(allowDecleration);
+	auto operand = parseUnaryExpression(allowDeclaration);
 
 	if (operand != nullptr) {
 		auto op = Operator(opChar);

@@ -97,6 +97,12 @@ bool BinaryOpExpressionAST::rewriteAST(std::shared_ptr<AbstractSyntaxTree>& newA
 		return true;
 	}
 
+	auto arraySetElem = std::dynamic_pointer_cast<ArrayAccessAST>(mLeftHandSide); 
+	if (arraySetElem != nullptr && mOp == Operator('=')) {
+		newAST = std::make_shared<ArraySetElementAST>(arraySetElem->arrayName(), arraySetElem->accessExpression(), mRightHandSide);
+		return true;
+	}
+
 	return false;
 }
 
@@ -188,8 +194,6 @@ void BinaryOpExpressionAST::verify(SemanticVerifier& verifier) {
 			}
 		} else if (std::dynamic_pointer_cast<VariableDeclarationExpressionAST>(mLeftHandSide) != nullptr) {
 			
-		} else if (std::dynamic_pointer_cast<ArrayAccessAST>(mLeftHandSide) != nullptr) {
-			
 		} else {
 			verifier.semanticError("Left hand side is not declaration or variable reference.");
 		}
@@ -259,18 +263,6 @@ void BinaryOpExpressionAST::generateCode(CodeGenerator& codeGen, GeneratedFuncti
 			if (!varRefSymbol->isFunctionParameter()) {
 				func.addInstruction("STLOC " + std::to_string(func.getLocal(varRef->varName()).first));
 			}
-		} else if (auto arrayVarRef = std::dynamic_pointer_cast<ArrayAccessAST>(mLeftHandSide)) {
-			auto varRefSymbol = std::dynamic_pointer_cast<VariableSymbol>(mSymbolTable->find(arrayVarRef->arrayName()));
-
-			if (varRefSymbol->isFunctionParameter()) {
-				func.addInstruction("LDARG " + std::to_string(func.functionParameterIndex(arrayVarRef->arrayName())));
-			} else {
-				func.addInstruction("LDLOC " + std::to_string(func.getLocal(arrayVarRef->arrayName()).first));
-			}
-
-			arrayVarRef->accessExpression()->generateCode(codeGen, func);
-			generateRHSCode(codeGen, func);
-			func.addInstruction("STELEM " + arrayVarRef->expressionType(codeGen.typeChecker())->vmType());
 		}
 	} else if(mOp == Operator('=', '=')) {
 		generateSidesCode(codeGen, func);

@@ -57,3 +57,33 @@ public:
 
 	virtual void generateCode(CodeGenerator& codeGen, GeneratedFunction& func) override;
 };
+
+//Represents an array set element AST
+class ArraySetElementAST : public ExpressionAST {
+private:
+	std::string mArrayName;
+	std::shared_ptr<ExpressionAST> mAccessExpression;
+	std::shared_ptr<ExpressionAST> mRightHandSide;
+public:
+	//Creates a new array set element AST
+	ArraySetElementAST(std::string arrayName, std::shared_ptr<ExpressionAST> accessExpression, std::shared_ptr<ExpressionAST> rightHandSide);
+
+	//Returns the array name
+	std::string arrayName() const;
+
+	//Returns the access expression
+	std::shared_ptr<ExpressionAST> accessExpression() const;
+
+	//Returns the right hand side expression
+	std::shared_ptr<ExpressionAST> rightHandSide() const;
+
+	std::string asString() const override;
+	
+	virtual void generateSymbols(Binder& binder, std::shared_ptr<SymbolTable> symbolTable) override;
+
+	virtual void typeCheck(TypeChecker& checker) override;
+
+	virtual std::shared_ptr<Type> expressionType(const TypeChecker& checker) const override; 
+
+	virtual void generateCode(CodeGenerator& codeGen, GeneratedFunction& func) override;
+};

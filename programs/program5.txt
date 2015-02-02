@@ -11,11 +11,11 @@ func printbool(Bool b): Void {
 }
 
 func main(): Int {
-	Int[] xs = newIntArray(5);
+	var xs = newIntArray(5);
 	xs[4] = 1337;
 	println(xs[4]);
 
-	Bool[] bools = new Bool[5];
+	var bools = new Bool[5];
 	bools[4] = true;
 	printbool(bools[4]);
 
