@@ -109,10 +109,35 @@ std::shared_ptr<ExpressionAST> Parser::parseFloatExpression() {
 	return floatAst;
 }
 
+std::shared_ptr<ExpressionAST> Parser::parseArrayAccess(std::string identifier) {
+	// std::shared_ptr<ArrayDeclarationAST> arrrayAccess = nullptr;
+	// std::shared_ptr<ExpressionAST> currentAccessExpr = nullptr;
+
+	// while (true) {
+	// 	if (isSingleCharToken('[')) {
+	// 		nextToken(); //Eat the '['
+
+	// 		//If not ']', its an array access
+	// 		std::shared_ptr<ExpressionAST> accessExpression = parseExpression();
+
+	// 		assertCurrentTokenAsChar(']', "Expected ']'");
+	// 		nextToken(); //Eat the ']'
+	
+			
+	// 	}
+	// }
+
+	// return arrrayAccess;
+	return nullptr;
+}
+
 std::shared_ptr<ExpressionAST> Parser::parseIdentifierExpression(bool allowDeclaration) {
 	std::string identifier = currentToken.strValue;
+
 	//Eat the identifier.
 	nextToken();
+
+	std::shared_ptr<ExpressionAST> identExpr = nullptr;
 
 	//Variable decleration/reference
 	if (!isSingleCharToken('(')) {
@@ -130,28 +155,42 @@ std::shared_ptr<ExpressionAST> Parser::parseIdentifierExpression(bool allowDecla
 			nextToken(); //Eat the ']'
 	
 			if (accessExpression != nullptr) {
-				return std::make_shared<ArrayAccessAST>(identifier, accessExpression);
+				identExpr = std::make_shared<ArrayAccessAST>(identifier, accessExpression);
 			} else {
 				//Array type
 				identifier += "[]";
 			}
 		}
 
-		if (currentToken.type() == TokenType::Identifier) {
-			if (!allowDeclaration) {
-				std::cout << identifier << " " << currentToken << std::endl;
-				compileError("Declaration isn't allowed.");
+		if (identExpr == nullptr) {
+			if (currentToken.type() == TokenType::Identifier) {
+				if (!allowDeclaration) {
+					compileError("Declaration isn't allowed.");
+				}
+
+				std::string varName = currentToken.strValue;
+				nextToken(); //Eat the identifier
+
+				//Declaration
+				identExpr = std::make_shared<VariableDeclarationExpressionAST>(identifier, varName);
+			} else {
+				//Reference
+				identExpr = std::make_shared<VariableReferenceExpressionAST>(identifier);
 			}
-
-			std::string varName = currentToken.strValue;
-			nextToken(); //Eat the identifier
-
-			//Declaration
-			return std::make_shared<VariableDeclarationExpressionAST>(VariableDeclarationExpressionAST(identifier, varName));
-		} else {
-			//Reference
-			return std::make_shared<VariableReferenceExpressionAST>(VariableReferenceExpressionAST(identifier));
 		}
+	}
+
+	//Check if member access
+	if (isSingleCharToken('.')) {
+		nextToken(); //Eat the '.'
+
+		//Get the member
+		auto memberExpr = parseIdentifierExpression(false);
+		return std::make_shared<MemberAccessAST>(identExpr, memberExpr);
+	}
+
+	if (identExpr != nullptr) {
+		return identExpr;
 	}
 
 	//Function call

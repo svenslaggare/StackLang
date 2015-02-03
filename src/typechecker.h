@@ -1,7 +1,9 @@
 #pragma once
 #include <map>
+#include <unordered_map>
 #include <memory>
 #include <string>
+#include "object.h"
 
 class Type;
 class ProgramAST;
@@ -38,6 +40,7 @@ private:
 	std::map<std::string, std::shared_ptr<Type>> mTypes;
 	const OperatorContainer& mOperators;
 	std::multimap<std::shared_ptr<Type>, ExplicitConversion> mExplicitConversions;
+	std::unordered_map<std::string, Object> mObjects;
 
 	//Tries to construct the type if doesn't exist
 	bool tryMakeType(std::string name);
@@ -80,4 +83,13 @@ public:
 
 	//Returns an explicit conversion between the given types. Exception if no conversion exists.
 	const ExplicitConversion& getExplicitConversion(std::shared_ptr<Type> fromType, std::shared_ptr<Type> toType) const;
+
+	//Adds the given object
+	void addObject(const Object& object);
+
+	//Indicates if the given object exists
+	bool objectExists(std::string name) const;
+
+	//Returns the given object
+	const Object& getObject(std::string name) const;
 };

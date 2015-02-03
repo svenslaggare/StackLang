@@ -15,9 +15,11 @@ func main(): Int {
 	xs[4] = 1337;
 	println(xs[4]);
 
-	var bools = new Bool[5];
+	var bools = new Bool[10];
 	bools[4] = true;
-	printbool(bools[4]);
+	#printbool(bools[4]);
+
+	println(xs.length);
 
 	return 0;
 }

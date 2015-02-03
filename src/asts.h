@@ -6,3 +6,4 @@
 #include "operatorast.h"
 #include "blockast.h"
 #include "arrayast.h"
+#include "objectast.h"

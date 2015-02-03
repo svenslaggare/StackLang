@@ -157,3 +157,17 @@ const ExplicitConversion& TypeChecker::getExplicitConversion(std::shared_ptr<Typ
 
 	throw std::out_of_range("fromType or toType");
 }
+
+void TypeChecker::addObject(const Object& object) {
+	if (mObjects.count(object.name()) == 0) {
+		mObjects.insert({ object.name(), object });
+	}
+}
+
+bool TypeChecker::objectExists(std::string name) const {
+	return mObjects.count(name) > 0;
+}
+
+const Object& TypeChecker::getObject(std::string name) const {
+	return mObjects.at(name);
+}

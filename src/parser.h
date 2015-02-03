@@ -54,6 +54,9 @@ private:
 	//Parses a float expression
 	std::shared_ptr<ExpressionAST> parseFloatExpression();
 
+	//Parses an array access expression
+	std::shared_ptr<ExpressionAST> parseArrayAccess(std::string identifier = "");
+
 	//Parses an identifier expression
 	std::shared_ptr<ExpressionAST> parseIdentifierExpression(bool allowDeclaration = false);
 

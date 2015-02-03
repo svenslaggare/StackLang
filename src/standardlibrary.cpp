@@ -7,16 +7,18 @@
 #include <memory>
 
 void StandardLibrary::add(Binder& binder, TypeChecker& typeChecker) {
+	auto intType = typeChecker.getType("Int");
+	auto floatType = typeChecker.getType("Float");
+
 	binder.addFunction("println", { { "Int", "x" } }, "Void");
 	binder.addFunction("print", { { "Int", "x" } }, "Void");
 	binder.addFunction("printchar", { { "Int", "x" } }, "Void");
 
 	binder.addFunction("printfln", { { "Float", "x" } }, "Void");
 
-	//Add conversions
-	auto intType = typeChecker.getType("Int");
-	auto floatType = typeChecker.getType("Float");
+	typeChecker.addObject(Object("Array", nullptr, { { "length", Field("length", intType) } }));
 
+	//Add conversions
 	binder.symbolTable()->add("Float", std::make_shared<ConversionSymbol>("Float"));
 	typeChecker.defineExplicitConversion(floatType, intType, [](CodeGenerator& codeGen, GeneratedFunction& func) { func.addInstruction("CONVFLOATTOINT"); });
 

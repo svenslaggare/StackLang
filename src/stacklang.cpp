@@ -42,7 +42,7 @@ int main() {
 	auto programAST = parser.parse();
 
 	programAST->rewrite();
-	// std::cout << *programAST << std::endl;
+	//std::cout << *programAST << std::endl;
 
 	Binder binder;
 	TypeChecker typeChecker(operators, TypeSystem::defaultTypes());
