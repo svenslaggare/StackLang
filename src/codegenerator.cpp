@@ -153,22 +153,14 @@ GeneratedFunction& CodeGenerator::newFunction(std::shared_ptr<FunctionPrototypeA
 		parameters.push_back(FunctionParameter(param->varName(), mTypeChecker.findType(param->varType())));
 	}
 
-	mFunctions.insert({ 
-		functionPrototype->name(),
-		GeneratedFunction(functionPrototype->name(), parameters, mTypeChecker.findType(functionPrototype->returnType()))
-	});
-
-	auto& newFunc = mFunctions[functionPrototype->name()];
+	mFunctions.push_back(GeneratedFunction(functionPrototype->name(), parameters, mTypeChecker.findType(functionPrototype->returnType())));
+	auto& newFunc = mFunctions[mFunctions.size() - 1];
 
 	if (functionPrototype->returnType() != "Void") {
 		newFunc.newLocal(CodeGenerator::returnValueLocal, mTypeChecker.findType(functionPrototype->returnType()));
 	}
 
 	return newFunc;
-}
-
-GeneratedFunction& CodeGenerator::getFunction(std::string funcName) {
-	return mFunctions.at(funcName);
 }
 
 void CodeGenerator::printGeneratedCode() {
@@ -180,7 +172,7 @@ void CodeGenerator::printGeneratedCode() {
 			isFirst = false;
 		}
 
-		func.second.outputGeneratedCode(std::cout);
+		func.outputGeneratedCode(std::cout);
 	}
 }
 

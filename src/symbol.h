@@ -40,24 +40,6 @@ public:
 	bool isFunctionParameter() const;
 };
 
-//Represents a function symbol
-class FunctionSymbol : public Symbol {
-private:
-	std::vector<std::shared_ptr<VariableSymbol>> mParameters;
-	std::string mReturnType;
-public:
-	//Creates a new function symbol with the given parameters and return type
-	FunctionSymbol(std::string name, std::vector<std::shared_ptr<VariableSymbol>>parameters, std::string returnType);
-
-	virtual std::string asString() const override;
-
-	//Returns the parameters
-	const std::vector<std::shared_ptr<VariableSymbol>>& parameters() const;
-
-	//Returns the return type
-	std::string returnType() const;
-};
-
 //Represents a function signature symbol
 class FunctionSignatureSymbol : Symbol {
 private:
@@ -74,6 +56,26 @@ public:
 
 	//Returns the return type
 	std::string returnType() const;
+};
+
+//Represents a function symbol
+class FunctionSymbol : public Symbol {
+private:
+	std::vector<std::shared_ptr<FunctionSignatureSymbol>> mOverloads;
+public:
+	//Creates a new function symbol with the given signature
+	FunctionSymbol(std::string name, std::shared_ptr<FunctionSignatureSymbol> signature);
+
+	virtual std::string asString() const override;
+
+	//Returns the overloads
+	const std::vector<std::shared_ptr<FunctionSignatureSymbol>>& overloads() const;
+
+	//Adds a new overload
+	bool addOverload(std::shared_ptr<FunctionSignatureSymbol> signature);
+
+	//Tries to find an overload with the given signature
+	std::shared_ptr<FunctionSignatureSymbol> findOverload(std::vector<std::string> parameterTypes) const;
 };
 
 //Represents a conversion symbol

@@ -189,6 +189,16 @@ std::shared_ptr<Symbol> CallExpressionAST::funcSymbol(std::shared_ptr<SymbolTabl
 	return symbolTable->find(mFunctionName);
 }
 
+std::shared_ptr<FunctionSignatureSymbol> CallExpressionAST::funcSignature(const TypeChecker& typeChecker) const {
+	std::vector<std::string> argumentsTypes;
+
+	for (auto arg : mArguments) {
+		argumentsTypes.push_back(arg->expressionType(typeChecker)->name());
+	}
+
+	return std::dynamic_pointer_cast<FunctionSymbol>(funcSymbol(mSymbolTable))->findOverload(argumentsTypes);
+}
+
 std::string CallExpressionAST::functionName() const {
 	return mFunctionName;
 }
@@ -239,9 +249,9 @@ void CallExpressionAST::generateSymbols(Binder& binder, std::shared_ptr<SymbolTa
 				binder.error("'" + functionName() + "' is not a function.");
 			}
 
-			if (func->parameters().size() != arguments().size()) {
-				binder.error("Expected " + std::to_string(func->parameters().size()) + " arguments but got: " + std::to_string(arguments().size()));
-			}
+			// if (func->parameters().size() != arguments().size()) {
+			// 	binder.error("Expected " + std::to_string(func->parameters().size()) + " arguments but got: " + std::to_string(arguments().size()));
+			// }
 		}
 	}
 }
@@ -260,7 +270,16 @@ void CallExpressionAST::typeCheck(TypeChecker& checker) {
 			checker.typeError("There exists no explicit conversion from type '" + fromType->name() + "' to type '" + toType->name() + "'.");
 		}
 	} else {
-		auto func = std::dynamic_pointer_cast<FunctionSymbol>(funcSymbol(mSymbolTable));
+		auto func = funcSignature(checker);
+
+		if (func == nullptr) {
+			auto paramsStr = Helpers::join<std::shared_ptr<ExpressionAST>>(
+				arguments(),
+				[&](std::shared_ptr<ExpressionAST> arg) { return arg->expressionType(checker)->name(); },
+				", ");
+
+			checker.typeError("There exists no function overload with the given signature: '" + mFunctionName + "(" + paramsStr + ")" + "'.");
+		}
 
 		for (int i = 0; i < arguments().size(); i++) {
 			auto arg = arguments().at(i);
@@ -288,7 +307,7 @@ std::shared_ptr<Type> CallExpressionAST::expressionType(const TypeChecker& check
 	if (auto conversion = std::dynamic_pointer_cast<ConversionSymbol>(symbol)) {
 		return checker.findType(conversion->name());
 	} else {
-		auto func = std::dynamic_pointer_cast<FunctionSymbol>(symbol);
+		auto func = funcSignature(checker);
 		return checker.findType(func->returnType());
 	}
 }

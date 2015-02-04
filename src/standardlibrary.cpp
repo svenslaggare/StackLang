@@ -14,7 +14,7 @@ void StandardLibrary::add(Binder& binder, TypeChecker& typeChecker) {
 	binder.addFunction("print", { { "Int", "x" } }, "Void");
 	binder.addFunction("printchar", { { "Int", "x" } }, "Void");
 
-	binder.addFunction("printfln", { { "Float", "x" } }, "Void");
+	binder.addFunction("println", { { "Float", "x" } }, "Void");
 
 	typeChecker.addObject(Object("Array", nullptr, { { "length", Field("length", intType) } }));
 

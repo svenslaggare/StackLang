@@ -10,6 +10,14 @@ func printbool(Bool b): Void {
 	}
 }
 
+func printLength(Int[] ints): Void {
+	println(ints.length);
+}
+
+func printLength(Bool[] bools): Void {
+	println(bools.length);
+}
+
 func main(): Int {
 	var xs = newIntArray(5);
 	xs[4] = 1337;
@@ -17,9 +25,9 @@ func main(): Int {
 
 	var bools = new Bool[10];
 	bools[4] = true;
-	#printbool(bools[4]);
 
-	println(xs.length);
+	printLength(xs);
+	printLength(bools);
 
 	return 0;
 }

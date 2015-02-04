@@ -24,12 +24,7 @@ void Binder::addFunction(std::string name, const std::vector<std::pair<std::stri
 		parameterSymbols.push_back(std::make_shared<VariableSymbol>(param.second, param.first, true));
 	}
 
-	auto paramStr = Helpers::join<std::shared_ptr<VariableSymbol>>(
-		parameterSymbols,
-		[](std::shared_ptr<VariableSymbol> param) { return param->variableType(); },
-		", ");
-	
-	mSymbolTable->add(name, std::make_shared<FunctionSymbol>(name, parameterSymbols, returnType));
+	mSymbolTable->addFunction(name, parameterSymbols, returnType);
 }
 
 std::shared_ptr<SymbolTable> Binder::symbolTable() const {

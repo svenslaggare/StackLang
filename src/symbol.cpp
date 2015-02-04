@@ -40,21 +40,56 @@ bool VariableSymbol::isFunctionParameter() const {
 }
 
 //Function
-FunctionSymbol::FunctionSymbol(std::string name, std::vector<std::shared_ptr<VariableSymbol>> parameters, std::string returnType)
-	: Symbol(name, "Function"), mParameters(parameters), mReturnType(returnType) {
+FunctionSymbol::FunctionSymbol(std::string name, std::shared_ptr<FunctionSignatureSymbol> signature)
+	: Symbol(name, "Function"), mOverloads({ signature }) {
 
 }
 
 std::string FunctionSymbol::asString() const {
-	return Symbol::asString() + ": " + std::to_string(mParameters.size()) + ", " + mReturnType;
+	return Symbol::asString();
 }
 
-const std::vector<std::shared_ptr<VariableSymbol>>& FunctionSymbol::parameters() const {
-	return mParameters;
+const std::vector<std::shared_ptr<FunctionSignatureSymbol>>& FunctionSymbol::overloads() const {
+	return mOverloads;
 }
 
-std::string FunctionSymbol::returnType() const {
-	return mReturnType;
+bool FunctionSymbol::addOverload(std::shared_ptr<FunctionSignatureSymbol> signature) {
+	std::vector<std::string> signatureParameters;
+
+	for (auto param : signature->parameters()) {
+		signatureParameters.push_back(param->variableType());
+	}
+
+	if (findOverload(signatureParameters) != nullptr) {
+		return false;
+	}
+
+	mOverloads.push_back(signature);
+	return true;
+}
+
+std::shared_ptr<FunctionSignatureSymbol> FunctionSymbol::findOverload(std::vector<std::string> parameterTypes) const {
+	for (auto current : mOverloads) {
+		if (current->parameters().size() == parameterTypes.size()) {
+			bool found = true;
+
+			for (int i = 0; i < current->parameters().size(); i++) {
+				auto currentType = current->parameters().at(i)->variableType();
+				auto otherType = parameterTypes.at(i);
+
+				if (currentType != otherType) {
+					found = false;
+					break;
+				}
+			}
+
+			if (found) {
+				return current;
+			}
+		}
+	}
+
+	return nullptr;
 }
 
 //Function signature

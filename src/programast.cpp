@@ -4,6 +4,7 @@
 #include "symboltable.h"
 #include "binder.h"
 #include "symbol.h"
+#include "helpers.h"
 
 ProgramAST::ProgramAST(const std::vector<std::shared_ptr<FunctionAST>>& functions)
 	: mFunctions(functions) {
@@ -45,12 +46,21 @@ void ProgramAST::generateSymbols(Binder& binder, std::shared_ptr<SymbolTable> sy
 			parameters.push_back(std::make_shared<VariableSymbol>(param->varName(), param->varType(), true));
 		}
 
-		auto funcSymbol = std::make_shared<FunctionSymbol>(funcName, parameters, func->prototype()->returnType());
+		auto symbol = symbolTable->find(funcName);
 
-		if (!symbolTable->add(funcName, funcSymbol)) {
+		if (symbol != nullptr && std::dynamic_pointer_cast<FunctionSymbol>(symbol) == nullptr) {
 			binder.error("The symbol '" + funcName + "' is already defined.");
 		}
-	}
+
+		if (!symbolTable->addFunction(funcName, parameters, func->prototype()->returnType())) {
+			auto paramsStr = Helpers::join<std::shared_ptr<VariableSymbol>>(
+				parameters,
+				[](std::shared_ptr<VariableSymbol> param) { return param->variableType(); },
+				", ");
+
+			binder.error("The already exists a function with the given signature: '" + funcName + "(" + paramsStr + ")" + "'.");
+		}
+ 	}
 
 	for (auto func : mFunctions) {
 		func->generateSymbols(binder, symbolTable);

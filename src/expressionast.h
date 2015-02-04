@@ -115,6 +115,8 @@ public:
 	virtual void generateCode(CodeGenerator& codeGen, GeneratedFunction& func) override;
 };
 
+class FunctionSignatureSymbol;
+
 //Represents a call expression
 class CallExpressionAST : public ExpressionAST {
 private:
@@ -123,6 +125,9 @@ private:
 
 	//Returns the func symbol
 	std::shared_ptr<Symbol> funcSymbol(std::shared_ptr<SymbolTable> symbolTable) const;
+
+	//Finds the func signature symbol
+	std::shared_ptr<FunctionSignatureSymbol> funcSignature(const TypeChecker& typeChecker) const;
 public:
 	//Creates a new function call expression
 	CallExpressionAST(std::string functionName, std::vector<std::shared_ptr<ExpressionAST>> arguments);

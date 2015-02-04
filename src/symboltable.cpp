@@ -23,9 +23,19 @@ void SymbolTable::add(const SymbolTable& symbolTable) {
 }
 
 bool SymbolTable::addFunction(std::string name, std::vector<std::shared_ptr<VariableSymbol>> parameters, std::string returnType) {
+	auto signature = std::make_shared<FunctionSignatureSymbol>(name, parameters, returnType);
+	
 	if (mInner.count(name) > 0) {
-		return true;
+		auto func = std::dynamic_pointer_cast<FunctionSymbol>(mInner.at(name));
+
+		if (func != nullptr) {
+			return func->addOverload(signature);
+		} else {
+			return false;
+		}
 	} else {
+		auto func = std::make_shared<FunctionSymbol>(name, signature);
+		mInner.insert({ name, func });
 		return true;
 	}
 }

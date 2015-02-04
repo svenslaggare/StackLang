@@ -71,7 +71,8 @@ public:
 //Represents a code generator
 class CodeGenerator {
 private:
-	std::map<std::string, GeneratedFunction> mFunctions;
+	//std::map<std::string, GeneratedFunction> mFunctions;
+	std::vector<GeneratedFunction> mFunctions;
 	const TypeChecker& mTypeChecker;
 public:
 	//Creates a new type checker
@@ -85,9 +86,6 @@ public:
 
 	//Creates a new function
 	GeneratedFunction& newFunction(std::shared_ptr<FunctionPrototypeAST> functionPrototype);
-
-	//Returns the stream for the given function
-	GeneratedFunction& getFunction(std::string funcName);
 
 	//Prints the generated code
 	void printGeneratedCode();
