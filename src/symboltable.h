@@ -7,6 +7,7 @@
 
 class AbstractSyntaxTree;
 class Symbol;
+class VariableSymbol;
 
 //Represents a symbol table;
 class SymbolTable {
@@ -22,6 +23,9 @@ public:
 
 	//Adds the given table to the current
 	void add(const SymbolTable& symbolTable);
+
+	//Adds the given function to the symbol table
+	bool addFunction(std::string name, std::vector<std::shared_ptr<VariableSymbol>> parameters, std::string returnType);
 
 	//Finds the given symbol. Nullptr if it doesn't exists.
 	std::shared_ptr<Symbol> find(std::string name) const;

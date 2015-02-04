@@ -57,6 +57,24 @@ std::string FunctionSymbol::returnType() const {
 	return mReturnType;
 }
 
+//Function signature
+FunctionSignatureSymbol::FunctionSignatureSymbol(std::string name, std::vector<std::shared_ptr<VariableSymbol>> parameters, std::string returnType)
+	: Symbol(name, "FunctionSignature"), mParameters(parameters), mReturnType(returnType) {
+
+}
+
+std::string FunctionSignatureSymbol::asString() const {
+	return Symbol::asString() + ": " + std::to_string(mParameters.size()) + ", " + mReturnType;
+}
+
+const std::vector<std::shared_ptr<VariableSymbol>>& FunctionSignatureSymbol::parameters() const {
+	return mParameters;
+}
+
+std::string FunctionSignatureSymbol::returnType() const {
+	return mReturnType;
+}
+
 //Conversion
 ConversionSymbol::ConversionSymbol(std::string name)
 	: Symbol(name, "Conversion") {

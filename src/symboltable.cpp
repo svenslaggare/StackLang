@@ -22,6 +22,14 @@ void SymbolTable::add(const SymbolTable& symbolTable) {
 	} 
 }
 
+bool SymbolTable::addFunction(std::string name, std::vector<std::shared_ptr<VariableSymbol>> parameters, std::string returnType) {
+	if (mInner.count(name) > 0) {
+		return true;
+	} else {
+		return true;
+	}
+}
+
 std::shared_ptr<Symbol> SymbolTable::find(std::string name) const {
 	//First check in the inner
 	if (mInner.count(name) > 0) {

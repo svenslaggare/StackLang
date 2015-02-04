@@ -7,6 +7,7 @@
 #include "asthelpers.h"
 #include "codegenerator.h"
 #include "symbol.h"
+#include "helpers.h"
 
 //Integer expression AST
 IntegerExpressionAST::IntegerExpressionAST(int value)
@@ -184,6 +185,10 @@ CallExpressionAST::CallExpressionAST(std::string functionName, std::vector<std::
 
 }
 
+std::shared_ptr<Symbol> CallExpressionAST::funcSymbol(std::shared_ptr<SymbolTable> symbolTable) const {
+	return symbolTable->find(mFunctionName);
+}
+
 std::string CallExpressionAST::functionName() const {
 	return mFunctionName;
 }
@@ -213,7 +218,7 @@ void CallExpressionAST::rewrite() {
 void CallExpressionAST::generateSymbols(Binder& binder, std::shared_ptr<SymbolTable> symbolTable) {
 	AbstractSyntaxTree::generateSymbols(binder, symbolTable);
 	
-	auto symbol = symbolTable->find(functionName());
+	auto symbol = funcSymbol(symbolTable);
 
 	if (symbol == nullptr) {
 		binder.error("The function '" + functionName() + "' is not defined.");
@@ -255,7 +260,7 @@ void CallExpressionAST::typeCheck(TypeChecker& checker) {
 			checker.typeError("There exists no explicit conversion from type '" + fromType->name() + "' to type '" + toType->name() + "'.");
 		}
 	} else {
-		auto func = std::dynamic_pointer_cast<FunctionSymbol>(mSymbolTable->find(functionName()));
+		auto func = std::dynamic_pointer_cast<FunctionSymbol>(funcSymbol(mSymbolTable));
 
 		for (int i = 0; i < arguments().size(); i++) {
 			auto arg = arguments().at(i);
@@ -278,7 +283,7 @@ void CallExpressionAST::verify(SemanticVerifier& verifier) {
 }
 
 std::shared_ptr<Type> CallExpressionAST::expressionType(const TypeChecker& checker) const {
-	auto symbol = mSymbolTable->find(functionName());
+	auto symbol = funcSymbol(mSymbolTable);
 
 	if (auto conversion = std::dynamic_pointer_cast<ConversionSymbol>(symbol)) {
 		return checker.findType(conversion->name());
@@ -301,6 +306,12 @@ void CallExpressionAST::generateCode(CodeGenerator& codeGen, GeneratedFunction& 
 		auto fromType = arguments().at(0)->expressionType(typeChecker);
 		typeChecker.getExplicitConversion(fromType, toType).applyConversion(codeGen, func);
 	} else {
-		func.addInstruction("CALL " + mFunctionName);
+		auto argsTypeStr = Helpers::join<std::shared_ptr<ExpressionAST>>(
+			arguments(),
+			[&](std::shared_ptr<ExpressionAST> arg) {
+				return arg->expressionType(codeGen.typeChecker())->vmType();
+			}, " ");
+
+		func.addInstruction("CALL " + mFunctionName + "(" + argsTypeStr + ")");
 	}
 }

@@ -58,6 +58,24 @@ public:
 	std::string returnType() const;
 };
 
+//Represents a function signature symbol
+class FunctionSignatureSymbol : Symbol {
+private:
+	std::vector<std::shared_ptr<VariableSymbol>> mParameters;
+	std::string mReturnType;
+public:
+	//Creates a new function symbol with the given parameters and return type
+	FunctionSignatureSymbol(std::string name, std::vector<std::shared_ptr<VariableSymbol>>parameters, std::string returnType);
+
+	virtual std::string asString() const override;
+
+	//Returns the parameters
+	const std::vector<std::shared_ptr<VariableSymbol>>& parameters() const;
+
+	//Returns the return type
+	std::string returnType() const;
+};
+
 //Represents a conversion symbol
 class ConversionSymbol : public Symbol {
 public:

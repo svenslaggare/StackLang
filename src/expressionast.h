@@ -6,6 +6,8 @@
 
 class TypeChecker;
 class CodeGenerator;
+class Symbol;
+class SymbolTable;
 
 //Represents an integer expression
 class IntegerExpressionAST : public ExpressionAST {
@@ -118,6 +120,9 @@ class CallExpressionAST : public ExpressionAST {
 private:
 	std::string mFunctionName;
 	std::vector<std::shared_ptr<ExpressionAST>> mArguments;
+
+	//Returns the func symbol
+	std::shared_ptr<Symbol> funcSymbol(std::shared_ptr<SymbolTable> symbolTable) const;
 public:
 	//Creates a new function call expression
 	CallExpressionAST(std::string functionName, std::vector<std::shared_ptr<ExpressionAST>> arguments);
