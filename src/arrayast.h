@@ -32,6 +32,38 @@ public:
 	virtual void generateCode(CodeGenerator& codeGen, GeneratedFunction& func) override;
 };
 
+//Represents a multidimensional array declaration AST
+class MultiDimArrayDeclarationAST : public ExpressionAST {
+private:
+	std::string mElementType;
+	std::vector<std::shared_ptr<ExpressionAST>> mLengthExpressions;
+
+	//Returns the type string
+	std::string typeString(int dim = -1) const;
+public:
+	//Creates a new multidim array declaration AST
+	MultiDimArrayDeclarationAST(std::string elementType, std::vector<std::shared_ptr<ExpressionAST>> lengthExpressions);
+
+	//Returns the element type
+	std::string elementType() const;
+
+	//Returns the length expressions
+	const std::vector<std::shared_ptr<ExpressionAST>>& lengthExpressions() const;
+
+	std::string asString() const override;
+	
+	virtual void generateSymbols(Binder& binder, std::shared_ptr<SymbolTable> symbolTable) override;
+
+	virtual void typeCheck(TypeChecker& checker) override;
+
+	virtual std::shared_ptr<Type> expressionType(const TypeChecker& checker) const override; 
+
+	//Generates an array of the given dim
+	void generateArrayDim(CodeGenerator& codeGen, GeneratedFunction& func, int dim);
+
+	virtual void generateCode(CodeGenerator& codeGen, GeneratedFunction& func) override;
+};
+
 //Represents an array access AST
 class ArrayAccessAST : public ExpressionAST {
 private:

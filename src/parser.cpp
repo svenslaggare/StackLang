@@ -409,36 +409,37 @@ std::shared_ptr<ExpressionAST> Parser::parseArrayDeclaration() {
 	assertCurrentTokenAsChar('[', "Expected '['.");
 	nextToken(); //Eat the ']'
 	
-	//Get the length expression
-	auto lengthExpression = parseExpression();
+	// //Get the length expression
+	// auto lengthExpression = parseExpression();
 
-	if (lengthExpression == nullptr) {
-		return nullptr;
-	}
-
-	assertCurrentTokenAsChar(']', "Expected ']'.");
-	nextToken(); //Eat the ']'
-
-	// std::vector<std::shared_ptr<ExpressionAST>> lengthExpressions;
-
-	// while (true) {
-	// 	auto lengthExpression = parseExpression();
-
-	// 	if (lengthExpression == nullptr) {
-	// 		return nullptr;
-	// 	}
-
-	// 	lengthExpressions.push_back(lengthExpression);
-
-	// 	if (isSingleCharToken(',')) {
-	// 		nextToken(); //Eat the ','
-	// 	} else if (isSingleCharToken(']')) {
-	// 		nextToken(); //Eat the ']'
-	// 		break;
-	// 	} else {
-	// 		assertCurrentTokenAsChar(']', "Expected ']'.");
-	// 	}
+	// if (lengthExpression == nullptr) {
+	// 	return nullptr;
 	// }
+
+	// assertCurrentTokenAsChar(']', "Expected ']'.");
+	// nextToken(); //Eat the ']'
+	
+	//Get the length expressions
+	std::vector<std::shared_ptr<ExpressionAST>> lengthExpressions;
+
+	while (true) {
+		auto lengthExpression = parseExpression();
+
+		if (lengthExpression == nullptr) {
+			return nullptr;
+		}
+
+		lengthExpressions.push_back(lengthExpression);
+
+		if (isSingleCharToken(',')) {
+			nextToken(); //Eat the ','
+		} else if (isSingleCharToken(']')) {
+			nextToken(); //Eat the ']'
+			break;
+		} else {
+			assertCurrentTokenAsChar(']', "Expected ']'.");
+		}
+	}
 
 	//Parse trailing array types
 	while (isSingleCharToken('[')) {
@@ -449,7 +450,11 @@ std::shared_ptr<ExpressionAST> Parser::parseArrayDeclaration() {
 		elementTypeName += "[]";
 	}
 
-	return std::make_shared<ArrayDeclarationAST>(elementTypeName, lengthExpression);
+	if (lengthExpressions.size() == 1) {
+		return std::make_shared<ArrayDeclarationAST>(elementTypeName, lengthExpressions.at(0));
+	} else {
+		return std::make_shared<MultiDimArrayDeclarationAST>(elementTypeName, lengthExpressions);
+	}
 }
 
 std::shared_ptr<StatementAST> Parser::parseIfElseStatement() {

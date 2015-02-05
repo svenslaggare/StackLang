@@ -5,6 +5,8 @@
 #include "binder.h"
 #include "symbol.h"
 #include "codegenerator.h"
+#include "helpers.h"
+#include "statementast.h"
 
 //Array declaration
 ArrayDeclarationAST::ArrayDeclarationAST(std::string elementType, std::shared_ptr<ExpressionAST> lengthExpression)
@@ -53,6 +55,94 @@ std::shared_ptr<Type> ArrayDeclarationAST::expressionType(const TypeChecker& che
 void ArrayDeclarationAST::generateCode(CodeGenerator& codeGen, GeneratedFunction& func) {
 	mLengthExpression->generateCode(codeGen, func);
 	func.addInstruction("NEWARR " + codeGen.typeChecker().findType(mElementType)->vmType());
+}
+
+//Multidim array declaration
+MultiDimArrayDeclarationAST::MultiDimArrayDeclarationAST(std::string elementType, std::vector<std::shared_ptr<ExpressionAST>> lengthExpressions)
+	: mElementType(elementType), mLengthExpressions(lengthExpressions) {
+	
+}
+
+std::string MultiDimArrayDeclarationAST::typeString(int dim) const {
+	std::string arrayRankStr = "";
+	
+	if (dim == -1) {
+		dim = mLengthExpressions.size();
+	}
+
+	for (int i = 0; i < dim; i++) {
+		arrayRankStr += "[]";
+	}
+
+	return mElementType + arrayRankStr;
+}
+
+std::string MultiDimArrayDeclarationAST::elementType() const {
+	return mElementType;
+}
+
+const std::vector<std::shared_ptr<ExpressionAST>>& MultiDimArrayDeclarationAST::lengthExpressions() const {
+	return mLengthExpressions;
+}
+
+std::string MultiDimArrayDeclarationAST::asString() const {
+	auto lengthsStr = Helpers::join<std::shared_ptr<ExpressionAST>>(
+		mLengthExpressions,
+		[](std::shared_ptr<ExpressionAST> length) { return length->asString(); },
+		", ");
+
+	return "new " + mElementType + "[" + lengthsStr + "]";
+}
+
+void MultiDimArrayDeclarationAST::generateSymbols(Binder& binder, std::shared_ptr<SymbolTable> symbolTable) {
+	AbstractSyntaxTree::generateSymbols(binder, symbolTable);
+	
+	for (auto lengthExpr : mLengthExpressions) {
+		lengthExpr->generateSymbols(binder, symbolTable);
+	}
+}
+
+void MultiDimArrayDeclarationAST::typeCheck(TypeChecker& checker) {
+	for (auto lengthExpr : mLengthExpressions) {
+		lengthExpr->typeCheck(checker);
+	}
+
+	//Check lengths
+	int dim = 0;
+	for (auto lengthExpr : mLengthExpressions) {
+		checker.assertSameType(
+			*checker.getType("Int"),
+			*lengthExpr->expressionType(checker),
+			"Expected the length of dimension " + std::to_string(dim) + " to be of type 'Int'.");
+		dim++;
+	}
+
+	//Check if the element type exists
+	checker.assertTypeExists(mElementType, false);
+	checker.assertNotVoid(*checker.findType(mElementType), "Arrays of type 'Void' is not allowed.");
+
+	//Create the array type if not created
+	checker.getType(typeString());
+}
+	
+std::shared_ptr<Type> MultiDimArrayDeclarationAST::expressionType(const TypeChecker& checker) const {
+	return checker.findType(typeString());
+}
+
+void MultiDimArrayDeclarationAST::generateArrayDim(CodeGenerator& codeGen, GeneratedFunction& func, int dim) {
+	auto lengthExpr = mLengthExpressions.at(mLengthExpressions.size() - dim - 1);
+
+	if (dim == 1) {
+		lengthExpr->generateCode(codeGen, func);
+		func.addInstruction("NEWARR " + codeGen.typeChecker().findType(mElementType)->vmType());
+	} else {
+
+	}
+}
+
+void MultiDimArrayDeclarationAST::generateCode(CodeGenerator& codeGen, GeneratedFunction& func) {
+	//mLengthExpression->generateCode(codeGen, func);
+	//func.addInstruction("NEWARR " + codeGen.typeChecker().findType(mElementType)->vmType());
 }
 
 //Array access

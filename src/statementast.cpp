@@ -363,40 +363,6 @@ void WhileLoopStatementAST::verify(SemanticVerifier& verifier) {
 }
 
 void WhileLoopStatementAST::generateCode(CodeGenerator& codeGen, GeneratedFunction& func) {
-	// if (auto binOpExpr = std::dynamic_pointer_cast<BinaryOpExpressionAST>(mConditionExpression)) {
-	// 	auto op = binOpExpr->op();
-
-	// 	int condStart = func.numInstructions();
-		
-	// 	binOpExpr->rightHandSide()->generateCode(codeGen, func);
-	// 	binOpExpr->leftHandSide()->generateCode(codeGen, func);
-		
-	// 	int condIndex = func.numInstructions();
-
-	// 	if (op == Operator('<')) {
-	// 		func.addInstruction("BGE");
-	// 	} else if (op == Operator('>')) {
-	// 		func.addInstruction("BLE");
-	// 	} else if (op == Operator('<', '=')) {
-	// 		func.addInstruction("BGT");
-	// 	} else if (op == Operator('>', '=')) {
-	// 		func.addInstruction("BLT");
-	// 	} else if (op == Operator('=', '=')) {
-	// 		func.addInstruction("BNE");
-	// 	} else if (op == Operator('!', '=')) {
-	// 		func.addInstruction("BEQ");
-	// 	} else {
-	// 		codeGen.codeGenError("'" + op.asString() + "' is not a boolean operator.");
-	// 	}
-
-	// 	mBodyBlock->generateCode(codeGen, func);
-	// 	func.addInstruction("BR " + std::to_string(condStart));
-
-	// 	func.instruction(condIndex) += " " + std::to_string(func.numInstructions());
-	// } else {
-	// 	codeGen.codeGenError("While statement not implemented for current expression.");
-	// }
-
 	int condStart = func.numInstructions();
 	int condIndex = -1;
 
@@ -483,31 +449,6 @@ std::string ForLoopStatementAST::asString() const {
 	return "for (" + mInitExpression->asString() + "; " + mConditionExpression->asString() + "; " + mChangeExpression->asString() + ") " + mBodyBlock->asString();
 }
 
-// void ForLoopStatementAST::rewrite() {
-// 	std::shared_ptr<AbstractSyntaxTree> newAST;
-
-// 	if (mInitExpression->rewriteAST(newAST)) {
-// 		mInitExpression = std::dynamic_pointer_cast<ExpressionAST>(newAST);
-// 	}
-
-// 	if (mConditionExpression->rewriteAST(newAST)) {
-// 		mConditionExpression = std::dynamic_pointer_cast<ExpressionAST>(newAST);
-// 	}
-
-// 	if (mChangeExpression->rewriteAST(newAST)) {
-// 		mChangeExpression = std::dynamic_pointer_cast<ExpressionAST>(newAST);
-// 	}
-
-// 	if (mBodyBlock->rewriteAST(newAST)) {
-// 		mBodyBlock = std::dynamic_pointer_cast<BlockAST>(newAST);
-// 	}
-
-// 	mInitExpression->rewrite();
-// 	mConditionExpression->rewrite();
-// 	mChangeExpression->rewrite();
-// 	mBodyBlock->rewrite();
-// }
-
 bool ForLoopStatementAST::rewriteAST(std::shared_ptr<AbstractSyntaxTree>& newAST) const {
 	auto bodyStatements = mBodyBlock->statements();
 	bodyStatements.push_back(std::make_shared<ExpressionStatementAST>(mChangeExpression));
@@ -519,38 +460,3 @@ bool ForLoopStatementAST::rewriteAST(std::shared_ptr<AbstractSyntaxTree>& newAST
 	newAST = std::make_shared<BlockAST>(outerBlockStatements);
 	return true;
 }
-
-// std::shared_ptr<AbstractSyntaxTree> ForLoopStatementAST::findAST(std::function<bool (std::shared_ptr<AbstractSyntaxTree> ast)> predicate) const {
-// 	std::shared_ptr<AbstractSyntaxTree> result;
-
-// 	if (ASTHelpers::findAST(mInitExpression, predicate, result)
-// 		|| ASTHelpers::findAST(mConditionExpression, predicate, result)
-// 		|| ASTHelpers::findAST(mChangeExpression, predicate, result)
-// 		|| ASTHelpers::findAST(mBodyBlock, predicate, result)) {
-// 		return result;
-// 	}
-
-// 	return nullptr;
-// }
-
-// void ForLoopStatementAST::generateSymbols(Binder& binder, std::shared_ptr<SymbolTable> symbolTable) {
-// 	AbstractSyntaxTree::generateSymbols(binder, symbolTable);
-
-// 	auto inner = SymbolTable::newInner(symbolTable);
-
-// 	mInitExpression->generateSymbols(binder, inner);
-// 	mConditionExpression->generateSymbols(binder, inner);
-// 	mChangeExpression->generateSymbols(binder, inner);
-// 	mBodyBlock->generateSymbols(binder, inner);
-// }
-
-// void ForLoopStatementAST::typeCheck(TypeChecker& checker) {
-// 	mInitExpression->typeCheck(checker);
-// 	mConditionExpression->typeCheck(checker);
-// 	mChangeExpression->typeCheck(checker);
-// 	mBodyBlock->typeCheck(checker);
-// }
-
-// void ForLoopStatementAST::generateCode(CodeGenerator& codeGen, GeneratedFunction& func) {
-	
-// }
