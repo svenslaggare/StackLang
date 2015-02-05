@@ -9,29 +9,40 @@ Parser::Parser(const OperatorContainer& operators, std::vector<Token> tokens)
 }
 
 void Parser::compileError(std::string message) {
-	throw std::runtime_error("Error: " + message);
+	throw std::runtime_error(std::to_string(mCurrentLineNumber) + ": " + message);
 }
 
 Token& Parser::nextToken() {
 	tokenIndex++;
 
 	if (tokenIndex >= tokens.size()) {
-		compileError("Reached end of tokens");
+		compileError("Reached end of tokens.");
 	}
 
 	currentToken = tokens[tokenIndex];
-	return currentToken;
+
+	//Skip line breaks
+	if (currentToken.type() != TokenType::LineBreak) {
+		return currentToken;
+	} else {
+		mCurrentLineNumber++;
+		return nextToken();
+	}
 }
 
-Token& Parser::peekToken() {
-	int nextTokenIndex = tokenIndex + 1;
+Token& Parser::peekToken(int delta) {
+	int nextTokenIndex = tokenIndex + delta;
 
 	if (nextTokenIndex >= tokens.size()) {
-		compileError("Reached end of tokens");
+		compileError("Reached end of tokens.");
 	}
 
-	currentToken = tokens[nextTokenIndex];
-	return currentToken;
+	//Skip line breaks
+	if (currentToken.type() != TokenType::LineBreak) {
+		return tokens[nextTokenIndex];
+	} else {
+		return peekToken(delta + 1);
+	}
 }
 
 char Parser::currentTokenAsChar(std::string errorMessage) {
@@ -80,7 +91,7 @@ std::string Parser::parseTypeName() {
 	nextToken(); //Eat the identifier
 
 	//Check if array type
-	if (isSingleCharToken('[')) {
+	while (isSingleCharToken('[')) {
 		nextToken(); //Eat the '['
 		assertCurrentTokenAsChar(']', "Expected ']'");
 		nextToken(); //Eat the ']'
@@ -107,6 +118,12 @@ std::shared_ptr<ExpressionAST> Parser::parseFloatExpression() {
 	auto floatAst = std::make_shared<FloatExpressionAST>(currentToken.floatValue);
 	nextToken(); //Consume the float
 	return floatAst;
+}
+
+std::shared_ptr<ExpressionAST> Parser::parseNullRefExpression() {
+	auto nullAst = std::make_shared<NullRefExpressionAST>();
+	nextToken(); //Consume the null
+	return nullAst;
 }
 
 std::shared_ptr<ExpressionAST> Parser::parseArrayAccess(std::string identifier) {
@@ -149,6 +166,7 @@ std::shared_ptr<ExpressionAST> Parser::parseIdentifierExpression(bool allowDecla
 			std::shared_ptr<ExpressionAST> accessExpression = nullptr;
 			if (!isSingleCharToken(']')) {
 				accessExpression = parseExpression();
+
 			}
 
 			assertCurrentTokenAsChar(']', "Expected ']'");
@@ -159,6 +177,14 @@ std::shared_ptr<ExpressionAST> Parser::parseIdentifierExpression(bool allowDecla
 			} else {
 				//Array type
 				identifier += "[]";
+
+				while (isSingleCharToken('[')) {
+					nextToken(); //Eat the '['
+					assertCurrentTokenAsChar(']', "Expected ']'");
+					nextToken(); //Eat the ']'
+
+					identifier += "[]";
+				}
 			}
 		}
 
@@ -251,6 +277,8 @@ std::shared_ptr<ExpressionAST> Parser::parsePrimaryExpression(bool allowDeclarat
 		return parseBoolExpression();	
 	case TokenType::Float:
 		return parseFloatExpression();
+	case TokenType::Null:
+		return parseNullRefExpression();	
 	case TokenType::Identifier:
 		return parseIdentifierExpression(allowDeclaration);
 	case TokenType::SingleChar:
@@ -334,7 +362,7 @@ std::shared_ptr<ExpressionAST> Parser::parseUnaryExpression(bool allowDeclaratio
 			compileError("'" + op.asString() + "' is not a defined unary operator.");
 		}
 
-		return std::make_shared<UnaryOpExpressionAST>(UnaryOpExpressionAST(operand, op));
+		return std::make_shared<UnaryOpExpressionAST>(operand, op);
 	} 
 
 	return operand;
@@ -375,6 +403,36 @@ std::shared_ptr<ExpressionAST> Parser::parseArrayDeclaration() {
 	assertCurrentTokenAsChar(']', "Expected ']'.");
 	nextToken(); //Eat the ']'
 
+	// std::vector<std::shared_ptr<ExpressionAST>> lengthExpressions;
+
+	// while (true) {
+	// 	auto lengthExpression = parseExpression();
+
+	// 	if (lengthExpression == nullptr) {
+	// 		return nullptr;
+	// 	}
+
+	// 	lengthExpressions.push_back(lengthExpression);
+
+	// 	if (isSingleCharToken(',')) {
+	// 		nextToken(); //Eat the ','
+	// 	} else if (isSingleCharToken(']')) {
+	// 		nextToken(); //Eat the ']'
+	// 		break;
+	// 	} else {
+	// 		assertCurrentTokenAsChar(']', "Expected ']'.");
+	// 	}
+	// }
+
+	//Parse trailing array types
+	while (isSingleCharToken('[')) {
+		nextToken(); //Eat the '['
+		assertCurrentTokenAsChar(']', "Expected ']'");
+		nextToken(); //Eat the ']'
+
+		elementTypeName += "[]";
+	}
+
 	return std::make_shared<ArrayDeclarationAST>(elementTypeName, lengthExpression);
 }
 
@@ -403,7 +461,7 @@ std::shared_ptr<StatementAST> Parser::parseIfElseStatement() {
 		elseBody = parseBlock();
 	}
 
-	return std::make_shared<IfElseStatementAST>(IfElseStatementAST(condExpr, thenBody, elseBody));
+	return std::make_shared<IfElseStatementAST>(condExpr, thenBody, elseBody);
 }
 
 std::shared_ptr<StatementAST> Parser::parseWhileLoopStatement() {
@@ -419,7 +477,7 @@ std::shared_ptr<StatementAST> Parser::parseWhileLoopStatement() {
 	//Parse the body
 	auto bodyBlock = parseBlock();
 
-	return std::make_shared<WhileLoopStatementAST>(WhileLoopStatementAST(condExpr, bodyBlock));
+	return std::make_shared<WhileLoopStatementAST>(condExpr, bodyBlock);
 }
 
 std::shared_ptr<StatementAST> Parser::parseForLoopStatement() {
@@ -429,11 +487,11 @@ std::shared_ptr<StatementAST> Parser::parseForLoopStatement() {
 	nextToken(); //Eat the '('
 
 	auto initExpr = parseExpression(true);
-	assertCurrentTokenAsChar(';', "Expected ';' after statement.");
+	assertCurrentTokenAsChar(';', "Expected ';' after initialization in for loop..");
 	nextToken(); //Eat the ';'
 
 	auto condExpr = parseExpression();
-	assertCurrentTokenAsChar(';', "Expected ';' after statement.");
+	assertCurrentTokenAsChar(';', "Expected ';' after condition in for loop.");
 	nextToken(); //Eat the ';'
 
 	auto changeExpr = parseExpression(true);
@@ -444,7 +502,7 @@ std::shared_ptr<StatementAST> Parser::parseForLoopStatement() {
 	//Parse the body
 	auto bodyBlock = parseBlock();
 
-	return std::make_shared<ForLoopStatementAST>(ForLoopStatementAST(initExpr, condExpr, changeExpr, bodyBlock));
+	return std::make_shared<ForLoopStatementAST>(initExpr, condExpr, changeExpr, bodyBlock);
 }
 
 std::shared_ptr<StatementAST> Parser::parseStatement() {
@@ -456,10 +514,10 @@ std::shared_ptr<StatementAST> Parser::parseStatement() {
 			nextToken(); //Eat the 'return'
 
 			if (isSingleCharToken(';')) {
-				statement = std::make_shared<ReturnStatementAST>(ReturnStatementAST());
+				statement = std::make_shared<ReturnStatementAST>();
 			} else {
 				auto returnExpr = parseExpression();
-				statement = std::make_shared<ReturnStatementAST>(ReturnStatementAST(returnExpr));
+				statement = std::make_shared<ReturnStatementAST>(returnExpr);
 				assertCurrentTokenAsChar(';', "Expected ';' after statement.");
 			}
 		}
@@ -476,7 +534,7 @@ std::shared_ptr<StatementAST> Parser::parseStatement() {
 	default:
 		//Simple statement, one expression.
 		auto expr = parseExpression(true);
-		statement = std::make_shared<ExpressionStatementAST>(ExpressionStatementAST(expr));
+		statement = std::make_shared<ExpressionStatementAST>(expr);
 		assertCurrentTokenAsChar(';', "Expected ';' after statement.");
 		break;
 	}
@@ -505,7 +563,7 @@ std::shared_ptr<BlockAST> Parser::parseBlock() {
 		nextToken();
 	}
 
-	return std::make_shared<BlockAST>(BlockAST(statements));
+	return std::make_shared<BlockAST>(statements);
 }
 
 std::shared_ptr<FunctionAST> Parser::parseFunctionDef() {
@@ -585,6 +643,7 @@ std::shared_ptr<ProgramAST> Parser::parse() {
 				nextToken();
 				break;
 			default:
+				compileError("Invalid token: " + currentToken.asString());
 				break;
 		}
 	}

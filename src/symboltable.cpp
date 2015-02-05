@@ -22,7 +22,7 @@ void SymbolTable::add(const SymbolTable& symbolTable) {
 	} 
 }
 
-bool SymbolTable::addFunction(std::string name, std::vector<std::shared_ptr<VariableSymbol>> parameters, std::string returnType) {
+bool SymbolTable::addFunction(std::string name, std::vector<VariableSymbol> parameters, std::string returnType) {
 	auto signature = std::make_shared<FunctionSignatureSymbol>(name, parameters, returnType);
 	
 	if (mInner.count(name) > 0) {

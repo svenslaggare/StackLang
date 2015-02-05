@@ -25,7 +25,7 @@ public:
 	void add(const SymbolTable& symbolTable);
 
 	//Adds the given function to the symbol table
-	bool addFunction(std::string name, std::vector<std::shared_ptr<VariableSymbol>> parameters, std::string returnType);
+	bool addFunction(std::string name, std::vector<VariableSymbol> parameters, std::string returnType);
 
 	//Finds the given symbol. Nullptr if it doesn't exists.
 	std::shared_ptr<Symbol> find(std::string name) const;

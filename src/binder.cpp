@@ -18,10 +18,10 @@ void Binder::generateSymbolTable(std::shared_ptr<ProgramAST> programAST) {
 }
 
 void Binder::addFunction(std::string name, const std::vector<std::pair<std::string, std::string>>& parameters, std::string returnType) {
-	std::vector<std::shared_ptr<VariableSymbol>> parameterSymbols;
+	std::vector<VariableSymbol> parameterSymbols;
 
 	for (auto param : parameters) {
-		parameterSymbols.push_back(std::make_shared<VariableSymbol>(param.second, param.first, true));
+		parameterSymbols.push_back(VariableSymbol(param.second, param.first, true));
 	}
 
 	mSymbolTable->addFunction(name, parameterSymbols, returnType);

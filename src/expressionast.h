@@ -63,6 +63,19 @@ public:
 	virtual void generateCode(CodeGenerator& codeGen, GeneratedFunction& func) override;
 };
 
+//Represents a null reference expression
+class NullRefExpressionAST : public ExpressionAST {
+public:
+	//Creates a new null ref expression
+	NullRefExpressionAST();
+
+	std::string asString() const override;
+
+	virtual std::shared_ptr<Type> expressionType(const TypeChecker& checker) const override; 
+
+	virtual void generateCode(CodeGenerator& codeGen, GeneratedFunction& func) override;
+};
+
 //Represents a variable reference expression
 class VariableReferenceExpressionAST : public ExpressionAST {
 private:

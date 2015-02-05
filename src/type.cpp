@@ -1,12 +1,16 @@
 #include "type.h"
 
-Type::Type(std::string name)
-	: mName(name) {
+Type::Type(std::string name, bool isReferenceType)
+	: mName(name), mIsReferenceType(isReferenceType) {
 
 }
 
 const std::string Type::name() const {
 	return mName;
+}
+
+const bool Type::isReferenceType() const {
+	return mIsReferenceType;
 }
 
 bool Type::operator==(const Type& other) const {
@@ -31,8 +35,22 @@ PrimitiveType::PrimitiveType(PrimitiveTypes type)
 
 }
 
+ReferenceType::ReferenceType(std::string name)
+	: Type(name, true) {
+
+}
+
+NullReferenceType::NullReferenceType()
+	: ReferenceType("NullRef") {
+
+}
+
+std::string NullReferenceType::vmType() const {
+	return "Ref.Null";
+}
+
 ArrayType::ArrayType(std::shared_ptr<Type> elementType)
-	: Type(elementType->name() + "[]"), mElementType(elementType) {
+	: ReferenceType(elementType->name() + "[]"), mElementType(elementType) {
 
 }
 
@@ -49,13 +67,15 @@ std::map<std::string, std::shared_ptr<Type>> TypeSystem::defaultTypes() {
 	auto boolType = std::make_shared<PrimitiveType>(PrimitiveTypes::Bool);
 	auto floatType = std::make_shared<PrimitiveType>(PrimitiveTypes::Float);
 	auto voidType = std::make_shared<PrimitiveType>(PrimitiveTypes::Void);
+	auto nullType = std::make_shared<NullReferenceType>();
 
 	return {
 		{ "var", std::make_shared<AutoType>() },
 		{ intType->name(), intType },
 		{ boolType->name(), boolType },
 		{ floatType->name(), floatType },
-		{ voidType->name(), voidType }
+		{ voidType->name(), voidType },
+		{ nullType->name(), nullType }
 	};
 }
 
@@ -102,6 +122,8 @@ std::shared_ptr<Type> TypeSystem::makeType(std::string typeName) {
 		}
 
 		return std::make_shared<ArrayType>(elementType);
+	} else if (typeName == "NullRef") {
+		return std::make_shared<NullReferenceType>();
 	}
 
 	return nullptr;

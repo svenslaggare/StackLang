@@ -111,7 +111,16 @@ bool TypeChecker::assertNotVoid(const Type& type, std::string errorMessage) {
 }
 
 bool TypeChecker::assertSameType(const Type& expected, const Type& actual, std::string errorMessage) {
-	if (expected != actual) {
+	bool isSameType = expected == actual;
+
+	//Null type check
+	if (!isSameType) {
+		if (expected.isReferenceType() && actual == NullReferenceType()) {
+			isSameType = true;
+		}
+	}
+
+	if (!isSameType) {
 		auto errorMsg = errorMessage;
 
 		if (errorMsg != "") {

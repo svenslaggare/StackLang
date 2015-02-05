@@ -12,60 +12,51 @@ TokenType Token::type() const {
 	return mType;
 }
 
-std::ostream& operator<<(std::ostream& os, const Token& token) {
-	switch (token.type()) {
+std::string Token::asString() const {
+	switch (type()) {
 		case TokenType::NoToken:
-			break;
+			return "";
+		case TokenType::LineBreak:
+			return "\\n";
 		case TokenType::SingleChar:
-			os << token.charValue;
-			break;
+			return std::string({ charValue });
 		case TokenType::TwoChars:
-			os << token.charValue << token.charValue2;
-			break;
+			return std::string({ charValue, charValue2 });
 		case TokenType::Identifier:
-			os << token.strValue;
-			break;
+			return strValue;
 		case TokenType::Func:
-			os << "func";
-			break;
+			return "func";
 		case TokenType::Integer:
-			os << token.intValue;
-			break;
+			return std::to_string(intValue);
 		case TokenType::Float:
-			os << token.floatValue;
-			break;
+			return std::to_string(floatValue);
 		case TokenType::True:
-			os << "true";
-			break;
+			return "true";
 		case TokenType::False:
-			os << "false";
-			break;
+			return "false";
 		case TokenType::If:
-			os << "if";
-			break;
+			return "if";
 		case TokenType::Else:
-			os << "else";
-			break;
+			return"else";
 		case TokenType::For:
-			os << "for";
-			break;
+			return "for";
 		case TokenType::While:
-			os << "while";
-			break;
+			return "while";
 		case TokenType::Break:
-			os << "break";
-			break;
+			return "break";
 		case TokenType::Return:
-			os << "return";
-			break;
+			return "return";
 		case TokenType::New:
-			os << "new";
-			break;
+			return "new";
+		case TokenType::Null:
+			return "null";
 		case TokenType::EndOfFile:
-			os << "EOF";
-			break;
+			return "EOF";
 	} 
+}
 
+std::ostream& operator<<(std::ostream& os, const Token& token) {
+	os << token.asString();
 	return os;
 }
 
@@ -86,6 +77,11 @@ std::vector<Token> Lexer::tokenize(std::istream& stream) const {
 	Token prevToken;
 
 	while (stream.get(currentChar)) {
+		//The line break token only used for error messages
+		if (currentChar == '\n') {
+			tokens.push_back(Token(TokenType::LineBreak));
+		}
+
 		if (!isComment && currentChar == '#') {
             isComment = true;
             continue;
@@ -133,6 +129,8 @@ std::vector<Token> Lexer::tokenize(std::istream& stream) const {
 					tokens.push_back(Token(TokenType::Return));
 				} else if (identStr == "new") {
 					tokens.push_back(Token(TokenType::New));
+				} else if (identStr == "null") {
+					tokens.push_back(Token(TokenType::Null));
 				} else {
 					auto newToken = Token(TokenType::Identifier);
 					newToken.strValue = identStr;

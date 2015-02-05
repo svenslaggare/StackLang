@@ -7,14 +7,18 @@
 class Type {
 private:
 	const std::string mName;
+	const bool mIsReferenceType;
 public:
 	//Creates a new type
-	Type(std::string name);
+	Type(std::string name, bool isReferenceType = false);
 
 	virtual ~Type() {}
 
 	//Returns the name of the type
 	const std::string name() const;
+
+	//Indicates if the type is a reference type
+	const bool isReferenceType() const;
 
 	//Determines if the current type equals the given
 	bool operator==(const Type& other) const;
@@ -43,8 +47,26 @@ public:
 	PrimitiveType(PrimitiveTypes type);
 };
 
+//Represents a reference type
+class ReferenceType : public Type {
+public:
+	//Creates a new reference type
+	ReferenceType(std::string name);
+
+	virtual std::string vmType() const override = 0;
+};
+
+//Represents a null reference type
+class NullReferenceType : public ReferenceType {
+public:
+	//Creates a new null ref type
+	NullReferenceType();
+
+	virtual std::string vmType() const override;
+};
+
 //Represents an array type
-class ArrayType : public Type {
+class ArrayType : public ReferenceType {
 private:
 	std::shared_ptr<Type> mElementType;
 public:

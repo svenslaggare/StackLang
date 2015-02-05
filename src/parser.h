@@ -19,6 +19,8 @@ private:
 	Token currentToken;
 	int tokenIndex;
 
+	int mCurrentLineNumber = 1;
+
 	const OperatorContainer& operators;
 
 	//Signals that a compile error has occured
@@ -28,7 +30,7 @@ private:
 	Token& nextToken();
 
 	//Returns the next token
-	Token& peekToken();
+	Token& peekToken(int delta = 1);
 
 	//Uses the current token as a char
 	char currentTokenAsChar(std::string errorMessage = "Expected a single character.");
@@ -53,6 +55,9 @@ private:
 
 	//Parses a float expression
 	std::shared_ptr<ExpressionAST> parseFloatExpression();
+
+	//Parses a null ref expression
+	std::shared_ptr<ExpressionAST> parseNullRefExpression();
 
 	//Parses an array access expression
 	std::shared_ptr<ExpressionAST> parseArrayAccess(std::string identifier = "");

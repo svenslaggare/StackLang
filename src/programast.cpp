@@ -40,10 +40,10 @@ void ProgramAST::generateSymbols(Binder& binder, std::shared_ptr<SymbolTable> sy
 
 	for (auto func : mFunctions) {
 		auto funcName = func->prototype()->name();
-		std::vector<std::shared_ptr<VariableSymbol>> parameters;
+		std::vector<VariableSymbol> parameters;
 
 		for (auto param : func->prototype()->parameters()) {
-			parameters.push_back(std::make_shared<VariableSymbol>(param->varName(), param->varType(), true));
+			parameters.push_back(VariableSymbol(param->varName(), param->varType(), true));
 		}
 
 		auto symbol = symbolTable->find(funcName);
@@ -53,9 +53,9 @@ void ProgramAST::generateSymbols(Binder& binder, std::shared_ptr<SymbolTable> sy
 		}
 
 		if (!symbolTable->addFunction(funcName, parameters, func->prototype()->returnType())) {
-			auto paramsStr = Helpers::join<std::shared_ptr<VariableSymbol>>(
+			auto paramsStr = Helpers::join<VariableSymbol>(
 				parameters,
-				[](std::shared_ptr<VariableSymbol> param) { return param->variableType(); },
+				[](VariableSymbol param) { return param.variableType(); },
 				", ");
 
 			binder.error("The already exists a function with the given signature: '" + funcName + "(" + paramsStr + ")" + "'.");

@@ -43,16 +43,16 @@ public:
 //Represents a function signature symbol
 class FunctionSignatureSymbol : Symbol {
 private:
-	std::vector<std::shared_ptr<VariableSymbol>> mParameters;
+	std::vector<VariableSymbol> mParameters;
 	std::string mReturnType;
 public:
 	//Creates a new function symbol with the given parameters and return type
-	FunctionSignatureSymbol(std::string name, std::vector<std::shared_ptr<VariableSymbol>>parameters, std::string returnType);
+	FunctionSignatureSymbol(std::string name, std::vector<VariableSymbol>parameters, std::string returnType);
 
 	virtual std::string asString() const override;
 
 	//Returns the parameters
-	const std::vector<std::shared_ptr<VariableSymbol>>& parameters() const;
+	const std::vector<VariableSymbol>& parameters() const;
 
 	//Returns the return type
 	std::string returnType() const;

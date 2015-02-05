@@ -18,6 +18,10 @@ func printLength(Bool[] bools): Void {
 	println(bools.length);
 }
 
+#func printLength(Int[][] matrix): Void {
+#
+#}
+
 func main(): Int {
 	var xs = newIntArray(5);
 	xs[4] = 1337;
@@ -26,8 +30,13 @@ func main(): Int {
 	var bools = new Bool[10];
 	bools[4] = true;
 
+	#xs = null;
+
 	printLength(xs);
 	printLength(bools);
+
+	#Int[][] matrix = new Int[5][];
+	#matrix[0][0] = 4;
 
 	return 0;
 }

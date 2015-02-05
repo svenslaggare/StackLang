@@ -83,6 +83,23 @@ void FloatExpressionAST::generateCode(CodeGenerator& codeGen, GeneratedFunction&
 	func.addInstruction("PUSHFLOAT " + std::to_string(mValue));
 }
 
+//Null ref expression AST
+NullRefExpressionAST::NullRefExpressionAST() {
+
+}
+
+std::string NullRefExpressionAST::asString() const {
+	return "null";
+}
+
+std::shared_ptr<Type> NullRefExpressionAST::expressionType(const TypeChecker& checker) const {
+	return checker.findType("NullRef");
+}
+
+void NullRefExpressionAST::generateCode(CodeGenerator& codeGen, GeneratedFunction& func) {
+	func.addInstruction("PUSHNULL");
+}
+
 //Variable reference expression AST
 VariableReferenceExpressionAST::VariableReferenceExpressionAST(std::string varName)
 	: mVarName(varName) {
@@ -288,7 +305,7 @@ void CallExpressionAST::typeCheck(TypeChecker& checker) {
 			auto param = func->parameters().at(i);
 
 			auto argType = arg->expressionType(checker);
-			auto paramType = checker.findType(param->variableType());
+			auto paramType = checker.findType(param.variableType());
 
 			checker.assertSameType(*paramType, *argType);
 		}

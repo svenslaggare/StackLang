@@ -71,7 +71,6 @@ public:
 //Represents a code generator
 class CodeGenerator {
 private:
-	//std::map<std::string, GeneratedFunction> mFunctions;
 	std::vector<GeneratedFunction> mFunctions;
 	const TypeChecker& mTypeChecker;
 public:

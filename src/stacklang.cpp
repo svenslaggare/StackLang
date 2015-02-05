@@ -14,10 +14,12 @@
 #include "standardlibrary.h"
 
 int main() {
-	auto intType = std::make_shared<PrimitiveType>(PrimitiveTypes::Int);
-	auto boolType = std::make_shared<PrimitiveType>(PrimitiveTypes::Bool);
-	auto floatType = std::make_shared<PrimitiveType>(PrimitiveTypes::Float);
-	auto voidType = std::make_shared<PrimitiveType>(PrimitiveTypes::Void);
+	auto defaultTypes = TypeSystem::defaultTypes();
+
+	auto intType = defaultTypes["Int"];
+	auto boolType = defaultTypes["Bool"];
+	auto floatType = defaultTypes["Float"];
+	auto voidType = defaultTypes["Void"];
 
 	OperatorContainer operators(
 		{
@@ -35,7 +37,7 @@ int main() {
 		});
 
 	Lexer lexer(operators.operatorChars());
-	std::fstream programText("programs/program4.txt");
+	std::fstream programText("programs/program5.txt");
 	auto tokens = lexer.tokenize(programText); 
 
 	Parser parser(operators, tokens);
@@ -45,7 +47,7 @@ int main() {
 	//std::cout << *programAST << std::endl;
 
 	Binder binder;
-	TypeChecker typeChecker(operators, TypeSystem::defaultTypes());
+	TypeChecker typeChecker(operators, defaultTypes);
 	SemanticVerifier verifier(binder, typeChecker);
 	CodeGenerator codeGenerator(typeChecker);
 

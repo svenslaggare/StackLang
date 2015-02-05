@@ -7,6 +7,7 @@
 //The type of a token
 enum class TokenType : unsigned char {
 	NoToken,
+	LineBreak,
 	SingleChar,
 	TwoChars,
 	Identifier,
@@ -22,6 +23,7 @@ enum class TokenType : unsigned char {
 	Break,
 	Return,
 	New,
+	Null,
 	EndOfFile
 };
 
@@ -32,11 +34,13 @@ private:
 public:
 	//Creates a new token
 	Token(TokenType type);
-
 	Token();
 
 	//The type of the token
 	TokenType type() const;
+
+	//Returns the current token as a string
+	std::string asString() const;
 
 	//The values
 	char charValue;
