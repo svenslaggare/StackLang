@@ -1,5 +1,6 @@
 #include "symbol.h"
 #include "type.h"
+#include "helpers.h"
 
 //Symbol
 Symbol::Symbol(std::string name, std::string type)
@@ -99,7 +100,12 @@ FunctionSignatureSymbol::FunctionSignatureSymbol(std::string name, std::vector<V
 }
 
 std::string FunctionSignatureSymbol::asString() const {
-	return Symbol::asString() + ": " + std::to_string(mParameters.size()) + ", " + mReturnType;
+	auto paramsStr = Helpers::join<VariableSymbol>(
+		mParameters,
+		[](VariableSymbol param) { return param.variableType(); },
+		", ");
+
+	return Symbol::asString() + ": " + name() + "(" + paramsStr + "): " + mReturnType;
 }
 
 const std::vector<VariableSymbol>& FunctionSignatureSymbol::parameters() const {

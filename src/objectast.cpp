@@ -1,6 +1,7 @@
 #include "objectast.h"
 #include "expressionast.h"
 #include "typechecker.h"
+#include "binder.h"
 #include "symbol.h"
 #include "symboltable.h"
 #include "type.h"
@@ -27,15 +28,13 @@ void MemberAccessAST::generateSymbols(Binder& binder, std::shared_ptr<SymbolTabl
 	AbstractSyntaxTree::generateSymbols(binder, symbolTable);
 	mAccessExpression->generateSymbols(binder, symbolTable);
 	
-	//mMemberExpression->generateSymbols(binder, symbolTable);
 	if (!std::dynamic_pointer_cast<VariableReferenceExpressionAST>(mMemberExpression)) {
-		mMemberExpression->generateSymbols(binder, symbolTable);
+		binder.error("'" + mMemberExpression->asString() + "' is not a member reference.");
 	}
 }
 
 void MemberAccessAST::typeCheck(TypeChecker& checker) {
 	mAccessExpression->typeCheck(checker);
-	mMemberExpression->typeCheck(checker);
 
 	if (auto varRef = std::dynamic_pointer_cast<VariableReferenceExpressionAST>(mAccessExpression)) {
 		auto varSymbol = std::dynamic_pointer_cast<VariableSymbol>(mSymbolTable->find(varRef->varName()));
@@ -62,35 +61,35 @@ void MemberAccessAST::typeCheck(TypeChecker& checker) {
 }
 
 std::shared_ptr<Type> MemberAccessAST::expressionType(const TypeChecker& checker) const {
+	auto memberName = std::dynamic_pointer_cast<VariableReferenceExpressionAST>(mMemberExpression)->varName();
+	std::string objName = "";
+
+	std::shared_ptr<Type> varRefType = nullptr;
+
 	if (auto varRef = std::dynamic_pointer_cast<VariableReferenceExpressionAST>(mAccessExpression)) {
 		auto varSymbol = std::dynamic_pointer_cast<VariableSymbol>(mSymbolTable->find(varRef->varName()));
-		auto varRefType = checker.findType(varSymbol->variableType());
-
-		auto memberName = std::dynamic_pointer_cast<VariableReferenceExpressionAST>(mMemberExpression)->varName();
-
-		std::string objName = "";
-
-		if (std::dynamic_pointer_cast<ArrayType>(varRefType)) {
-			objName = "Array";
-		}
-
-		return checker.getObject(objName).getField(memberName).type();
+		varRefType = checker.findType(varSymbol->variableType());
 	} else {
-		return mMemberExpression->expressionType(checker);
+		varRefType = mAccessExpression->expressionType(checker);
 	}
+
+	if (std::dynamic_pointer_cast<ArrayType>(varRefType)) {
+		objName = "Array";
+	}
+
+	return checker.getObject(objName).getField(memberName).type();
 }
 
 void MemberAccessAST::generateCode(CodeGenerator& codeGen, GeneratedFunction& func) {
-	if (auto varRef = std::dynamic_pointer_cast<VariableReferenceExpressionAST>(mAccessExpression)) {
-		auto varSymbol = std::dynamic_pointer_cast<VariableSymbol>(mSymbolTable->find(varRef->varName()));
-		auto varRefType = codeGen.typeChecker().findType(varSymbol->variableType());
+	auto memberName = std::dynamic_pointer_cast<VariableReferenceExpressionAST>(mMemberExpression)->varName();
+	auto typeRef = mAccessExpression->expressionType(codeGen.typeChecker());
 
-		auto memberName = std::dynamic_pointer_cast<VariableReferenceExpressionAST>(mMemberExpression)->varName();
-
-		//Special handling of the 'length' field on arrays.
-		if (memberName == "length" && std::dynamic_pointer_cast<ArrayType>(varRefType)) {
-			mAccessExpression->generateCode(codeGen, func);
-			func.addInstruction("LDLEN");
-		}
+	//Special handling of the 'length' field on arrays.
+	if (memberName == "length" && std::dynamic_pointer_cast<ArrayType>(typeRef)) {
+		mAccessExpression->generateCode(codeGen, func);
+		func.addInstruction("LDLEN");
+	} else {
+		mAccessExpression->generateCode(codeGen, func);
+		func.addInstruction("LDFIELD " + typeRef->name() + "::" + memberName);
 	}
 }

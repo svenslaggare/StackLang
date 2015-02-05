@@ -56,13 +56,13 @@ void ArrayDeclarationAST::generateCode(CodeGenerator& codeGen, GeneratedFunction
 }
 
 //Array access
-ArrayAccessAST::ArrayAccessAST(std::string arrayName, std::shared_ptr<ExpressionAST> accessExpression)
-	: mArrayName(arrayName), mAccessExpression(accessExpression) {
+ArrayAccessAST::ArrayAccessAST(std::shared_ptr<ExpressionAST> arrayRefExpression, std::shared_ptr<ExpressionAST> accessExpression)
+	: mArrayRefExpression(arrayRefExpression), mAccessExpression(accessExpression) {
 	
 }
 
-std::string ArrayAccessAST::arrayName() const {
-	return mArrayName;
+std::shared_ptr<ExpressionAST> ArrayAccessAST::arrayRefExpression() const {
+	return mArrayRefExpression;
 }
 
 std::shared_ptr<ExpressionAST> ArrayAccessAST::accessExpression() const {
@@ -70,33 +70,24 @@ std::shared_ptr<ExpressionAST> ArrayAccessAST::accessExpression() const {
 }
 
 std::string ArrayAccessAST::asString() const {
-	return mArrayName + "[" + mAccessExpression->asString() + "]";
+	return mArrayRefExpression->asString() + "[" + mAccessExpression->asString() + "]";
 }
 
 void ArrayAccessAST::generateSymbols(Binder& binder, std::shared_ptr<SymbolTable> symbolTable) {
 	AbstractSyntaxTree::generateSymbols(binder, symbolTable);
+	mArrayRefExpression->generateSymbols(binder, symbolTable);
 	mAccessExpression->generateSymbols(binder, symbolTable);
-
-	auto symbol = symbolTable->find(arrayName());
-
-	if (symbol == nullptr) {
-		binder.error("The variable '" + arrayName() + "' is not defined.");
-	} else {
-		if (std::dynamic_pointer_cast<VariableSymbol>(symbol) == nullptr) {
-			binder.error("'" + arrayName() + "' is not a variable.");
-		}
-	}
 }
 
 void ArrayAccessAST::typeCheck(TypeChecker& checker) {
 	mAccessExpression->typeCheck(checker);
+	mArrayRefExpression->typeCheck(checker);
 
-	//Check access
-	auto varSymbol = std::dynamic_pointer_cast<VariableSymbol>(mSymbolTable->find(arrayName()));
-	auto varType = std::dynamic_pointer_cast<ArrayType>(checker.getType(varSymbol->variableType()));
+	//Check if array
+	auto varType = std::dynamic_pointer_cast<ArrayType>(mArrayRefExpression->expressionType(checker));
 
 	if (varType == nullptr) {
-		checker.typeError("The variable '" + arrayName() + "' is not an array.");
+		checker.typeError("The expression '" + mArrayRefExpression->asString() + "' is not of array type.");
 	}
 
 	checker.assertSameType(
@@ -106,33 +97,28 @@ void ArrayAccessAST::typeCheck(TypeChecker& checker) {
 }
 	
 std::shared_ptr<Type> ArrayAccessAST::expressionType(const TypeChecker& checker) const {
-	auto varSymbol = std::dynamic_pointer_cast<VariableSymbol>(mSymbolTable->find(arrayName()));
-	auto varType = std::dynamic_pointer_cast<ArrayType>(checker.findType(varSymbol->variableType()));
+	auto varType = std::dynamic_pointer_cast<ArrayType>(mArrayRefExpression->expressionType(checker));
 	return varType->elementType();
 }
 
 void ArrayAccessAST::generateCode(CodeGenerator& codeGen, GeneratedFunction& func) {
-	auto varRefSymbol = std::dynamic_pointer_cast<VariableSymbol>(mSymbolTable->find(arrayName()));
-	auto varType = std::dynamic_pointer_cast<ArrayType>(codeGen.typeChecker().findType(varRefSymbol->variableType()));
-
-	if (varRefSymbol->isFunctionParameter()) {
-		func.addInstruction("LDARG " + std::to_string(func.functionParameterIndex(arrayName())));
-	} else {
-		func.addInstruction("LDLOC " + std::to_string(func.getLocal(arrayName()).first));
-	}
-
+	mArrayRefExpression->generateCode(codeGen, func);
 	mAccessExpression->generateCode(codeGen, func);
+	auto varType = std::dynamic_pointer_cast<ArrayType>(mArrayRefExpression->expressionType(codeGen.typeChecker()));
 	func.addInstruction("LDELEM " + varType->elementType()->vmType());
 }
 
 //Array set element
-ArraySetElementAST::ArraySetElementAST(std::string arrayName, std::shared_ptr<ExpressionAST> accessExpression, std::shared_ptr<ExpressionAST> rightHandSide)
-	: mArrayName(arrayName), mAccessExpression(accessExpression), mRightHandSide(rightHandSide) {
+ArraySetElementAST::ArraySetElementAST(
+	std::shared_ptr<ExpressionAST> arrayRefExpression,
+	std::shared_ptr<ExpressionAST> accessExpression,
+	std::shared_ptr<ExpressionAST> rightHandSide)
+	: mArrayRefExpression(arrayRefExpression), mAccessExpression(accessExpression), mRightHandSide(rightHandSide) {
 	
 }
 
-std::string ArraySetElementAST::arrayName() const {
-	return mArrayName;
+std::shared_ptr<ExpressionAST> ArraySetElementAST::arrayRefExpression() const {
+	return mArrayRefExpression;
 }
 
 std::shared_ptr<ExpressionAST> ArraySetElementAST::accessExpression() const {
@@ -144,33 +130,26 @@ std::shared_ptr<ExpressionAST> ArraySetElementAST::rightHandSide() const {
 }
 
 std::string ArraySetElementAST::asString() const {
-	return mArrayName + "[" + mAccessExpression->asString() + "] = " + mRightHandSide->asString();
+	return mArrayRefExpression->asString() + "[" + mAccessExpression->asString() + "] = " + mRightHandSide->asString();
 }
 
 void ArraySetElementAST::generateSymbols(Binder& binder, std::shared_ptr<SymbolTable> symbolTable) {
 	AbstractSyntaxTree::generateSymbols(binder, symbolTable);
+	mArrayRefExpression->generateSymbols(binder, symbolTable);
 	mAccessExpression->generateSymbols(binder, symbolTable);
-
-	auto symbol = symbolTable->find(arrayName());
-
-	if (symbol == nullptr) {
-		binder.error("The variable '" + arrayName() + "' is not defined.");
-	} else {
-		if (std::dynamic_pointer_cast<VariableSymbol>(symbol) == nullptr) {
-			binder.error("'" + arrayName() + "' is not a variable.");
-		}
-	}
+	mRightHandSide->generateSymbols(binder, symbolTable);
 }
 
 void ArraySetElementAST::typeCheck(TypeChecker& checker) {
+	mArrayRefExpression->typeCheck(checker);
 	mAccessExpression->typeCheck(checker);
+	mRightHandSide->typeCheck(checker);
 
-	//Check access
-	auto varSymbol = std::dynamic_pointer_cast<VariableSymbol>(mSymbolTable->find(arrayName()));
-	auto varType = std::dynamic_pointer_cast<ArrayType>(checker.getType(varSymbol->variableType()));
+	//Check if array
+	auto arrayRefType = std::dynamic_pointer_cast<ArrayType>(mArrayRefExpression->expressionType(checker));
 
-	if (varType == nullptr) {
-		checker.typeError("The variable '" + arrayName() + "' is not an array.");
+	if (arrayRefType == nullptr) {
+		checker.typeError("The expression '" + mArrayRefExpression->asString() + "' is not of array type.");
 	}
 
 	//Access access
@@ -181,7 +160,7 @@ void ArraySetElementAST::typeCheck(TypeChecker& checker) {
 
 	//Check rhs
 	checker.assertSameType(
-		*varType->elementType(), 
+		*arrayRefType->elementType(), 
 		*mRightHandSide->expressionType(checker),
 		asString());
 }
@@ -191,17 +170,10 @@ std::shared_ptr<Type> ArraySetElementAST::expressionType(const TypeChecker& chec
 }
 
 void ArraySetElementAST::generateCode(CodeGenerator& codeGen, GeneratedFunction& func) {
-	auto varRefSymbol = std::dynamic_pointer_cast<VariableSymbol>(mSymbolTable->find(arrayName()));
+	auto arrayRefType = std::dynamic_pointer_cast<ArrayType>(mArrayRefExpression->expressionType(codeGen.typeChecker()));
 
-	if (varRefSymbol->isFunctionParameter()) {
-		func.addInstruction("LDARG " + std::to_string(func.functionParameterIndex(arrayName())));
-	} else {
-		func.addInstruction("LDLOC " + std::to_string(func.getLocal(arrayName()).first));
-	}
-
-	auto arrayVarType = std::dynamic_pointer_cast<ArrayType>(codeGen.typeChecker().findType(varRefSymbol->variableType()));
-
-	accessExpression()->generateCode(codeGen, func);
+	mArrayRefExpression->generateCode(codeGen, func);
+	mAccessExpression->generateCode(codeGen, func);
 	mRightHandSide->generateCode(codeGen, func);
-	func.addInstruction("STELEM " + arrayVarType->elementType()->vmType());
+	func.addInstruction("STELEM " + arrayRefType->elementType()->vmType());
 }

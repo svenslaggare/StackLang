@@ -99,7 +99,11 @@ bool BinaryOpExpressionAST::rewriteAST(std::shared_ptr<AbstractSyntaxTree>& newA
 
 	auto arraySetElem = std::dynamic_pointer_cast<ArrayAccessAST>(mLeftHandSide); 
 	if (arraySetElem != nullptr && mOp == Operator('=')) {
-		newAST = std::make_shared<ArraySetElementAST>(arraySetElem->arrayName(), arraySetElem->accessExpression(), mRightHandSide);
+		newAST = std::make_shared<ArraySetElementAST>(
+			arraySetElem->arrayRefExpression(),
+			arraySetElem->accessExpression(),
+			mRightHandSide);
+
 		return true;
 	}
 

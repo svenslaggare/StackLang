@@ -35,14 +35,14 @@ public:
 //Represents an array access AST
 class ArrayAccessAST : public ExpressionAST {
 private:
-	std::string mArrayName;
+	std::shared_ptr<ExpressionAST> mArrayRefExpression;
 	std::shared_ptr<ExpressionAST> mAccessExpression;
 public:
 	//Creates a new array access AST
-	ArrayAccessAST(std::string arrayName, std::shared_ptr<ExpressionAST> accessExpression);
+	ArrayAccessAST(std::shared_ptr<ExpressionAST> arrayRefExpression, std::shared_ptr<ExpressionAST> accessExpression);
 
-	//Returns the array name
-	std::string arrayName() const;
+	//Returns the array reference expression
+	std::shared_ptr<ExpressionAST> arrayRefExpression() const;
 
 	//Returns the access expression
 	std::shared_ptr<ExpressionAST> accessExpression() const;
@@ -61,15 +61,18 @@ public:
 //Represents an array set element AST
 class ArraySetElementAST : public ExpressionAST {
 private:
-	std::string mArrayName;
+	std::shared_ptr<ExpressionAST> mArrayRefExpression;
 	std::shared_ptr<ExpressionAST> mAccessExpression;
 	std::shared_ptr<ExpressionAST> mRightHandSide;
 public:
 	//Creates a new array set element AST
-	ArraySetElementAST(std::string arrayName, std::shared_ptr<ExpressionAST> accessExpression, std::shared_ptr<ExpressionAST> rightHandSide);
+	ArraySetElementAST(
+		std::shared_ptr<ExpressionAST> arrayRefExpression,
+		std::shared_ptr<ExpressionAST> accessExpression,
+		std::shared_ptr<ExpressionAST> rightHandSide);
 
-	//Returns the array name
-	std::string arrayName() const;
+	//Returns the array reference expression
+	std::shared_ptr<ExpressionAST> arrayRefExpression() const;
 
 	//Returns the access expression
 	std::shared_ptr<ExpressionAST> accessExpression() const;

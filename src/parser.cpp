@@ -166,14 +166,30 @@ std::shared_ptr<ExpressionAST> Parser::parseIdentifierExpression(bool allowDecla
 			std::shared_ptr<ExpressionAST> accessExpression = nullptr;
 			if (!isSingleCharToken(']')) {
 				accessExpression = parseExpression();
-
 			}
 
 			assertCurrentTokenAsChar(']', "Expected ']'");
 			nextToken(); //Eat the ']'
 	
 			if (accessExpression != nullptr) {
-				identExpr = std::make_shared<ArrayAccessAST>(identifier, accessExpression);
+				std::shared_ptr<ExpressionAST> refExpression = std::make_shared<VariableReferenceExpressionAST>(identifier);
+				std::shared_ptr<ExpressionAST> arrayAccess = std::make_shared<ArrayAccessAST>(refExpression, accessExpression);
+
+				while (isSingleCharToken('[')) {
+					nextToken(); //Eat the '['
+					accessExpression = parseExpression();
+
+					if (accessExpression == nullptr) {
+						return nullptr;
+					}
+
+					arrayAccess = std::make_shared<ArrayAccessAST>(arrayAccess, accessExpression);
+
+					assertCurrentTokenAsChar(']', "Expected ']'");
+					nextToken(); //Eat the ']'
+				}
+
+				identExpr = arrayAccess;
 			} else {
 				//Array type
 				identifier += "[]";
