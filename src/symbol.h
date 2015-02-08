@@ -86,3 +86,17 @@ public:
 
 	virtual std::string asString() const override;
 };
+
+class SymbolTable;
+
+//Represents a namespace symbol
+class NamespaceSymbol : public Symbol {
+private:
+	std::shared_ptr<SymbolTable> mSymbolTable;
+public:
+	//Creates a new namespace with the given symbols
+	NamespaceSymbol(std::string name, std::shared_ptr<SymbolTable> symbolTable);
+
+	//Returns the symbol table
+	std::shared_ptr<SymbolTable> symbolTable() const;
+};

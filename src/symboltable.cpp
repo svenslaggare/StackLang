@@ -40,6 +40,16 @@ bool SymbolTable::addFunction(std::string name, std::vector<VariableSymbol> para
 	}
 }
 
+void SymbolTable::newFunction(std::string name, const std::vector<std::pair<std::string, std::string>>& parameters, std::string returnType) {
+	std::vector<VariableSymbol> parameterSymbols;
+
+	for (auto param : parameters) {
+		parameterSymbols.push_back(VariableSymbol(param.second, param.first, true));
+	}
+
+	addFunction(name, parameterSymbols, returnType);
+}
+
 std::shared_ptr<Symbol> SymbolTable::find(std::string name) const {
 	//First check in the inner
 	if (mInner.count(name) > 0) {

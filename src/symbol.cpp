@@ -125,3 +125,13 @@ ConversionSymbol::ConversionSymbol(std::string name)
 std::string ConversionSymbol::asString() const {
 	return Symbol::asString() + ": Conversion";
 }
+
+//Namespace
+NamespaceSymbol::NamespaceSymbol(std::string name, std::shared_ptr<SymbolTable> symbolTable)
+	: Symbol(name, "Namespace"), mSymbolTable(symbolTable) {
+
+}
+
+std::shared_ptr<SymbolTable> NamespaceSymbol::symbolTable() const {
+	return mSymbolTable;
+}

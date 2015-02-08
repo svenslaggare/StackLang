@@ -48,6 +48,8 @@ public:
 
 	std::string asString() const override;
 
+	virtual void rewrite() override;
+
 	virtual bool rewriteAST(std::shared_ptr<AbstractSyntaxTree>& newAST) const override;
 
 	virtual void generateSymbols(Binder& binder, std::shared_ptr<SymbolTable> symbolTable) override;

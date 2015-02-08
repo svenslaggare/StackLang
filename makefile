@@ -18,7 +18,7 @@ test: $(OBJDIR) $(SOURCES) $(EXECUTABLE)
 	./stackc
 
 run: $(OBJDIR) $(SOURCES) $(EXECUTABLE)
-	./stackc | ../StackJIT/stackjit
+	./stackc | ../StackJIT/stackjit -i ../StackJIT/rtlib/rtlib.sbc
 
 $(OBJDIR):
 	mkdir -p $(OBJDIR)

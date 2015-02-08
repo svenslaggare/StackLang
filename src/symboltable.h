@@ -27,6 +27,9 @@ public:
 	//Adds the given function to the symbol table
 	bool addFunction(std::string name, std::vector<VariableSymbol> parameters, std::string returnType);
 
+	//Creates a new function and adds it to the symbol table
+	void newFunction(std::string name, const std::vector<std::pair<std::string, std::string>>& parameters, std::string returnType);
+
 	//Finds the given symbol. Nullptr if it doesn't exists.
 	std::shared_ptr<Symbol> find(std::string name) const;
 

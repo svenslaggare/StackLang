@@ -28,6 +28,7 @@ int main() {
 			{ Operator('<', '='), 5 }, { Operator('>', '='), 5 }, 
 			{ Operator('=', '='), 4 }, { Operator('!', '='), 4 }, { Operator('&', '&'), 3 }, { Operator('|', '|'), 2 },
 			{ Operator('+', '='), 1 }, { Operator('-', '='), 1 }, { Operator('*', '='), 1 }, { Operator('/', '='), 1 },
+			{ Operator(':', ':'), 8 }
 		},
 		{ Operator('!'), Operator('-') },
 		{ '+', '-', '*', '/' },
@@ -37,7 +38,7 @@ int main() {
 		});
 
 	Lexer lexer(operators.operatorChars());
-	std::fstream programText("programs/program5.txt");
+	std::fstream programText("programs/program6.txt");
 	auto tokens = lexer.tokenize(programText); 
 
 	Parser parser(operators, tokens);

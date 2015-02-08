@@ -1,0 +1,4 @@
+func main(): Int {
+	std::println(std::math::abs(-5));
+	return 0;
+}

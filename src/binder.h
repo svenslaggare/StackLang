@@ -19,9 +19,6 @@ public:
 	//Generates the symbol table for the given program
 	void generateSymbolTable(std::shared_ptr<ProgramAST> programAST);
 
-	//Adds a new function to the global scope
-	void addFunction(std::string name, const std::vector<std::pair<std::string, std::string>>& parameters, std::string returnType);
-
 	//Returns the symbol table
 	std::shared_ptr<SymbolTable> symbolTable() const;
 

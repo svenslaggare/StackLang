@@ -7,6 +7,7 @@
 #include "type.h"
 #include "codegenerator.h"
 
+//Member access
 MemberAccessAST::MemberAccessAST(std::shared_ptr<ExpressionAST> accessExpression, std::shared_ptr<ExpressionAST> memberExpression)
 	: mAccessExpression(accessExpression), mMemberExpression(memberExpression) {
 
@@ -27,7 +28,7 @@ std::string MemberAccessAST::asString() const {
 void MemberAccessAST::generateSymbols(Binder& binder, std::shared_ptr<SymbolTable> symbolTable) {
 	AbstractSyntaxTree::generateSymbols(binder, symbolTable);
 	mAccessExpression->generateSymbols(binder, symbolTable);
-	
+
 	if (!std::dynamic_pointer_cast<VariableReferenceExpressionAST>(mMemberExpression)) {
 		binder.error("'" + mMemberExpression->asString() + "' is not a member reference.");
 	}
@@ -92,4 +93,97 @@ void MemberAccessAST::generateCode(CodeGenerator& codeGen, GeneratedFunction& fu
 		mAccessExpression->generateCode(codeGen, func);
 		func.addInstruction("LDFIELD " + typeRef->name() + "::" + memberName);
 	}
+}
+
+//Namespace access
+NamespaceAccessAST::NamespaceAccessAST(std::shared_ptr<ExpressionAST> namespaceExpression, std::shared_ptr<ExpressionAST> memberExpression)
+	: mNamespaceExpression(namespaceExpression), mMemberExpression(memberExpression) {
+
+}
+
+std::shared_ptr<ExpressionAST> NamespaceAccessAST::namespaceExpression() const {
+	return mNamespaceExpression;
+}
+
+std::shared_ptr<ExpressionAST> NamespaceAccessAST::memberExpression() const {
+	return mMemberExpression;
+}
+
+std::string NamespaceAccessAST::asString() const {
+	return mNamespaceExpression->asString() + "::" + mMemberExpression->asString();
+}
+
+void NamespaceAccessAST::rewrite() {
+	std::shared_ptr<AbstractSyntaxTree> newNamespace;
+
+	if (mNamespaceExpression->rewriteAST(newNamespace)) {
+		mNamespaceExpression = std::dynamic_pointer_cast<ExpressionAST>(newNamespace);
+	}
+
+	std::shared_ptr<AbstractSyntaxTree> newMember;
+
+	if (mMemberExpression->rewriteAST(newMember)) {
+		mMemberExpression = std::dynamic_pointer_cast<ExpressionAST>(newMember);
+	}
+
+	mNamespaceExpression->rewrite();
+	mMemberExpression->rewrite();
+}
+
+std::shared_ptr<SymbolTable> NamespaceAccessAST::findNamespaceTable(Binder& binder, std::shared_ptr<SymbolTable> symbolTable, std::shared_ptr<ExpressionAST> namespaceExpression) {
+	if (auto namespaceExpr = std::dynamic_pointer_cast<VariableReferenceExpressionAST>(namespaceExpression)) {
+		auto namespaceName = namespaceExpr->varName();
+		auto namespaceTable = std::dynamic_pointer_cast<NamespaceSymbol>(symbolTable->find(namespaceName));
+
+		if (namespaceTable == nullptr) {
+			binder.error("There exists no namespace named '" + namespaceName + "'.");
+		}
+
+		return namespaceTable->symbolTable();
+	} else if (auto nestedNamespaceExpr = std::dynamic_pointer_cast<NamespaceAccessAST>(namespaceExpression)) {
+		auto outerTable = findNamespaceTable(binder, symbolTable, nestedNamespaceExpr->namespaceExpression());
+
+		auto nestedMemberExpr = std::dynamic_pointer_cast<VariableReferenceExpressionAST>(nestedNamespaceExpr->memberExpression());
+		auto namespaceName = nestedMemberExpr->varName();
+		auto namespaceTable = std::dynamic_pointer_cast<NamespaceSymbol>(outerTable->find(namespaceName));
+
+		if (namespaceTable == nullptr) {
+			binder.error("There exists no namespace named '" + namespaceName + "'.");
+		}
+
+		return namespaceTable->symbolTable();
+	} else { 
+		binder.error("'" + namespaceExpression->asString() + "': not a namespace expression.");
+		return nullptr;
+	}
+}
+
+std::string NamespaceAccessAST::namespaceName(std::shared_ptr<SymbolTable> symbolTable, std::shared_ptr<ExpressionAST> namespaceExpression) const {
+	if (auto namespaceExpr = std::dynamic_pointer_cast<VariableReferenceExpressionAST>(namespaceExpression)) {
+		auto namespaceName = namespaceExpr->varName();
+		return namespaceName;
+	} else if (auto nestedNamespaceExpr = std::dynamic_pointer_cast<NamespaceAccessAST>(namespaceExpression)) {
+		auto nestedMemberExpr = std::dynamic_pointer_cast<VariableReferenceExpressionAST>(nestedNamespaceExpr->memberExpression());
+		return namespaceName(symbolTable, nestedNamespaceExpr->namespaceExpression()) + "." + nestedMemberExpr->varName();
+	} else {
+		return "";
+	}
+}
+
+void NamespaceAccessAST::generateSymbols(Binder& binder, std::shared_ptr<SymbolTable> symbolTable) {
+	AbstractSyntaxTree::generateSymbols(binder, symbolTable);
+	mMemberExpression->generateSymbols(binder, findNamespaceTable(binder, symbolTable, mNamespaceExpression));
+}
+
+void NamespaceAccessAST::typeCheck(TypeChecker& checker) {
+	mMemberExpression->typeCheck(checker);
+}
+
+std::shared_ptr<Type> NamespaceAccessAST::expressionType(const TypeChecker& checker) const {
+	return mMemberExpression->expressionType(checker);
+}
+
+void NamespaceAccessAST::generateCode(CodeGenerator& codeGen, GeneratedFunction& func) {
+	auto mMemberFunc = std::dynamic_pointer_cast<CallExpressionAST>(mMemberExpression);
+	mMemberFunc->generateCode(codeGen, func, namespaceName(mSymbolTable, mNamespaceExpression));
 }

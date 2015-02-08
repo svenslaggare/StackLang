@@ -1,6 +1,7 @@
 #include "standardlibrary.h"
 #include "binder.h"
 #include "symbol.h"
+#include "symboltable.h"
 #include "typechecker.h"
 #include "codegenerator.h"
 #include <string>
@@ -10,11 +11,25 @@ void StandardLibrary::add(Binder& binder, TypeChecker& typeChecker) {
 	auto intType = typeChecker.getType("Int");
 	auto floatType = typeChecker.getType("Float");
 
-	binder.addFunction("println", { { "Int", "x" } }, "Void");
-	binder.addFunction("print", { { "Int", "x" } }, "Void");
-	binder.addFunction("printchar", { { "Int", "x" } }, "Void");
+	auto globalScope = binder.symbolTable();
 
-	binder.addFunction("println", { { "Float", "x" } }, "Void");
+	globalScope->newFunction("println", { { "Int", "x" } }, "Void");
+	globalScope->newFunction("print", { { "Int", "x" } }, "Void");
+	globalScope->newFunction("printchar", { { "Int", "x" } }, "Void");
+
+	globalScope->newFunction("println", { { "Float", "x" } }, "Void");
+
+	auto stdNamespaceTable = std::make_shared<SymbolTable>(binder.symbolTable());
+	auto stdMathNamespaceTable = std::make_shared<SymbolTable>(stdNamespaceTable);
+	auto stdMathNamespaceSymbol = std::make_shared<NamespaceSymbol>("math", stdMathNamespaceTable);
+
+	//std
+	stdNamespaceTable->newFunction("println", { { "Int", "x" } }, "Void");
+	stdNamespaceTable->add("math", stdMathNamespaceSymbol);
+	binder.symbolTable()->add("std", std::make_shared<NamespaceSymbol>("std", stdNamespaceTable));
+
+	//std::math
+	stdMathNamespaceTable->newFunction("abs", { { "Int", "x" } }, "Int");
 
 	typeChecker.addObject(Object("Array", nullptr, { { "length", Field("length", intType) } }));
 

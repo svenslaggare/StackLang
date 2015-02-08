@@ -6,6 +6,7 @@
 #include "codegenerator.h"
 #include "expressionast.h"
 #include "arrayast.h"
+#include "objectast.h"
 #include "symbol.h"
 #include "semantics.h"
 
@@ -64,6 +65,23 @@ bool BinaryOpExpressionAST::rhsFloatConvertable(const TypeChecker& typeChecker) 
 		&& std::dynamic_pointer_cast<IntegerExpressionAST>(mRightHandSide) != nullptr;
 }
 
+void BinaryOpExpressionAST::rewrite() {
+	std::shared_ptr<AbstractSyntaxTree> newLHS;
+
+	if (mLeftHandSide->rewriteAST(newLHS)) {
+		mLeftHandSide = std::dynamic_pointer_cast<ExpressionAST>(newLHS);
+	}
+
+	std::shared_ptr<AbstractSyntaxTree> newRHS;
+
+	if (mRightHandSide->rewriteAST(newRHS)) {
+		mRightHandSide = std::dynamic_pointer_cast<ExpressionAST>(newRHS);
+	}
+
+	mLeftHandSide->rewrite();
+	mRightHandSide->rewrite();
+}
+
 bool BinaryOpExpressionAST::rewriteAST(std::shared_ptr<AbstractSyntaxTree>& newAST) const {
 	bool correctOp = false;
 	Operator op(' ');
@@ -107,12 +125,19 @@ bool BinaryOpExpressionAST::rewriteAST(std::shared_ptr<AbstractSyntaxTree>& newA
 		return true;
 	}
 
+	if (mOp == Operator(':', ':')) {
+		newAST = std::make_shared<NamespaceAccessAST>(
+		 	mLeftHandSide,
+		 	mRightHandSide);
+
+		return true;
+	}
+
 	return false;
 }
 
 void BinaryOpExpressionAST::generateSymbols(Binder& binder, std::shared_ptr<SymbolTable> symbolTable) {
 	AbstractSyntaxTree::generateSymbols(binder, symbolTable);
-
 	mRightHandSide->generateSymbols(binder, symbolTable);
 	mLeftHandSide->generateSymbols(binder, symbolTable);
 }

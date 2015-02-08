@@ -239,6 +239,8 @@ void CallExpressionAST::rewrite() {
 		if (arg->rewriteAST(newAST)) {
 			arg = std::dynamic_pointer_cast<ExpressionAST>(newAST);
 		}
+
+		arg->rewrite();
 	}
 }
 
@@ -329,7 +331,7 @@ std::shared_ptr<Type> CallExpressionAST::expressionType(const TypeChecker& check
 	}
 }
 
-void CallExpressionAST::generateCode(CodeGenerator& codeGen, GeneratedFunction& func) {
+void CallExpressionAST::generateCode(CodeGenerator& codeGen, GeneratedFunction& func, std::string namespaceName) {
 	for (auto arg : arguments()) {
 		arg->generateCode(codeGen, func);
 	}
@@ -348,6 +350,16 @@ void CallExpressionAST::generateCode(CodeGenerator& codeGen, GeneratedFunction& 
 				return arg->expressionType(codeGen.typeChecker())->vmType();
 			}, " ");
 
-		func.addInstruction("CALL " + mFunctionName + "(" + argsTypeStr + ")");
+		auto calldedFuncName = mFunctionName;
+
+		if (namespaceName != "") {
+			calldedFuncName = namespaceName + "." + mFunctionName;
+		}
+
+		func.addInstruction("CALL " + calldedFuncName + "(" + argsTypeStr + ")");
 	}
+}
+
+void CallExpressionAST::generateCode(CodeGenerator& codeGen, GeneratedFunction& func) {
+	generateCode(codeGen, func, "");
 }

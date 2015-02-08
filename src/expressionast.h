@@ -163,5 +163,8 @@ public:
 
 	virtual std::shared_ptr<Type> expressionType(const TypeChecker& checker) const override; 
 
+	//Generates code in the given namespace
+	void generateCode(CodeGenerator& codeGen, GeneratedFunction& func, std::string namespaceName);
+
 	virtual void generateCode(CodeGenerator& codeGen, GeneratedFunction& func) override;
 };

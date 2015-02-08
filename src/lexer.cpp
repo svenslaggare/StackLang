@@ -182,7 +182,9 @@ std::vector<Token> Lexer::tokenize(std::istream& stream) const {
 			Token newToken;
 
 			//Merge two single chars to the 'TwoChars' type
-			if (prevToken.type() == TokenType::SingleChar && (currentChar == '=' || currentChar == '&' || currentChar == '|') && mOpTable.count(prevToken.charValue) > 0) {
+			auto allowedDoubleChar = (currentChar == '=' || currentChar == '&' || currentChar == '|' || currentChar == ':');
+			
+			if (prevToken.type() == TokenType::SingleChar && allowedDoubleChar && mOpTable.count(prevToken.charValue) > 0) {
 				newToken = Token(TokenType::TwoChars);
 				newToken.charValue = prevToken.charValue;
 				newToken.charValue2 = currentChar;
