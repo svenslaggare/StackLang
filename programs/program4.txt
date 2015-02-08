@@ -18,7 +18,7 @@ func main(): Int {
 	var x = absFloat(-5.5);
 	var y = absInt(-5);
 
-	println(Float(y));
-	println(Int(x));
+	std::println(Float(y));
+	std::println(Int(x));
 	return 0;
 }
