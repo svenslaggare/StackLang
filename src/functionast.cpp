@@ -43,8 +43,8 @@ std::string FunctionPrototypeAST::asString() const {
 
 		funcStr += param->asString();
 	}
-	funcStr += "): " + mReturnType + " ";
 
+	funcStr += "): " + mReturnType + " ";
 	return funcStr;
 }
 

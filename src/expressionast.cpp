@@ -226,9 +226,7 @@ const std::vector<std::shared_ptr<ExpressionAST>>& CallExpressionAST::arguments(
 
 std::string CallExpressionAST::asString() const {
 	std::string callStr = "";
-
 	callStr += mFunctionName + "(" + AST::combineAST(mArguments, ", ") + ")";
-
 	return callStr;
 }
 
@@ -267,10 +265,6 @@ void CallExpressionAST::generateSymbols(Binder& binder, std::shared_ptr<SymbolTa
 			if (func == nullptr) {
 				binder.error("'" + functionName() + "' is not a function.");
 			}
-
-			// if (func->parameters().size() != arguments().size()) {
-			// 	binder.error("Expected " + std::to_string(func->parameters().size()) + " arguments but got: " + std::to_string(arguments().size()));
-			// }
 		}
 	}
 }
@@ -289,6 +283,11 @@ void CallExpressionAST::typeCheck(TypeChecker& checker) {
 			checker.typeError("There exists no explicit conversion from type '" + fromType->name() + "' to type '" + toType->name() + "'.");
 		}
 	} else {
+		for (int i = 0; i < arguments().size(); i++) {
+			auto arg = arguments().at(i);
+			arg->typeCheck(checker);
+		}
+
 		auto func = funcSignature(checker);
 
 		if (func == nullptr) {
@@ -302,7 +301,6 @@ void CallExpressionAST::typeCheck(TypeChecker& checker) {
 
 		for (int i = 0; i < arguments().size(); i++) {
 			auto arg = arguments().at(i);
-			arg->typeCheck(checker);
 
 			auto param = func->parameters().at(i);
 

@@ -12,6 +12,7 @@
 #include "operators.h"
 #include "semantics.h"
 #include "standardlibrary.h"
+#include "loader.h"
 
 int main() {
 	auto defaultTypes = TypeSystem::defaultTypes();
@@ -51,6 +52,11 @@ int main() {
 	TypeChecker typeChecker(operators, defaultTypes);
 	SemanticVerifier verifier(binder, typeChecker);
 	CodeGenerator codeGenerator(typeChecker);
+
+	//Load the runtime library
+	Loader loader(binder, typeChecker);
+	std::fstream assemblyText("../StackJIT/rtlib/rtlib.sbc");
+	loader.loadAssembly(assemblyText);
 
 	StandardLibrary::add(binder, typeChecker);
 	binder.generateSymbolTable(programAST);

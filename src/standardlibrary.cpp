@@ -24,12 +24,12 @@ void StandardLibrary::add(Binder& binder, TypeChecker& typeChecker) {
 	auto stdMathNamespaceSymbol = std::make_shared<NamespaceSymbol>("math", stdMathNamespaceTable);
 
 	//std
-	stdNamespaceTable->newFunction("println", { { "Int", "x" } }, "Void");
-	stdNamespaceTable->add("math", stdMathNamespaceSymbol);
-	binder.symbolTable()->add("std", std::make_shared<NamespaceSymbol>("std", stdNamespaceTable));
+	// stdNamespaceTable->newFunction("println", { { "Int", "x" } }, "Void");
+	// stdNamespaceTable->add("math", stdMathNamespaceSymbol);
+	// binder.symbolTable()->add("std", std::make_shared<NamespaceSymbol>("std", stdNamespaceTable));
 
-	//std::math
-	stdMathNamespaceTable->newFunction("abs", { { "Int", "x" } }, "Int");
+	// //std::math
+	// stdMathNamespaceTable->newFunction("abs", { { "Int", "x" } }, "Int");
 
 	typeChecker.addObject(Object("Array", nullptr, { { "length", Field("length", intType) } }));
 

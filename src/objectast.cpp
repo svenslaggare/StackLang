@@ -183,6 +183,10 @@ std::shared_ptr<Type> NamespaceAccessAST::expressionType(const TypeChecker& chec
 	return mMemberExpression->expressionType(checker);
 }
 
+void NamespaceAccessAST::verify(SemanticVerifier& verifier) {
+	mMemberExpression->verify(verifier);
+}
+
 void NamespaceAccessAST::generateCode(CodeGenerator& codeGen, GeneratedFunction& func) {
 	auto mMemberFunc = std::dynamic_pointer_cast<CallExpressionAST>(mMemberExpression);
 	mMemberFunc->generateCode(codeGen, func, namespaceName(mSymbolTable, mNamespaceExpression));
