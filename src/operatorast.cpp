@@ -144,13 +144,12 @@ void BinaryOpExpressionAST::generateSymbols(Binder& binder, std::shared_ptr<Symb
 
 void BinaryOpExpressionAST::typeCheck(TypeChecker& checker) {
 	mRightHandSide->typeCheck(checker);
+	mLeftHandSide->typeCheck(checker);
 
 	auto lhsType = mLeftHandSide->expressionType(checker);
 	auto rhsType = mRightHandSide->expressionType(checker);
 
 	if (lhsType->name() != "Auto") {
-		mLeftHandSide->typeCheck(checker);
-
 		auto intType = checker.findType("Int");
 		auto floatType = checker.findType("Float");
 

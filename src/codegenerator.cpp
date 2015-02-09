@@ -109,8 +109,8 @@ void GeneratedFunction::outputGeneratedCode(std::ostream& os) {
 
 	genInstructions.push_back("RET");
 
-	for (auto returnBrach : mReturnBranches) {
-		genInstructions[returnBrach] += " " + std::to_string(returnInst);
+	for (auto returnBranch : mReturnBranches) {
+		genInstructions[returnBranch] += " " + std::to_string(returnInst);
 	}
 
 	isFirst = false;

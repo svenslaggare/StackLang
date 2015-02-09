@@ -1,20 +1,41 @@
-namespace Misc {
-	namespace Core {
-		func abs(Int x): Int {
-			return std::math::abs(x);
+namespace core {
+	func printArray(Int[] array): Void {
+		for (Int i = 0; i < array.length; i += 1) {
+			std::println(array[i]);
 		}
 	}
+}
 
-	func println(Int x): Void {
-		std::println(x);
+namespace std {
+	namespace math {
+		#func intMaxValue(): Int {
+			#return 2147483647;
+		#}
+
+		#func intMinValue(): Int {
+			#return -2147483648;
+		#}
+
+		func max(Int[] array): Int {
+			var max = array[0];
+
+			for (var i = 1; i < array.length; i += 1) {
+				var current = array[i];
+
+				if (current > max) {
+					max = current;
+				}
+			}
+
+			return max;
+		}
 	}
 }
 
 func main(): Int {
-	Misc::println(4);
-	Misc::println(Misc::Core::abs(-5));
+	var matrix = new Int[4, 4];
 
-	std::println(std::math::abs(-5));
-	std::println(std::math::sqrt(2.0));
+	#core::printArray(array);
+	#std::println(std::math::max(array));
 	return 0;
 }

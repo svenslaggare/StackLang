@@ -4,6 +4,7 @@
 #include "symboltable.h"
 #include "symbol.h"
 #include "type.h"
+#include "helpers.h"
 
 #include <stdexcept>
 
@@ -165,7 +166,7 @@ void Loader::defineFunction(const FunctionDefinition& funcDef) {
 
 	int i = 0;
 	for (auto param : funcDef.parameters) {
-		parameterSymbols.push_back(VariableSymbol("p" + std::to_string(i), param->name(), true));
+		parameterSymbols.push_back(VariableSymbol("param_" + std::to_string(i), param->name(), true));
 		i++;
 	}
 
@@ -174,11 +175,13 @@ void Loader::defineFunction(const FunctionDefinition& funcDef) {
 	auto funcName = splittedFuncName.at(splittedFuncName.size() - 1);
 	splittedFuncName.erase(splittedFuncName.end() - 1);
 
-	if (splittedFuncName.size() > 1) {
+	if (splittedFuncName.size() > 0) {
 		funcScope = getNamespaceTable(funcScope, splittedFuncName);
 	}
 
-	mBinder.symbolTable()->addFunction(funcName, parameterSymbols, funcDef.returnType->name());
+	if (!funcScope->addFunction(funcName, parameterSymbols, funcDef.returnType->name())) {
+        throw std::runtime_error("The function '" + funcName + "' is already defined.");
+    }
 }
 
 void Loader::loadAssembly(std::istream& stream) {

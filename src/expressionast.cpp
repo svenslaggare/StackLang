@@ -213,7 +213,7 @@ std::shared_ptr<FunctionSignatureSymbol> CallExpressionAST::funcSignature(const 
 		argumentsTypes.push_back(arg->expressionType(typeChecker)->name());
 	}
 
-	return std::dynamic_pointer_cast<FunctionSymbol>(funcSymbol(mSymbolTable))->findOverload(argumentsTypes);
+	return std::dynamic_pointer_cast<FunctionSymbol>(funcSymbol(callTable()))->findOverload(argumentsTypes);
 }
 
 std::string CallExpressionAST::functionName() const {
@@ -222,6 +222,18 @@ std::string CallExpressionAST::functionName() const {
 
 const std::vector<std::shared_ptr<ExpressionAST>>& CallExpressionAST::arguments() const {
 	return mArguments;
+}
+
+std::shared_ptr<SymbolTable> CallExpressionAST::callTable() const {
+	if (mCallTable == nullptr) {
+		return mSymbolTable;
+	} else {
+		return mCallTable;
+	}
+}
+
+void CallExpressionAST::setCallTable(std::shared_ptr<SymbolTable> callTable) {
+	mCallTable = callTable;
 }
 
 std::string CallExpressionAST::asString() const {
@@ -245,7 +257,7 @@ void CallExpressionAST::rewrite() {
 void CallExpressionAST::generateSymbols(Binder& binder, std::shared_ptr<SymbolTable> symbolTable) {
 	AbstractSyntaxTree::generateSymbols(binder, symbolTable);
 	
-	auto symbol = funcSymbol(symbolTable);
+	auto symbol = funcSymbol(callTable());
 
 	if (symbol == nullptr) {
 		binder.error("The function '" + functionName() + "' is not defined.");
@@ -319,7 +331,7 @@ void CallExpressionAST::verify(SemanticVerifier& verifier) {
 }
 
 std::shared_ptr<Type> CallExpressionAST::expressionType(const TypeChecker& checker) const {
-	auto symbol = funcSymbol(mSymbolTable);
+	auto symbol = funcSymbol(callTable());
 
 	if (auto conversion = std::dynamic_pointer_cast<ConversionSymbol>(symbol)) {
 		return checker.findType(conversion->name());

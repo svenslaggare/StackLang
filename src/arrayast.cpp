@@ -60,7 +60,7 @@ void ArrayDeclarationAST::generateCode(CodeGenerator& codeGen, GeneratedFunction
 //Multidim array declaration
 MultiDimArrayDeclarationAST::MultiDimArrayDeclarationAST(std::string elementType, std::vector<std::shared_ptr<ExpressionAST>> lengthExpressions)
 	: mElementType(elementType), mLengthExpressions(lengthExpressions) {
-	
+
 }
 
 std::string MultiDimArrayDeclarationAST::typeString(int dim) const {
@@ -141,8 +141,46 @@ void MultiDimArrayDeclarationAST::generateArrayDim(CodeGenerator& codeGen, Gener
 }
 
 void MultiDimArrayDeclarationAST::generateCode(CodeGenerator& codeGen, GeneratedFunction& func) {
-	//mLengthExpression->generateCode(codeGen, func);
-	//func.addInstruction("NEWARR " + codeGen.typeChecker().findType(mElementType)->vmType());
+	if (mLengthExpressions.size() > 2) {
+		codeGen.codeGenError("Array creation of dimension larger than 2 is not supported.");
+	}
+
+	auto& typeChecker = codeGen.typeChecker();
+
+	int outerLocal = func.newLocal("$local$_outer_" + std::to_string(func.numLocals()), typeChecker.findType(typeString()));
+	int subArrayLocal = func.newLocal("$local$_sub_" + std::to_string(func.numLocals()), typeChecker.findType("Int"));
+
+	//Create the outer array
+	mLengthExpressions.at(0)->generateCode(codeGen, func);
+	func.addInstruction("NEWARR " + typeChecker.findType(typeString(mLengthExpressions.size() - 1))->vmType());
+	func.addInstruction("STLOC " + std::to_string(outerLocal));
+
+	int condStart = func.numInstructions();
+	int condIndex = -1;
+
+	//Condition
+	mLengthExpressions.at(0)->generateCode(codeGen, func);
+	func.addInstruction("LDLOC " + std::to_string(subArrayLocal));
+	condIndex = func.numInstructions();
+	func.addInstruction("BGE");
+
+	//Body
+	func.addInstruction("LDLOC " + std::to_string(outerLocal));
+	func.addInstruction("LDLOC " + std::to_string(subArrayLocal));
+	mLengthExpressions.at(1)->generateCode(codeGen, func);
+	func.addInstruction("NEWARR " + typeChecker.findType(typeString(mLengthExpressions.size() - 2))->vmType());
+
+	func.addInstruction("STELEM " + typeChecker.findType(typeString(mLengthExpressions.size() - 1))->vmType());
+
+	func.addInstruction("LDLOC " + std::to_string(subArrayLocal));
+	func.addInstruction("PUSHINT 1");
+	func.addInstruction("ADD");
+	func.addInstruction("STLOC " + std::to_string(subArrayLocal));
+
+	func.addInstruction("BR " + std::to_string(condStart));
+	func.instruction(condIndex) += " " + std::to_string(func.numInstructions());
+
+	func.addInstruction("LDLOC " + std::to_string(outerLocal));
 }
 
 //Array access

@@ -172,8 +172,11 @@ std::string NamespaceAccessAST::namespaceName(std::shared_ptr<SymbolTable> symbo
 
 void NamespaceAccessAST::generateSymbols(Binder& binder, std::shared_ptr<SymbolTable> symbolTable) {
 	AbstractSyntaxTree::generateSymbols(binder, symbolTable);
-	auto namespaceTable = findNamespaceTable(binder, symbolTable, mNamespaceExpression);
-	mSymbolTable->add(namespaceTable);
+
+	if (auto callMember = std::dynamic_pointer_cast<CallExpressionAST>(mMemberExpression)) {
+		callMember->setCallTable(findNamespaceTable(binder, symbolTable, mNamespaceExpression));
+	}
+
 	mMemberExpression->generateSymbols(binder, mSymbolTable);
 }
 

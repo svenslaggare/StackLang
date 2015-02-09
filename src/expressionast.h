@@ -136,11 +136,16 @@ private:
 	std::string mFunctionName;
 	std::vector<std::shared_ptr<ExpressionAST>> mArguments;
 
+	std::shared_ptr<SymbolTable> mCallTable;
+
 	//Returns the func symbol
 	std::shared_ptr<Symbol> funcSymbol(std::shared_ptr<SymbolTable> symbolTable) const;
 
 	//Finds the func signature symbol
 	std::shared_ptr<FunctionSignatureSymbol> funcSignature(const TypeChecker& typeChecker) const;
+
+	//Returns the call table
+	std::shared_ptr<SymbolTable> callTable() const;
 public:
 	//Creates a new function call expression
 	CallExpressionAST(std::string functionName, std::vector<std::shared_ptr<ExpressionAST>> arguments);
@@ -150,6 +155,9 @@ public:
 
 	//Returns the arguments to call with
 	const std::vector<std::shared_ptr<ExpressionAST>>& arguments() const;
+
+	//Sets the call table where to look for functions. The default is the symbol table.
+	void setCallTable(std::shared_ptr<SymbolTable> callTable);
 
 	std::string asString() const override;
 
