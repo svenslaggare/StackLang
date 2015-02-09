@@ -1,9 +1,9 @@
 #pragma once
+#include "ast.h"
+
 #include <memory>
 #include <string>
 #include <vector>
-
-#include "ast.h"
 
 class VariableDeclarationExpressionAST;
 class SymbolTable;

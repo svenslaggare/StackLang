@@ -50,6 +50,8 @@ std::string Token::asString() const {
 			return "new";
 		case TokenType::Null:
 			return "null";
+		case TokenType::Namespace:
+			return "namespace";	
 		case TokenType::EndOfFile:
 			return "EOF";
 	} 
@@ -131,6 +133,8 @@ std::vector<Token> Lexer::tokenize(std::istream& stream) const {
 					tokens.push_back(Token(TokenType::New));
 				} else if (identStr == "null") {
 					tokens.push_back(Token(TokenType::Null));
+				} else if (identStr == "namespace") {
+					tokens.push_back(Token(TokenType::Namespace));
 				} else {
 					auto newToken = Token(TokenType::Identifier);
 					newToken.strValue = identStr;

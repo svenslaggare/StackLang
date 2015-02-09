@@ -24,6 +24,7 @@ enum class TokenType : unsigned char {
 	Return,
 	New,
 	Null,
+	Namespace,
 	EndOfFile
 };
 

@@ -19,20 +19,13 @@ func printLength(Bool[] bools): Void {
 }
 
 func printLength(Int[][] matrix): Void {
-	std::println(matrix.length);
-	std::println(matrix[0].length);
+	#std::println(matrix.length);
+	#std::println(matrix[0].length);
 }
 
 func main(): Int {
-	#var xs = newIntArray(5);
-	#xs[4] = 1337;
-	#println(xs[4]);
-	#printLength(xs);
-
-	Int[][] matrix = new Int[5][];
-	matrix[0] = new Int[5];
-	matrix[0][1] = 1337;
+	var matrix = new Int[5];
 	printLength(matrix);
-	std::println(matrix[0][1]);
+	std::gc::collect();
 	return 0;
 }

@@ -140,20 +140,20 @@ const TypeChecker& CodeGenerator::typeChecker() const {
 }
 
 void CodeGenerator::generateProgram(std::shared_ptr<ProgramAST> programAST) {
-	for (auto func : programAST->functions()) {
-		auto& genFunc = newFunction(func->prototype());
+	programAST->visitFunctions([&](std::string name, std::shared_ptr<FunctionAST> func) {
+		auto& genFunc = newFunction(name, func->prototype());
 		func->generateCode(*this, genFunc);
-	}
+	});
 }
 
-GeneratedFunction& CodeGenerator::newFunction(std::shared_ptr<FunctionPrototypeAST> functionPrototype) {
+GeneratedFunction& CodeGenerator::newFunction(std::string functionName, std::shared_ptr<FunctionPrototypeAST> functionPrototype) {
 	std::vector<FunctionParameter> parameters;
 
 	for (auto param : functionPrototype->parameters()) {
 		parameters.push_back(FunctionParameter(param->varName(), mTypeChecker.findType(param->varType())));
 	}
 
-	mFunctions.push_back(GeneratedFunction(functionPrototype->name(), parameters, mTypeChecker.findType(functionPrototype->returnType())));
+	mFunctions.push_back(GeneratedFunction(functionName, parameters, mTypeChecker.findType(functionPrototype->returnType())));
 	auto& newFunc = mFunctions[mFunctions.size() - 1];
 
 	if (functionPrototype->returnType() != "Void") {

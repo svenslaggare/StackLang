@@ -1,18 +1,42 @@
 #include "programast.h"
-#include "functionast.h"
+#include "namespaceast.h"
 #include "expressionast.h"
+#include "functionast.h"
 #include "symboltable.h"
 #include "binder.h"
 #include "symbol.h"
 #include "helpers.h"
 
-ProgramAST::ProgramAST(const std::vector<std::shared_ptr<FunctionAST>>& functions)
-	: mFunctions(functions) {
+ProgramAST::ProgramAST(const std::vector<std::shared_ptr<NamespaceDeclarationAST>>& namespaces)
+	: mNamespaces(namespaces) {
 
 }
 
-const std::vector<std::shared_ptr<FunctionAST>>& ProgramAST::functions() const {
-	return mFunctions;
+const std::vector<std::shared_ptr<NamespaceDeclarationAST>>& ProgramAST::namespaces() const {
+	return mNamespaces;
+}
+
+void ProgramAST::visitFunctions(VisitFn visitFn, std::shared_ptr<NamespaceDeclarationAST> currentNamespace, std::string outerNamespaceName) const {
+	for (auto currentMember : currentNamespace->members()) {
+		if (auto funcMember = std::dynamic_pointer_cast<FunctionAST>(currentMember)) {
+			auto funcName = outerNamespaceName != "" ? outerNamespaceName + "." +funcMember->prototype()->name() : funcMember->prototype()->name();
+			visitFn(funcName, funcMember);
+		} else if (auto namespaceMember = std::dynamic_pointer_cast<NamespaceDeclarationAST>(currentMember)) {
+			visitFunctions(visitFn, namespaceMember, outerNamespaceName + "." + namespaceMember->name());
+		}
+	}
+}
+
+void ProgramAST::visitFunctions(VisitFn visitFn) const {
+	for (auto currentNamespace : mNamespaces) {
+		std::string name = "";
+
+		if (currentNamespace->name() != "global") {
+			name = currentNamespace->name();
+		}
+
+		visitFunctions(visitFn, currentNamespace, name);
+	}
 }
 
 std::string ProgramAST::type() const {
@@ -20,61 +44,37 @@ std::string ProgramAST::type() const {
 }
 
 std::string ProgramAST::asString() const {
-	return AST::combineAST(mFunctions, "\n\n");
+	return AST::combineAST(mNamespaces, "\n\n");
 }
 
 void ProgramAST::rewrite() {
-	for (auto& func : mFunctions) {
+	for (auto& curretNamespace : mNamespaces) {
 		std::shared_ptr<AbstractSyntaxTree> newAST;
 
-		if (func->rewriteAST(newAST)) {
-			func = std::dynamic_pointer_cast<FunctionAST>(newAST);
+		if (curretNamespace->rewriteAST(newAST)) {
+			curretNamespace = std::dynamic_pointer_cast<NamespaceDeclarationAST>(newAST);
 		}
 
-		func->rewrite();
+		curretNamespace->rewrite();
 	}
 }
 
 void ProgramAST::generateSymbols(Binder& binder, std::shared_ptr<SymbolTable> symbolTable) {
 	AbstractSyntaxTree::generateSymbols(binder, symbolTable);
 
-	for (auto func : mFunctions) {
-		auto funcName = func->prototype()->name();
-		std::vector<VariableSymbol> parameters;
-
-		for (auto param : func->prototype()->parameters()) {
-			parameters.push_back(VariableSymbol(param->varName(), param->varType(), true));
-		}
-
-		auto symbol = symbolTable->find(funcName);
-
-		if (symbol != nullptr && std::dynamic_pointer_cast<FunctionSymbol>(symbol) == nullptr) {
-			binder.error("The symbol '" + funcName + "' is already defined.");
-		}
-
-		if (!symbolTable->addFunction(funcName, parameters, func->prototype()->returnType())) {
-			auto paramsStr = Helpers::join<VariableSymbol>(
-				parameters,
-				[](VariableSymbol param) { return param.variableType(); },
-				", ");
-
-			binder.error("The already exists a function with the given signature: '" + funcName + "(" + paramsStr + ")" + "'.");
-		}
- 	}
-
-	for (auto func : mFunctions) {
-		func->generateSymbols(binder, symbolTable);
+	for (auto currentNamespace : mNamespaces) {
+		currentNamespace->generateSymbols(binder, symbolTable);
 	}
 }
 
 void ProgramAST::typeCheck(TypeChecker& checker) {
-	for (auto func : mFunctions) {
-		func->typeCheck(checker);
+	for (auto currentNamespace : mNamespaces) {
+		currentNamespace->typeCheck(checker);
 	}
 }
 
 void ProgramAST::verify(SemanticVerifier& verifier) {
-	for (auto func : mFunctions) {
-		func->verify(verifier);
+	for (auto currentNamespace : mNamespaces) {
+		currentNamespace->verify(verifier);
 	}
 }

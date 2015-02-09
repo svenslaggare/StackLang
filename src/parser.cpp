@@ -651,16 +651,65 @@ std::shared_ptr<FunctionAST> Parser::parseFunctionDef() {
 	return std::make_shared<FunctionAST>(std::make_shared<FunctionPrototypeAST>(name, arguments, returnType), body);
 }
 
+std::shared_ptr<NamespaceDeclarationAST> Parser::parseNamespaceDef() {
+	//Eat the 'namespace'
+	nextToken();
+
+	//The name
+	if (currentToken.type() != TokenType::Identifier) {
+		compileError("Expected identifier.");
+	}
+
+	std::string name = currentToken.strValue;
+	nextToken(); //Eat the name
+
+	if (currentTokenAsChar() != '{')  {
+		compileError("Expected '{' after namespace name.");
+	}
+
+	nextToken(); //Eat the '{'
+
+	//Parse the members
+	std::vector<std::shared_ptr<AbstractSyntaxTree>> members;
+
+	while (true) {
+		if (currentToken.type() == TokenType::Func) {
+			members.push_back(parseFunctionDef());
+			nextToken();
+		} else if (currentToken.type() == TokenType::Namespace) {
+			members.push_back(parseNamespaceDef());
+			nextToken();
+		} else if (!isSingleCharToken('}')) {
+			compileError("Expected function or namespace definiton within namespace declaration.");
+		}
+
+		if (isSingleCharToken('}')) {
+			break;
+		}
+	}
+
+	return std::make_shared<NamespaceDeclarationAST>(name, members);
+}
+
 std::shared_ptr<ProgramAST> Parser::parse() {
 	nextToken();
-	std::vector<std::shared_ptr<FunctionAST>> functions;
+	std::vector<std::shared_ptr<AbstractSyntaxTree>> globalMembers;
+	std::vector<std::shared_ptr<NamespaceDeclarationAST>> namespaces;
 
 	while (true) {
 		switch (currentToken.type()) {
 			case TokenType::EndOfFile:
-				return std::make_shared<ProgramAST>(functions);
+				{
+					auto globalNamespace = std::make_shared<NamespaceDeclarationAST>("global", globalMembers);
+					namespaces.push_back(globalNamespace);
+					return std::make_shared<ProgramAST>(namespaces);
+				}
+			case TokenType::Namespace:
+				namespaces.push_back(parseNamespaceDef());
+				nextToken();
+				break;
 			case TokenType::Func:
-				functions.push_back(parseFunctionDef());
+				globalMembers.push_back(parseFunctionDef());
 				nextToken();
 				break;
 			default:

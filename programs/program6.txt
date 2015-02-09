@@ -1,4 +1,19 @@
+namespace Misc {
+	namespace Core {
+		func abs(Int x): Int {
+			return std::math::abs(x);
+		}
+	}
+
+	func println(Int x): Void {
+		std::println(x);
+	}
+}
+
 func main(): Int {
+	Misc::println(4);
+	Misc::println(Misc::Core::abs(-5));
+
 	std::println(std::math::abs(-5));
 	std::println(std::math::sqrt(2.0));
 	return 0;
