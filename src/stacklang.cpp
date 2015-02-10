@@ -11,10 +11,10 @@
 #include "codegenerator.h"
 #include "operators.h"
 #include "semantics.h"
-#include "standardlibrary.h"
+#include "builtin.h"
 #include "loader.h"
 
-int main() {
+int main(int argc, char* argv[]) {
 	auto defaultTypes = TypeSystem::defaultTypes();
 
 	auto intType = defaultTypes["Int"];
@@ -39,7 +39,20 @@ int main() {
 		});
 
 	Lexer lexer(operators.operatorChars());
-	std::fstream programText("programs/program6.txt");
+	std::string filePath = "";
+
+	if (argc > 1) {
+		filePath = argv[1];
+	} else {
+		throw std::runtime_error("No input files specified.");
+	}
+
+	std::fstream programText(filePath);
+
+	if (!programText.is_open()) {
+		throw std::runtime_error("Could not open file '" + filePath + "'.");
+	}
+
 	auto tokens = lexer.tokenize(programText); 
 
 	Parser parser(operators, tokens);
@@ -58,7 +71,7 @@ int main() {
 	std::fstream assemblyText("../StackJIT/rtlib/rtlib.sbc");
 	loader.loadAssembly(assemblyText);
 
-	StandardLibrary::add(binder, typeChecker);
+	StackLang::Builtin::add(binder, typeChecker);
 	binder.generateSymbolTable(programAST);
 
 	programAST->typeCheck(typeChecker);

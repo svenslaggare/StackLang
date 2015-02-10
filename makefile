@@ -15,10 +15,10 @@ OBJECTS=$(patsubst $(SRCDIR)/%,$(OBJDIR)/%,$(_OBJECTS))
 all: $(OBJDIR) $(SOURCES) $(EXECUTABLE)
 
 test: $(OBJDIR) $(SOURCES) $(EXECUTABLE)
-	./stackc
+	./stackc programs/mandelbrot.sl
 
 run: $(OBJDIR) $(SOURCES) $(EXECUTABLE)
-	./stackc | ../StackJIT/stackjit -i ../StackJIT/rtlib/rtlib.sbc -nogc
+	./stackc programs/mandelbrot.sl | ../StackJIT/stackjit -i ../StackJIT/rtlib/rtlib.sbc -nogc
 
 $(OBJDIR):
 	mkdir -p $(OBJDIR)

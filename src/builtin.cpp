@@ -1,4 +1,4 @@
-#include "standardlibrary.h"
+#include "builtin.h"
 #include "binder.h"
 #include "symbol.h"
 #include "symboltable.h"
@@ -7,7 +7,7 @@
 #include <string>
 #include <memory>
 
-void StandardLibrary::add(Binder& binder, TypeChecker& typeChecker) {
+void StackLang::Builtin::add(Binder& binder, TypeChecker& typeChecker) {
 	auto intType = typeChecker.getType("Int");
 	auto floatType = typeChecker.getType("Float");
 	

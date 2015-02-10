@@ -7,6 +7,7 @@
 #include "codegenerator.h"
 #include "helpers.h"
 #include "statementast.h"
+#include "blockast.h"
 
 //Array declaration
 ArrayDeclarationAST::ArrayDeclarationAST(std::string elementType, std::shared_ptr<ExpressionAST> lengthExpression)
