@@ -1,10 +1,10 @@
 #include "codegenerator.h"
-#include "asthelpers.h"
 #include "functionast.h"
 #include "programast.h"
 #include "expressionast.h"
 #include "type.h"
 #include "typechecker.h"
+
 #include <stdexcept>
 
 //Function parameter
@@ -59,6 +59,14 @@ int GeneratedFunction::functionParameterIndex(std::string paramName) const {
 
 void GeneratedFunction::addInstruction(const std::string& instruction) {
 	mInstructions.push_back(instruction);
+}
+
+void GeneratedFunction::addStoreLocal(int localIndex) {
+	addInstruction("STLOC " + std::to_string(localIndex));
+}
+
+void GeneratedFunction::addLoadLocal(int localIndex) {
+	addInstruction("LDLOC " + std::to_string(localIndex));
 }
 
 int GeneratedFunction::numInstructions() const {

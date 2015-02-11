@@ -55,6 +55,12 @@ public:
 	//Adds a new instructions
 	void addInstruction(const std::string& instruction);
 
+	//Generates a store local instruction for the given local
+	void addStoreLocal(int localIndex);
+
+	//Generates a load local instruction for the given local
+	void addLoadLocal(int localIndex);
+
 	//Returns the number of instructions
 	int numInstructions() const;
 

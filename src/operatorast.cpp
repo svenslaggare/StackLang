@@ -235,13 +235,9 @@ std::shared_ptr<Type> BinaryOpExpressionAST::expressionType(const TypeChecker& c
 	}
 }
 
-void BinaryOpExpressionAST::generateRHSCode(CodeGenerator& codeGen, GeneratedFunction& func) {
-	mRightHandSide->generateCode(codeGen, func);
-}
-
 void BinaryOpExpressionAST::generateSidesCode(CodeGenerator& codeGen, GeneratedFunction& func) {
 	mLeftHandSide->generateCode(codeGen, func);
-	generateRHSCode(codeGen, func);
+	mRightHandSide->generateCode(codeGen, func);
 }
 
 void BinaryOpExpressionAST::generateCode(CodeGenerator& codeGen, GeneratedFunction& func) {
@@ -259,11 +255,10 @@ void BinaryOpExpressionAST::generateCode(CodeGenerator& codeGen, GeneratedFuncti
 		func.addInstruction("DIV");
 	} else if (mOp == Operator('=')) {
 		if (auto varDec = std::dynamic_pointer_cast<VariableDeclarationExpressionAST>(mLeftHandSide)) {
-			generateRHSCode(codeGen, func);
-			mLeftHandSide->generateCode(codeGen, func);
+			generateSidesCode(codeGen, func);
 			func.addInstruction("STLOC " + std::to_string(func.getLocal(varDec->varName()).first));
 		} else if (auto varRef = std::dynamic_pointer_cast<VariableReferenceExpressionAST>(mLeftHandSide)) {
-			generateRHSCode(codeGen, func);
+			mRightHandSide->generateCode(codeGen, func);
 			auto varRefSymbol = std::dynamic_pointer_cast<VariableSymbol>(mSymbolTable->find(varRef->varName()));
 
 			if (!varRefSymbol->isFunctionParameter()) {
@@ -289,11 +284,43 @@ void BinaryOpExpressionAST::generateCode(CodeGenerator& codeGen, GeneratedFuncti
 		generateSidesCode(codeGen, func);
 		func.addInstruction("CMPLE");
 	} else if(mOp == Operator('&', '&')) {
-		generateSidesCode(codeGen, func);
-		func.addInstruction("AND");
+		int resLocal = func.newLocal("$tmp$_" + std::to_string(func.numLocals()), codeGen.typeChecker().findType("Bool"));
+
+		mLeftHandSide->generateCode(codeGen, func);
+		func.addInstruction("PUSHTRUE");
+		int branchIndex = func.numInstructions();
+		func.addInstruction("BNE ");
+
+		mRightHandSide->generateCode(codeGen, func);
+		func.addStoreLocal(resLocal);
+
+		int skipIndex = func.numInstructions();
+		func.addInstruction("BR ");
+		func.instruction(branchIndex) += std::to_string(func.numInstructions());
+		func.addInstruction("PUSHFALSE");
+		func.addStoreLocal(resLocal);
+		func.instruction(skipIndex) += std::to_string(func.numInstructions());
+
+		func.addLoadLocal(resLocal);
 	} else if(mOp == Operator('|', '|')) {
-		generateSidesCode(codeGen, func);
-		func.addInstruction("OR");
+		int resLocal = func.newLocal("$tmp$_" + std::to_string(func.numLocals()), codeGen.typeChecker().findType("Bool"));
+
+		mLeftHandSide->generateCode(codeGen, func);
+		func.addInstruction("PUSHTRUE");
+		int branchIndex = func.numInstructions();
+		func.addInstruction("BEQ ");
+
+		mRightHandSide->generateCode(codeGen, func);
+		func.addStoreLocal(resLocal);
+
+		int skipIndex = func.numInstructions();
+		func.addInstruction("BR ");
+		func.instruction(branchIndex) += std::to_string(func.numInstructions());
+		func.addInstruction("PUSHTRUE");
+		func.addStoreLocal(resLocal);
+		func.instruction(skipIndex) += std::to_string(func.numInstructions());
+
+		func.addLoadLocal(resLocal);
 	} else {
 		codeGen.codeGenError("Operator '" + mOp.asString() + "' is not defined.");
 	}

@@ -12,7 +12,7 @@ HEADERS=$(wildcard $(SRCDIR)/*.h)
 _OBJECTS=$(SOURCES:.cpp=.o)
 OBJECTS=$(patsubst $(SRCDIR)/%,$(OBJDIR)/%,$(_OBJECTS))
 
-TEST_PROGRAM=programs/program6.sl
+TEST_PROGRAM=programs/program4.sl
 
 all: $(OBJDIR) $(SOURCES) $(EXECUTABLE)
 

@@ -4,7 +4,6 @@
 #include "functionast.h"
 #include "typechecker.h"
 #include "type.h"
-#include "asthelpers.h"
 #include "codegenerator.h"
 #include "symbol.h"
 #include "helpers.h"

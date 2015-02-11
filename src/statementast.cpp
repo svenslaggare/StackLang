@@ -3,7 +3,6 @@
 #include "operatorast.h"
 #include "typechecker.h"
 #include "symboltable.h"
-#include "asthelpers.h"
 #include "type.h"
 #include "codegenerator.h"
 

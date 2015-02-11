@@ -22,9 +22,6 @@ private:
 	static std::set<std::string> comparableTypes;
 	static std::set<std::string> logicalTypes;
 
-	//Generates code for the rhs
-	void generateRHSCode(CodeGenerator& codeGen, GeneratedFunction& func);
-
 	//Generates the code for lhs and rhs
 	void generateSidesCode(CodeGenerator& codeGen, GeneratedFunction& func);
 public:
