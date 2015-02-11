@@ -54,6 +54,10 @@ std::string Token::asString() const {
 			return "namespace";	
 		case TokenType::Cast:
 			return "cast";	
+		case TokenType::String:
+			return "\"" + strValue + "\"";
+		case TokenType::Char:
+			return "'" + std::to_string(charValue) + "'";
 		case TokenType::EndOfFile:
 			return "EOF";
 	} 
@@ -184,6 +188,52 @@ std::vector<Token> Lexer::tokenize(std::istream& stream) const {
 
 				tokens.push_back(newToken);
 				prevToken = newToken;
+				continue;
+			}
+
+			//Strings
+			if (currentChar == '"') {
+				std::string str = "";
+				bool escape = false;
+
+				while (true) {
+					if (!stream.get(currentChar)) {
+						break;
+					}
+
+					if (currentChar == '\\' && !escape) {
+						escape = true;
+						continue;
+					}
+
+					if (!escape && currentChar == '"') {
+						break;
+					}
+
+					str += currentChar;
+
+					if (escape) {
+						escape = false;
+					}
+				}
+
+				Token newToken(TokenType::String);
+				newToken.strValue = str;
+				tokens.push_back(newToken);
+				continue;
+			}
+
+			//Chars
+			if (currentChar == '\'') {
+				char charValue = stream.get();
+
+				if (stream.get() != '\'') {
+					error("Expected ' after char value");
+				}
+
+				Token newToken(TokenType::Char);
+				newToken.charValue = charValue;
+				tokens.push_back(newToken);
 				continue;
 			}
 

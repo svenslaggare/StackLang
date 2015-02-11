@@ -166,6 +166,24 @@ std::shared_ptr<ExpressionAST> Parser::parseCastExpression() {
 	return std::make_shared<CastExpressionAST>(typeName, expression);
 }
 
+std::shared_ptr<ExpressionAST> Parser::parseCharExpression() {
+	char value = currentToken.charValue;
+
+	//Eat the char
+	nextToken();
+
+	return std::make_shared<CharExpressionAST>(value);
+}
+
+std::shared_ptr<ExpressionAST> Parser::parseStringExpression() {
+	auto str = currentToken.strValue;
+
+	//Eat the string
+	nextToken();
+
+	return std::make_shared<StringExpressionAST>(str);
+}
+
 std::shared_ptr<ExpressionAST> Parser::parseIdentifierExpression(bool allowDeclaration) {
 	std::string identifier = currentToken.strValue;
 
@@ -376,6 +394,10 @@ std::shared_ptr<ExpressionAST> Parser::parsePrimaryExpression(bool allowDeclarat
 		return parseFloatExpression();
 	case TokenType::Null:
 		return parseNullRefExpression();	
+	case TokenType::Char:
+		return parseCharExpression();
+	case TokenType::String:
+		return parseStringExpression();
 	case TokenType::Identifier:
 		return parseIdentifierExpression(allowDeclaration);
 	case TokenType::SingleChar:

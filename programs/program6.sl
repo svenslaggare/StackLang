@@ -41,6 +41,8 @@ func sum(Float[] array, Int i): Float {
 }
 
 func main(): Int {
-	std::println(cast<Float>(0));
+	String str = "Hello, World!";
+	str[0] = 'F';
+	std::println(str);
 	return 0;
 }

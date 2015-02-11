@@ -63,6 +63,12 @@ private:
 	//Parses a cast expression
 	std::shared_ptr<ExpressionAST> parseCastExpression();
 
+	//Parses a char expression
+	std::shared_ptr<ExpressionAST> parseCharExpression();
+
+	//Parses a string expression
+	std::shared_ptr<ExpressionAST> parseStringExpression();
+
 	//Parses an identifier expression
 	std::shared_ptr<ExpressionAST> parseIdentifierExpression(bool allowDeclaration = false);
 

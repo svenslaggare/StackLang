@@ -115,6 +115,72 @@ void NullRefExpressionAST::generateCode(CodeGenerator& codeGen, GeneratedFunctio
 	func.addInstruction("PUSHNULL");
 }
 
+//Char expression AST
+CharExpressionAST::CharExpressionAST(char value)
+	: mValue(value) {
+
+}
+
+char CharExpressionAST::value() const {
+	return mValue;
+}
+
+std::string CharExpressionAST::asString() const {
+	return "'" + std::to_string(mValue) + "'";
+}
+
+void CharExpressionAST::visit(VisitFn visitFn) const {
+	visitFn(this);
+}
+
+std::shared_ptr<Type> CharExpressionAST::expressionType(const TypeChecker& checker) const {
+	return checker.findType("Char");
+}
+
+void CharExpressionAST::generateCode(CodeGenerator& codeGen, GeneratedFunction& func) {
+	func.addInstruction("PUSHCHAR " + std::to_string((int)mValue));
+}
+
+//String expression AST
+StringExpressionAST::StringExpressionAST(std::string value)
+	: mValue(value) {
+
+}
+
+std::string toProgramString(std::string str) {
+	std::string res = "";
+
+	for (char c : str) {
+		if (c == '"' || c == '\\') {
+			res += "\\";
+		}
+
+		res += c;
+	}
+
+	return res;
+}
+
+std::string StringExpressionAST::value() const {
+	return mValue;
+}
+
+std::string StringExpressionAST::asString() const {
+	return "\"" + toProgramString(mValue) + "\"";
+}
+
+void StringExpressionAST::visit(VisitFn visitFn) const {
+	visitFn(this);
+}
+
+std::shared_ptr<Type> StringExpressionAST::expressionType(const TypeChecker& checker) const {
+	return checker.findType("Char[]");
+}
+
+void StringExpressionAST::generateCode(CodeGenerator& codeGen, GeneratedFunction& func) {
+	func.addInstruction("LDSTR \"" + toProgramString(mValue)  + "\"");
+}
+
 //Variable reference expression AST
 VariableReferenceExpressionAST::VariableReferenceExpressionAST(std::string varName)
 	: mVarName(varName) {

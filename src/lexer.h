@@ -16,6 +16,8 @@ enum class TokenType : unsigned char {
 	Float,
 	True,
 	False,
+	Char,
+	String,
 	If,
 	Else,
 	For,

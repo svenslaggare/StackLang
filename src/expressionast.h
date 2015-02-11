@@ -34,7 +34,7 @@ class BoolExpressionAST : public ExpressionAST {
 private:
 	bool mValue;
 public:
-	//Creates a new integer expression
+	//Creates a new bool expression
 	BoolExpressionAST(bool value);
 
 	//Returns the value
@@ -54,7 +54,7 @@ class FloatExpressionAST : public ExpressionAST {
 private:
 	float mValue;
 public:
-	//Creates a new integer expression
+	//Creates a new float expression
 	FloatExpressionAST(float value);
 
 	//Returns the value
@@ -74,6 +74,47 @@ class NullRefExpressionAST : public ExpressionAST {
 public:
 	//Creates a new null ref expression
 	NullRefExpressionAST();
+
+	std::string asString() const override;
+
+	virtual void visit(VisitFn visitFn) const override;
+
+	virtual std::shared_ptr<Type> expressionType(const TypeChecker& checker) const override; 
+
+	virtual void generateCode(CodeGenerator& codeGen, GeneratedFunction& func) override;
+};
+
+//Represents a char expression
+class CharExpressionAST : public ExpressionAST {
+private:
+	char mValue;
+public:
+	//Creates a new char expression
+	CharExpressionAST(char value);
+
+	//Returns the value
+	char value() const;
+
+	std::string asString() const override;
+
+	virtual void visit(VisitFn visitFn) const override;
+
+	virtual std::shared_ptr<Type> expressionType(const TypeChecker& checker) const override; 
+
+	virtual void generateCode(CodeGenerator& codeGen, GeneratedFunction& func) override;
+};
+
+
+//Represents a string expression
+class StringExpressionAST : public ExpressionAST {
+private:
+	std::string mValue;
+public:
+	//Creates a new string expression
+	StringExpressionAST(std::string value);
+
+	//Returns the value
+	std::string value() const;
 
 	std::string asString() const override;
 

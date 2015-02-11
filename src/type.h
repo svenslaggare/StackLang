@@ -91,4 +91,7 @@ namespace TypeSystem {
 
 	//Creates a type from the given string
 	std::shared_ptr<Type> makeType(std::string typeName);
+
+	//Returns the type name from the given VM type
+	std::string fromVMType(std::string vmType);
 };

@@ -81,6 +81,16 @@ std::string nextToken(const std::vector<std::string>& tokens, int& index) {
     }
 }
 
+std::shared_ptr<Type> Loader::getType(std::string vmTypeName) {
+    auto type = mTypeChecker.getType(TypeSystem::fromVMType(vmTypeName));
+
+    if (type == nullptr) {
+        throw std::runtime_error("'" + vmTypeName + "' is not a type.");
+    }
+
+    return type;
+}
+
 FunctionDefinition Loader::parseFunctionDef(const std::vector<std::string>& tokens, int& tokenIndex) {
     auto name = nextToken(tokens, tokenIndex);
 
@@ -97,7 +107,7 @@ FunctionDefinition Loader::parseFunctionDef(const std::vector<std::string>& toke
             break;
         }
 
-        auto paramType = mTypeChecker.getType(param);
+        auto paramType = getType(param);
 
         if (paramType == nullptr) {
             throw std::runtime_error("'" + param + "' is not a type.");
@@ -107,7 +117,7 @@ FunctionDefinition Loader::parseFunctionDef(const std::vector<std::string>& toke
     }
 
     auto returnTypeName = nextToken(tokens, tokenIndex);
-    auto returnType = mTypeChecker.getType(returnTypeName);
+    auto returnType = getType(returnTypeName);
 
     if (returnType == nullptr) {
         throw std::runtime_error("'" + returnTypeName + "' is not a type.");
@@ -186,26 +196,39 @@ void Loader::defineFunction(const FunctionDefinition& funcDef) {
 
 void Loader::loadAssembly(std::istream& stream) {
 	auto tokens = tokenize(stream);
+    bool insideBody = false;
 
 	for (int i = 0; i < tokens.size(); i++) {
         std::string current = tokens[i];
 
-        //Parse the function definition
-        if (current == "func") {
-           	auto funcDef = parseFunctionDef(tokens, i);
-           	defineFunction(funcDef);
+        if (current == "{") {
+            insideBody = true;
+            continue;
         }
 
-        //Parse external function
-        if (current == "extern") {
-            auto funcName = nextToken(tokens, i);
+        if (insideBody && current == "}") {
+            insideBody = false;
+            continue;
+        }
 
-            if (nextToken(tokens, i) != "::") {
-                throw std::runtime_error("Expected '::' after extern function name.");
-            } 
+        if (!insideBody) {
+            //Parse the function definition
+            if (current == "func") {
+               	auto funcDef = parseFunctionDef(tokens, i);
+               	defineFunction(funcDef);
+            }
 
-            auto externFuncDef = parseFunctionDef(tokens, i);
-            defineFunction(FunctionDefinition(funcName, externFuncDef.parameters, externFuncDef.returnType));
+            //Parse external function
+            if (current == "extern") {
+                auto funcName = nextToken(tokens, i);
+
+                if (nextToken(tokens, i) != "::") {
+                    throw std::runtime_error("Expected '::' after extern function name.");
+                } 
+
+                auto externFuncDef = parseFunctionDef(tokens, i);
+                defineFunction(FunctionDefinition(funcName, externFuncDef.parameters, externFuncDef.returnType));
+            }
         }
     }
 }

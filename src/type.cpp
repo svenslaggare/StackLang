@@ -1,4 +1,5 @@
 #include "type.h"
+#include <regex>
 
 Type::Type(std::string name, bool isReferenceType)
 	: mName(name), mIsReferenceType(isReferenceType) {
@@ -69,6 +70,7 @@ std::map<std::string, std::shared_ptr<Type>> TypeSystem::defaultTypes() {
 	auto voidType = std::make_shared<PrimitiveType>(PrimitiveTypes::Void);
 	auto charType = std::make_shared<PrimitiveType>(PrimitiveTypes::Char);
 	auto nullType = std::make_shared<NullReferenceType>();
+	auto charArrayType = std::make_shared<ArrayType>(charType);
 
 	return {
 		{ "var", std::make_shared<AutoType>() },
@@ -77,7 +79,8 @@ std::map<std::string, std::shared_ptr<Type>> TypeSystem::defaultTypes() {
 		{ floatType->name(), floatType },
 		{ voidType->name(), voidType },
 		{ charType->name(), charType },
-		{ nullType->name(), nullType }
+		{ nullType->name(), nullType },
+		{ "String", charArrayType }
 	};
 }
 
@@ -134,4 +137,55 @@ std::shared_ptr<Type> TypeSystem::makeType(std::string typeName) {
 	}
 
 	return nullptr;
+}
+
+std::string TypeSystem::fromVMType(std::string vmType) {
+	//Split the type name
+	std::string token;
+	std::vector<std::string> typeParts;
+
+	bool isInsideBrackets = false;
+	for (char c : vmType) {
+		if (!isInsideBrackets) {
+			if (c == '[') {
+				isInsideBrackets = true;
+			}
+		} else {
+			if (c == ']') {
+				isInsideBrackets = false;
+			}
+		}
+
+		if (c == '.' && !isInsideBrackets) {
+			typeParts.push_back(token);
+			token = "";
+		} else {
+			token += c;
+		}
+	}
+
+	typeParts.push_back(token);
+
+	std::string arrayPattern = "Array.(.*).";
+	std::regex arrayRegex(arrayPattern, std::regex_constants::extended);
+	PrimitiveTypes primType;
+
+	if (fromString(typeParts.at(0), primType)) {
+		return typeParts.at(0);
+	} else if (typeParts.at(0) == "Ref") {
+		std::smatch match;
+		bool foundArray = std::regex_match(typeParts.at(1), match, arrayRegex);
+
+		if (foundArray) {
+			std::string elementType = match[1].str();
+			elementType = elementType.substr(1, elementType.length() - 2);
+			return fromVMType(elementType) + "[]";
+		} else if (typeParts[1] == "Struct") {
+			return typeParts.at(2);
+		} else if (typeParts.at(1) == "Null") {
+			return NullReferenceType().name();
+		}
+	}
+
+	return "";
 }

@@ -25,6 +25,9 @@ private:
 	//Tokenizes from the given stream
 	std::vector<std::string> tokenize(std::istream& stream);
 
+	//Returns the type for the given VM type
+	std::shared_ptr<Type> getType(std::string vmTypeName);
+
 	//Parses the given function definition
 	FunctionDefinition parseFunctionDef(const std::vector<std::string>& tokens, int& tokenIndex);
 
