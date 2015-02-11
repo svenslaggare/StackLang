@@ -116,16 +116,6 @@ std::string FunctionSignatureSymbol::returnType() const {
 	return mReturnType;
 }
 
-//Conversion
-ConversionSymbol::ConversionSymbol(std::string name)
-	: Symbol(name, "Conversion") {
-
-}
-
-std::string ConversionSymbol::asString() const {
-	return Symbol::asString() + ": Conversion";
-}
-
 //Namespace
 NamespaceSymbol::NamespaceSymbol(std::string name, std::shared_ptr<SymbolTable> symbolTable)
 	: Symbol(name, "Namespace"), mSymbolTable(symbolTable) {

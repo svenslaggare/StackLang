@@ -67,6 +67,7 @@ std::map<std::string, std::shared_ptr<Type>> TypeSystem::defaultTypes() {
 	auto boolType = std::make_shared<PrimitiveType>(PrimitiveTypes::Bool);
 	auto floatType = std::make_shared<PrimitiveType>(PrimitiveTypes::Float);
 	auto voidType = std::make_shared<PrimitiveType>(PrimitiveTypes::Void);
+	auto charType = std::make_shared<PrimitiveType>(PrimitiveTypes::Char);
 	auto nullType = std::make_shared<NullReferenceType>();
 
 	return {
@@ -75,6 +76,7 @@ std::map<std::string, std::shared_ptr<Type>> TypeSystem::defaultTypes() {
 		{ boolType->name(), boolType },
 		{ floatType->name(), floatType },
 		{ voidType->name(), voidType },
+		{ charType->name(), charType },
 		{ nullType->name(), nullType }
 	};
 }
@@ -92,6 +94,9 @@ bool TypeSystem::fromString(std::string typeName, PrimitiveTypes& type) {
 	} else if (typeName == "Void") {
 		type = PrimitiveTypes::Void;
 		return true;
+	} else if (typeName == "Char") {
+		type = PrimitiveTypes::Char;
+		return true;
 	} else {
 		return false;
 	}
@@ -107,6 +112,8 @@ std::string TypeSystem::toString(PrimitiveTypes type) {
 		return "Float";
 	case PrimitiveTypes::Void:
 		return "Void";
+	case PrimitiveTypes::Char:
+		return "Char";
 	}
 }
 

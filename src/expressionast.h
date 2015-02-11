@@ -190,3 +190,35 @@ public:
 
 	virtual void generateCode(CodeGenerator& codeGen, GeneratedFunction& func) override;
 };
+
+//Represents a cast expression
+class CastExpressionAST : public ExpressionAST {
+private:
+	std::string mTypeName;
+	std::shared_ptr<ExpressionAST> mExpression;
+public:
+	//Creates a new cast expression
+	CastExpressionAST(std::string typeName, std::shared_ptr<ExpressionAST> expression);
+
+	//Returns the name of the type to cast to
+	std::string functionName() const;
+
+	//The expression to cast
+	std::shared_ptr<ExpressionAST> expression() const;
+
+	std::string asString() const override;
+
+	virtual void visit(VisitFn visitFn) const override;
+	
+	virtual void rewrite() override;
+	
+	virtual void generateSymbols(Binder& binder, std::shared_ptr<SymbolTable> symbolTable) override;
+
+	virtual void typeCheck(TypeChecker& checker) override;
+
+	virtual void verify(SemanticVerifier& verifier) override;
+
+	virtual std::shared_ptr<Type> expressionType(const TypeChecker& checker) const override; 
+
+	virtual void generateCode(CodeGenerator& codeGen, GeneratedFunction& func) override;
+};

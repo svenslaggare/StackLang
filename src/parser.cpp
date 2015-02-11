@@ -126,26 +126,44 @@ std::shared_ptr<ExpressionAST> Parser::parseNullRefExpression() {
 	return nullAst;
 }
 
-std::shared_ptr<ExpressionAST> Parser::parseArrayAccess(std::string identifier) {
-	// std::shared_ptr<ArrayDeclarationAST> arrrayAccess = nullptr;
-	// std::shared_ptr<ExpressionAST> currentAccessExpr = nullptr;
+std::shared_ptr<ExpressionAST> Parser::parseCastExpression() {
+	//Eat the 'cast'
+	nextToken();
 
-	// while (true) {
-	// 	if (isSingleCharToken('[')) {
-	// 		nextToken(); //Eat the '['
+	if (!isSingleCharToken('<')) {
+		compileError("Expected '<' after cast operator.");
+	}
 
-	// 		//If not ']', its an array access
-	// 		std::shared_ptr<ExpressionAST> accessExpression = parseExpression();
+	nextToken(); //Eat the '<'
 
-	// 		assertCurrentTokenAsChar(']', "Expected ']'");
-	// 		nextToken(); //Eat the ']'
-	
-			
-	// 	}
-	// }
+	//Get the type name
+	auto typeName = parseTypeName();
 
-	// return arrrayAccess;
-	return nullptr;
+	if (!isSingleCharToken('>')) {
+		compileError("Expected '>' after type name.");
+	}
+
+	nextToken(); //Eat the '<'
+
+	if (!isSingleCharToken('(')) {
+		compileError("Expected '('.");
+	}
+
+	nextToken(); //Eat the ')'
+
+	auto expression = parseExpression();
+
+	if (expression == nullptr) {
+		return nullptr;
+	} 
+
+	if (!isSingleCharToken(')')) {
+		compileError("Expected ')'.");
+	}
+
+	nextToken(); //Eat the ')'
+
+	return std::make_shared<CastExpressionAST>(typeName, expression);
 }
 
 std::shared_ptr<ExpressionAST> Parser::parseIdentifierExpression(bool allowDeclaration) {
@@ -267,6 +285,69 @@ std::shared_ptr<ExpressionAST> Parser::parseIdentifierExpression(bool allowDecla
 	return std::make_shared<CallExpressionAST>(CallExpressionAST(identifier, arguments));
 }
 
+std::shared_ptr<ExpressionAST> Parser::parseArrayDeclaration() {
+	//Eat the 'new'
+	nextToken();
+
+	//Get the type name
+	if (currentToken.type() != TokenType::Identifier) {
+		compileError("Expected identifier.");
+	}
+
+	auto elementTypeName = currentToken.strValue;
+	nextToken(); //Eat the identifier
+
+	assertCurrentTokenAsChar('[', "Expected '['.");
+	nextToken(); //Eat the ']'
+	
+	// //Get the length expression
+	// auto lengthExpression = parseExpression();
+
+	// if (lengthExpression == nullptr) {
+	// 	return nullptr;
+	// }
+
+	// assertCurrentTokenAsChar(']', "Expected ']'.");
+	// nextToken(); //Eat the ']'
+	
+	//Get the length expressions
+	std::vector<std::shared_ptr<ExpressionAST>> lengthExpressions;
+
+	while (true) {
+		auto lengthExpression = parseExpression();
+
+		if (lengthExpression == nullptr) {
+			return nullptr;
+		}
+
+		lengthExpressions.push_back(lengthExpression);
+
+		if (isSingleCharToken(',')) {
+			nextToken(); //Eat the ','
+		} else if (isSingleCharToken(']')) {
+			nextToken(); //Eat the ']'
+			break;
+		} else {
+			assertCurrentTokenAsChar(']', "Expected ']'.");
+		}
+	}
+
+	//Parse trailing array types
+	while (isSingleCharToken('[')) {
+		nextToken(); //Eat the '['
+		assertCurrentTokenAsChar(']', "Expected ']'");
+		nextToken(); //Eat the ']'
+
+		elementTypeName += "[]";
+	}
+
+	if (lengthExpressions.size() == 1) {
+		return std::make_shared<ArrayDeclarationAST>(elementTypeName, lengthExpressions.at(0));
+	} else {
+		return std::make_shared<MultiDimArrayDeclarationAST>(elementTypeName, lengthExpressions);
+	}
+}
+
 std::shared_ptr<ExpressionAST> Parser::parseParenthesisExpression() {
 	nextToken(); //Eat the '('
 
@@ -304,7 +385,8 @@ std::shared_ptr<ExpressionAST> Parser::parsePrimaryExpression(bool allowDeclarat
 		break;
 	case TokenType::New:
 		return parseArrayDeclaration();
-		break;
+	case TokenType::Cast:
+		return parseCastExpression();
 	default:
 		break;
 	}	
@@ -392,69 +474,6 @@ std::shared_ptr<ExpressionAST> Parser::parseExpression(bool allowEqualAssign) {
 	}
 
 	return parseBinaryOpRHS(0, lhs, allowEqualAssign);
-}
-
-std::shared_ptr<ExpressionAST> Parser::parseArrayDeclaration() {
-	//Eat the 'new'
-	nextToken();
-
-	//Get the type name
-	if (currentToken.type() != TokenType::Identifier) {
-		compileError("Expected identifier.");
-	}
-
-	auto elementTypeName = currentToken.strValue;
-	nextToken(); //Eat the identifier
-
-	assertCurrentTokenAsChar('[', "Expected '['.");
-	nextToken(); //Eat the ']'
-	
-	// //Get the length expression
-	// auto lengthExpression = parseExpression();
-
-	// if (lengthExpression == nullptr) {
-	// 	return nullptr;
-	// }
-
-	// assertCurrentTokenAsChar(']', "Expected ']'.");
-	// nextToken(); //Eat the ']'
-	
-	//Get the length expressions
-	std::vector<std::shared_ptr<ExpressionAST>> lengthExpressions;
-
-	while (true) {
-		auto lengthExpression = parseExpression();
-
-		if (lengthExpression == nullptr) {
-			return nullptr;
-		}
-
-		lengthExpressions.push_back(lengthExpression);
-
-		if (isSingleCharToken(',')) {
-			nextToken(); //Eat the ','
-		} else if (isSingleCharToken(']')) {
-			nextToken(); //Eat the ']'
-			break;
-		} else {
-			assertCurrentTokenAsChar(']', "Expected ']'.");
-		}
-	}
-
-	//Parse trailing array types
-	while (isSingleCharToken('[')) {
-		nextToken(); //Eat the '['
-		assertCurrentTokenAsChar(']', "Expected ']'");
-		nextToken(); //Eat the ']'
-
-		elementTypeName += "[]";
-	}
-
-	if (lengthExpressions.size() == 1) {
-		return std::make_shared<ArrayDeclarationAST>(elementTypeName, lengthExpressions.at(0));
-	} else {
-		return std::make_shared<MultiDimArrayDeclarationAST>(elementTypeName, lengthExpressions);
-	}
 }
 
 std::shared_ptr<StatementAST> Parser::parseIfElseStatement() {

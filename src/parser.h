@@ -60,14 +60,17 @@ private:
 	//Parses a null ref expression
 	std::shared_ptr<ExpressionAST> parseNullRefExpression();
 
-	//Parses an array access expression
-	std::shared_ptr<ExpressionAST> parseArrayAccess(std::string identifier = "");
+	//Parses a cast expression
+	std::shared_ptr<ExpressionAST> parseCastExpression();
 
 	//Parses an identifier expression
 	std::shared_ptr<ExpressionAST> parseIdentifierExpression(bool allowDeclaration = false);
 
 	//Parses a parenthesis expression
 	std::shared_ptr<ExpressionAST> parseParenthesisExpression();
+
+	//Parses an array declaration
+	std::shared_ptr<ExpressionAST> parseArrayDeclaration();
 
 	//Parses a primary expression
 	std::shared_ptr<ExpressionAST> parsePrimaryExpression(bool allowDeclaration = false);
@@ -80,9 +83,6 @@ private:
 
 	//Parses an expression
 	std::shared_ptr<ExpressionAST> parseExpression(bool allowEqualAssign = false);
-
-	//Parses an array declaration
-	std::shared_ptr<ExpressionAST> parseArrayDeclaration();
 
 	//Parses a if & else statement
 	std::shared_ptr<StatementAST> parseIfElseStatement();

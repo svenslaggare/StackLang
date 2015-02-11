@@ -14,9 +14,6 @@ void StackLang::Builtin::add(Binder& binder, TypeChecker& typeChecker) {
 	typeChecker.addObject(Object("Array", nullptr, { { "length", Field("length", intType) } }));
 
 	//Add conversions
-	binder.symbolTable()->add("Float", std::make_shared<ConversionSymbol>("Float"));
 	typeChecker.defineExplicitConversion(floatType, intType, [](CodeGenerator& codeGen, GeneratedFunction& func) { func.addInstruction("CONVFLOATTOINT"); });
-
-	binder.symbolTable()->add("Int", std::make_shared<ConversionSymbol>("Int"));
 	typeChecker.defineExplicitConversion(intType, floatType, [](CodeGenerator& codeGen, GeneratedFunction& func) { func.addInstruction("CONVINTTOFLOAT"); });
 }

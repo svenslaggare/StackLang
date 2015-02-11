@@ -41,8 +41,6 @@ func sum(Float[] array, Int i): Float {
 }
 
 func main(): Int {
-	var matrix = new Int[4, 4];
-	#core::printArray(array);
-	#std::println(std::math::max(array));
+	std::println(cast<Float>(0));
 	return 0;
 }

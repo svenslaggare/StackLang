@@ -78,15 +78,6 @@ public:
 	std::shared_ptr<FunctionSignatureSymbol> findOverload(std::vector<std::string> parameterTypes) const;
 };
 
-//Represents a conversion symbol
-class ConversionSymbol : public Symbol {
-public:
-	//Creates a new conversion symbol
-	ConversionSymbol(std::string name);
-
-	virtual std::string asString() const override;
-};
-
 class SymbolTable;
 
 //Represents a namespace symbol
