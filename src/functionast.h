@@ -17,6 +17,9 @@ private:
 	std::string mName;
 	std::vector<std::shared_ptr<VariableDeclarationExpressionAST>> mParameters;
 	std::string mReturnType;
+
+	//Finds the namespace name for the current function
+	std::string findNamespaceName(std::shared_ptr<SymbolTable> symbolTable, std::string sep) const;
 public:
 	//Creates a new function prototype
 	FunctionPrototypeAST(std::string name, const std::vector<std::shared_ptr<VariableDeclarationExpressionAST>>& parameters, std::string returnType);
@@ -29,6 +32,9 @@ public:
 
 	//Returns the type
 	const std::string returnType() const;
+
+	//Returns the full name
+	std::string fullName(std::string namespaceSep = "::") const;
 
 	virtual std::string type() const override;
 

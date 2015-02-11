@@ -12,7 +12,7 @@ class TypeChecker;
 class NamespaceDeclarationAST;
 class FunctionAST;
 
-using VisitFunctionsFn = std::function<void(std::string, std::shared_ptr<FunctionAST>)>;
+using VisitFunctionsFn = std::function<void(std::shared_ptr<FunctionAST>)>;
 
 //Represents a program AST
 class ProgramAST : public AbstractSyntaxTree {
@@ -20,7 +20,7 @@ private:
 	std::vector<std::shared_ptr<NamespaceDeclarationAST>> mNamespaces;
 
 	//Visits all the functions in given namespace
-	void visitFunctions(VisitFunctionsFn visitFn, std::shared_ptr<NamespaceDeclarationAST> currentNamespace, std::string outerNamespaceName = "") const;
+	void visitFunctions(VisitFunctionsFn visitFn, std::shared_ptr<NamespaceDeclarationAST> currentNamespace) const;
 public:
 	ProgramAST(const std::vector<std::shared_ptr<NamespaceDeclarationAST>>& namespaces);
 

@@ -63,7 +63,7 @@ void NamespaceDeclarationAST::generateSymbols(Binder& binder, std::shared_ptr<Sy
 
 			namespaceTable = namespaceSymbol->symbolTable();
 		} else {
-			namespaceTable = std::make_shared<SymbolTable>(symbolTable);
+			namespaceTable = std::make_shared<SymbolTable>(symbolTable, mName);
 			auto namespaceSymbol = std::make_shared<NamespaceSymbol>(mName, namespaceTable);
 			symbolTable->add(mName, namespaceSymbol);
 		}

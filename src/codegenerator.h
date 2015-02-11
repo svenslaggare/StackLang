@@ -84,7 +84,7 @@ public:
 	void generateProgram(std::shared_ptr<ProgramAST> programAST);
 
 	//Creates a new function
-	GeneratedFunction& newFunction(std::string functionName, std::shared_ptr<FunctionPrototypeAST> functionPrototype);
+	GeneratedFunction& newFunction(std::shared_ptr<FunctionPrototypeAST> functionPrototype);
 
 	//Prints the generated code
 	void printGeneratedCode();

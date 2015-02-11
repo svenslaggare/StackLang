@@ -57,20 +57,6 @@ void BinaryOpExpressionAST::visit(VisitFn visitFn) const {
 	visitFn(this);
 }
 
-bool BinaryOpExpressionAST::lhsFloatConvertable(const TypeChecker& typeChecker) const {
-	return 
-		*mLeftHandSide->expressionType(typeChecker) == *typeChecker.findType("Int")
-		&& *mRightHandSide->expressionType(typeChecker) == *typeChecker.findType("Float")
-		&& std::dynamic_pointer_cast<IntegerExpressionAST>(mLeftHandSide) != nullptr;
-}
-
-bool BinaryOpExpressionAST::rhsFloatConvertable(const TypeChecker& typeChecker) const {
-	return
-		*mRightHandSide->expressionType(typeChecker) == *typeChecker.findType("Int")
-		&& *mLeftHandSide->expressionType(typeChecker) == *typeChecker.findType("Float") 
-		&& std::dynamic_pointer_cast<IntegerExpressionAST>(mRightHandSide) != nullptr;
-}
-
 void BinaryOpExpressionAST::rewrite() {
 	std::shared_ptr<AbstractSyntaxTree> newLHS;
 
@@ -159,13 +145,10 @@ void BinaryOpExpressionAST::typeCheck(TypeChecker& checker) {
 		auto intType = checker.findType("Int");
 		auto floatType = checker.findType("Float");
 
-		//We allow integer constants to be implicitly converted to float constants
-		if (!lhsFloatConvertable(checker) && !rhsFloatConvertable(checker)) {
-			checker.assertSameType(
-				*lhsType, 
-				*rhsType,
-				asString());
-		}
+		checker.assertSameType(
+			*lhsType, 
+			*rhsType,
+			asString());
 	} else {
 		//Infer the type
 		auto lhsVarDec = std::dynamic_pointer_cast<VariableDeclarationExpressionAST>(mLeftHandSide);
@@ -247,32 +230,17 @@ std::shared_ptr<Type> BinaryOpExpressionAST::expressionType(const TypeChecker& c
 		if (mOp == Operator('=')) {
 			return checker.findType("Void");
 		} else {
-			if (lhsFloatConvertable(checker)) {
-				return checker.findType("Float");
-			} else {
-				return mLeftHandSide->expressionType(checker);
-			}
+			return mLeftHandSide->expressionType(checker);
 		}
 	}
 }
 
 void BinaryOpExpressionAST::generateRHSCode(CodeGenerator& codeGen, GeneratedFunction& func) {
-	if (rhsFloatConvertable(codeGen.typeChecker())) {
-		auto floatRHS = FloatExpressionAST(std::dynamic_pointer_cast<IntegerExpressionAST>(mRightHandSide)->value());
-		floatRHS.generateCode(codeGen, func);
-	} else {
-		mRightHandSide->generateCode(codeGen, func);
-	}
+	mRightHandSide->generateCode(codeGen, func);
 }
 
 void BinaryOpExpressionAST::generateSidesCode(CodeGenerator& codeGen, GeneratedFunction& func) {
-	if (lhsFloatConvertable(codeGen.typeChecker())) {
-		auto floatLHS = FloatExpressionAST(std::dynamic_pointer_cast<IntegerExpressionAST>(mLeftHandSide)->value());
-		floatLHS.generateCode(codeGen, func);
-	} else {
-		mLeftHandSide->generateCode(codeGen, func);
-	}
-
+	mLeftHandSide->generateCode(codeGen, func);
 	generateRHSCode(codeGen, func);
 }
 

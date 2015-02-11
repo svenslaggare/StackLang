@@ -154,7 +154,7 @@ std::shared_ptr<SymbolTable> getNamespaceTable(std::shared_ptr<SymbolTable> oute
 
 		return getNamespaceTable(namespaceSymbol->symbolTable(), namespaces);
 	} else {
-		auto namespaceTable = std::make_shared<SymbolTable>(outerTable);
+		auto namespaceTable = std::make_shared<SymbolTable>(outerTable, currentNamespace);
 		auto namespaceSymbol = std::make_shared<NamespaceSymbol>(currentNamespace, namespaceTable);
 		outerTable->add(currentNamespace, namespaceSymbol);
 		return getNamespaceTable(namespaceTable, namespaces);

@@ -2,9 +2,13 @@
 #include "ast.h"
 #include "symbol.h"
 
-SymbolTable::SymbolTable(std::shared_ptr<SymbolTable> outer)
-	: mOuter(outer) {
+SymbolTable::SymbolTable(std::shared_ptr<SymbolTable> outer, std::string name)
+	: mName(name), mOuter(outer) {
 
+}
+
+std::string SymbolTable::name() const {
+	return mName;
 }
 
 bool SymbolTable::add(std::string name, std::shared_ptr<Symbol> symbol) {

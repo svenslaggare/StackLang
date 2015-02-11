@@ -140,20 +140,20 @@ const TypeChecker& CodeGenerator::typeChecker() const {
 }
 
 void CodeGenerator::generateProgram(std::shared_ptr<ProgramAST> programAST) {
-	programAST->visitFunctions([&](std::string name, std::shared_ptr<FunctionAST> func) {
-		auto& genFunc = newFunction(name, func->prototype());
+	programAST->visitFunctions([&](std::shared_ptr<FunctionAST> func) {
+		auto& genFunc = newFunction(func->prototype());
 		func->generateCode(*this, genFunc);
 	});
 }
 
-GeneratedFunction& CodeGenerator::newFunction(std::string functionName, std::shared_ptr<FunctionPrototypeAST> functionPrototype) {
+GeneratedFunction& CodeGenerator::newFunction(std::shared_ptr<FunctionPrototypeAST> functionPrototype) {
 	std::vector<FunctionParameter> parameters;
 
 	for (auto param : functionPrototype->parameters()) {
 		parameters.push_back(FunctionParameter(param->varName(), mTypeChecker.findType(param->varType())));
 	}
 
-	mFunctions.push_back(GeneratedFunction(functionName, parameters, mTypeChecker.findType(functionPrototype->returnType())));
+	mFunctions.push_back(GeneratedFunction(functionPrototype->fullName("."), parameters, mTypeChecker.findType(functionPrototype->returnType())));
 	auto& newFunc = mFunctions[mFunctions.size() - 1];
 
 	if (functionPrototype->returnType() != "Void") {
@@ -180,4 +180,4 @@ void CodeGenerator::codeGenError(std::string errorMessage) {
 	throw std::runtime_error(errorMessage);
 }
 
-std::string CodeGenerator::returnValueLocal = "$COMPILER_INTERNAL_RETURN_VALUE$";
+std::string CodeGenerator::returnValueLocal = "$return_value$";

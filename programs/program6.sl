@@ -8,13 +8,13 @@ namespace core {
 
 namespace std {
 	namespace math {
-		#func intMaxValue(): Int {
-			#return 2147483647;
-		#}
+		func intMaxValue(): Int {
+			return 2147483647;
+		}
 
-		#func intMinValue(): Int {
-			#return -2147483648;
-		#}
+		func intMinValue(): Int {
+			return -2147483648;
+		}
 
 		func max(Int[] array): Int {
 			var max = array[0];
@@ -42,7 +42,6 @@ func sum(Float[] array, Int i): Float {
 
 func main(): Int {
 	var matrix = new Int[4, 4];
-
 	#core::printArray(array);
 	#std::println(std::math::max(array));
 	return 0;

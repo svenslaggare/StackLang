@@ -26,6 +26,24 @@ const std::string FunctionPrototypeAST::returnType() const {
 	return mReturnType;
 }
 
+std::string FunctionPrototypeAST::findNamespaceName(std::shared_ptr<SymbolTable> symbolTable, std::string sep) const {
+	if (symbolTable == nullptr) {
+		return "";
+	} else {
+		auto name = symbolTable->name();
+
+		if (name != "") {
+			name += sep;
+		}
+
+		return findNamespaceName(symbolTable->outer(), sep) + name;
+	}
+}
+
+std::string FunctionPrototypeAST::fullName(std::string namespaceSep) const {
+	return findNamespaceName(mSymbolTable, namespaceSep) + mName;
+}
+
 std::string FunctionPrototypeAST::type() const {
 	return "FunctionPrototype";
 }
@@ -152,7 +170,7 @@ void FunctionAST::verify(SemanticVerifier& verifier) {
 
 			if (returnType->name() != "Void") {
 				if (returnStatement->returnExpression() == nullptr) {
-					verifier.semanticError(returnStatement->asString() + ": Empty return only allowed in void functions.");
+					verifier.semanticError(returnStatement->asString() + ": Empty return statement is only allowed in void functions.");
 				}
 
 				auto returnStatementType = returnStatement->returnExpression()->expressionType(checker);

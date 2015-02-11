@@ -12,11 +12,15 @@ class VariableSymbol;
 //Represents a symbol table;
 class SymbolTable {
 private:
+	std::string mName = "";
 	std::shared_ptr<SymbolTable> mOuter;
 	std::map<std::string, std::shared_ptr<Symbol>> mInner;
 public:
 	//Creates a new symbol table
-	SymbolTable(std::shared_ptr<SymbolTable> outer = nullptr);
+	SymbolTable(std::shared_ptr<SymbolTable> outer = nullptr, std::string name = "");
+
+	//Returns the name of the table
+	std::string name() const;
 
 	//Adds the given symbol to the table. True if added else false.
 	bool add(std::string name, std::shared_ptr<Symbol> symbol);

@@ -145,8 +145,8 @@ std::vector<Token> Lexer::tokenize(std::istream& stream) const {
 				continue;
 			}
 
-			//number: [0-9.]+
-			if (isdigit(currentChar)) {
+			//number: [\-0-9][0-9.]*
+			if (isdigit(currentChar) || (currentChar == '-' && isdigit(stream.peek()))) {
 				std::string numStr = "";
 				numStr += currentChar;
 				bool containsDecimalPoint = false;

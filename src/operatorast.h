@@ -22,12 +22,6 @@ private:
 	static std::set<std::string> comparableTypes;
 	static std::set<std::string> logicalTypes;
 
-	//Indicates if the left hand side is convertable to float
-	bool lhsFloatConvertable(const TypeChecker& typeChecker) const;
-
-	//Indicates if the right hand side is convertable to float
-	bool rhsFloatConvertable(const TypeChecker& typeChecker) const;
-
 	//Generates code for the rhs
 	void generateRHSCode(CodeGenerator& codeGen, GeneratedFunction& func);
 
