@@ -48,6 +48,8 @@ public:
 
 	std::string asString() const override;
 
+	virtual void visit(VisitFn visitFn) const override;
+
 	virtual void rewrite() override;
 
 	virtual bool rewriteAST(std::shared_ptr<AbstractSyntaxTree>& newAST) const override;
@@ -79,6 +81,8 @@ public:
 	Operator op() const;
 
 	std::string asString() const override;
+
+	virtual void visit(VisitFn visitFn) const override;
 	
 	virtual bool rewriteAST(std::shared_ptr<AbstractSyntaxTree>& newAST) const override;
 

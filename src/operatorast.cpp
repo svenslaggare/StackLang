@@ -51,6 +51,12 @@ std::string BinaryOpExpressionAST::asString() const {
 	return mLeftHandSide->asString() + " " + mOp.asString() + " " + mRightHandSide->asString();
 }
 
+void BinaryOpExpressionAST::visit(VisitFn visitFn) const {
+	mLeftHandSide->visit(visitFn);
+	mRightHandSide->visit(visitFn);
+	visitFn(this);
+}
+
 bool BinaryOpExpressionAST::lhsFloatConvertable(const TypeChecker& typeChecker) const {
 	return 
 		*mLeftHandSide->expressionType(typeChecker) == *typeChecker.findType("Int")
@@ -165,6 +171,10 @@ void BinaryOpExpressionAST::typeCheck(TypeChecker& checker) {
 		auto lhsVarDec = std::dynamic_pointer_cast<VariableDeclarationExpressionAST>(mLeftHandSide);
 
 		if (lhsVarDec != nullptr) {
+			if (lhsType->name() == "Auto" && *rhsType == NullReferenceType()) {
+				checker.typeError("Implicitly type of a null variable is not allowed.");
+			}
+
 			mLeftHandSide = std::make_shared<VariableDeclarationExpressionAST>(
 				rhsType->name(),
 				lhsVarDec->varName(),
@@ -220,8 +230,8 @@ void BinaryOpExpressionAST::verify(SemanticVerifier& verifier) {
 			if (varDec->isFunctionParameter()) {
 				verifier.semanticError("Assignment to function parameter is not allowed.");
 			}
-		} else if (std::dynamic_pointer_cast<VariableDeclarationExpressionAST>(mLeftHandSide) != nullptr) {
-			
+		} else if (auto varDec = std::dynamic_pointer_cast<VariableDeclarationExpressionAST>(mLeftHandSide) != nullptr) {
+
 		} else {
 			verifier.semanticError("Left hand side is not declaration or variable reference.");
 		}
@@ -337,6 +347,11 @@ Operator UnaryOpExpressionAST::op() const {
 
 std::string UnaryOpExpressionAST::asString() const {
 	return mOp.asString() + mOperand->asString();
+}
+
+void UnaryOpExpressionAST::visit(VisitFn visitFn) const {
+	mOperand->visit(visitFn);
+	visitFn(this);
 }
 
 bool UnaryOpExpressionAST::rewriteAST(std::shared_ptr<AbstractSyntaxTree>& newAST) const {

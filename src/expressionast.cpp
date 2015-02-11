@@ -23,6 +23,10 @@ std::string IntegerExpressionAST::asString() const {
 	return std::to_string(mValue);
 }
 
+void IntegerExpressionAST::visit(VisitFn visitFn) const {
+	visitFn(this);
+}
+
 std::shared_ptr<Type> IntegerExpressionAST::expressionType(const TypeChecker& checker) const {
 	return checker.findType("Int");
 }
@@ -47,6 +51,10 @@ std::string BoolExpressionAST::asString() const {
 	} else {
 		return "false";
 	}
+}
+
+void BoolExpressionAST::visit(VisitFn visitFn) const {
+	visitFn(this);
 }
 
 std::shared_ptr<Type> BoolExpressionAST::expressionType(const TypeChecker& checker) const {
@@ -75,6 +83,10 @@ std::string FloatExpressionAST::asString() const {
 	return std::to_string(mValue);
 }
 
+void FloatExpressionAST::visit(VisitFn visitFn) const {
+	visitFn(this);
+}
+
 std::shared_ptr<Type> FloatExpressionAST::expressionType(const TypeChecker& checker) const {
 	return checker.findType("Float");
 }
@@ -90,6 +102,10 @@ NullRefExpressionAST::NullRefExpressionAST() {
 
 std::string NullRefExpressionAST::asString() const {
 	return "null";
+}
+
+void NullRefExpressionAST::visit(VisitFn visitFn) const {
+	visitFn(this);
 }
 
 std::shared_ptr<Type> NullRefExpressionAST::expressionType(const TypeChecker& checker) const {
@@ -112,6 +128,10 @@ std::string VariableReferenceExpressionAST::varName() const {
 
 std::string VariableReferenceExpressionAST::asString() const {
 	return mVarName;
+}
+
+void VariableReferenceExpressionAST::visit(VisitFn visitFn) const {
+	visitFn(this);
 }
 
 void VariableReferenceExpressionAST::generateSymbols(Binder& binder, std::shared_ptr<SymbolTable> symbolTable) {
@@ -172,6 +192,10 @@ std::string VariableDeclarationExpressionAST::type() const {
 
 std::string VariableDeclarationExpressionAST::asString() const {
 	return mVarType + " " + mVarName;
+}
+
+void VariableDeclarationExpressionAST::visit(VisitFn visitFn) const {
+	visitFn(this);
 }
 
 void VariableDeclarationExpressionAST::generateSymbols(Binder& binder, std::shared_ptr<SymbolTable> symbolTable) {
@@ -240,6 +264,14 @@ std::string CallExpressionAST::asString() const {
 	std::string callStr = "";
 	callStr += mFunctionName + "(" + AST::combineAST(mArguments, ", ") + ")";
 	return callStr;
+}
+
+void CallExpressionAST::visit(VisitFn visitFn) const {
+	for (auto arg : mArguments) {
+		arg->visit(visitFn);
+	}
+
+	visitFn(this);
 }
 
 void CallExpressionAST::rewrite() {

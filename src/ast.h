@@ -25,8 +25,10 @@ public:
 	//Returns the current AST as a string
 	virtual std::string asString() const = 0;
 
-	//Searches for the given tree
-	virtual std::shared_ptr<AbstractSyntaxTree> findAST(std::function<bool (std::shared_ptr<AbstractSyntaxTree> ast)> predicate) const;
+	using VisitFn = std::function<void(const AbstractSyntaxTree*)>;
+
+	//Visits all the nodes
+	virtual void visit(VisitFn visitFn) const {};
 
 	//Rewrites the children of the current tree
 	virtual void rewrite();

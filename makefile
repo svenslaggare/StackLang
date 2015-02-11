@@ -12,13 +12,15 @@ HEADERS=$(wildcard $(SRCDIR)/*.h)
 _OBJECTS=$(SOURCES:.cpp=.o)
 OBJECTS=$(patsubst $(SRCDIR)/%,$(OBJDIR)/%,$(_OBJECTS))
 
+TEST_PROGRAM=programs/program6.sl
+
 all: $(OBJDIR) $(SOURCES) $(EXECUTABLE)
 
 test: $(OBJDIR) $(SOURCES) $(EXECUTABLE)
-	./stackc programs/mandelbrot.sl
+	./stackc $(TEST_PROGRAM)
 
 run: $(OBJDIR) $(SOURCES) $(EXECUTABLE)
-	./stackc programs/mandelbrot.sl | ../StackJIT/stackjit -i ../StackJIT/rtlib/rtlib.sbc -nogc
+	./stackc $(TEST_PROGRAM) | ../StackJIT/stackjit -i ../StackJIT/rtlib/rtlib.sbc -nogc
 
 $(OBJDIR):
 	mkdir -p $(OBJDIR)

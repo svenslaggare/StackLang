@@ -31,6 +31,14 @@ std::string NamespaceDeclarationAST::asString() const {
 	}
 }
 
+void NamespaceDeclarationAST::visit(VisitFn visitFn) const {
+	for (auto member : mMembers) {
+		member->visit(visitFn);
+	}
+
+	visitFn(this);
+}
+
 void NamespaceDeclarationAST::rewrite() {
 	for (auto& member : mMembers) {
 		std::shared_ptr<AbstractSyntaxTree> newAST;

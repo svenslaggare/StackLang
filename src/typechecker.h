@@ -73,7 +73,7 @@ public:
 	bool assertNotVoid(const Type& type, std::string errorMessage = "");
 
 	//Asserts that the types are equal
-	bool assertSameType(const Type& expected, const Type& actual, std::string errorMessage = "");
+	bool assertSameType(const Type& expected, const Type& actual, std::string errorMessage = "", bool customError = false);
 
 	//Defines an explicit conversion
 	void defineExplicitConversion(std::shared_ptr<Type> fromType, std::shared_ptr<Type> toType, ExplicitConversionFunction conversionFunc);

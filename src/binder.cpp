@@ -4,12 +4,13 @@
 #include "functionast.h"
 #include "symbol.h"
 #include "helpers.h"
+#include "symboltable.h"
 
 #include <stdexcept>
 #include <vector>
 
 Binder::Binder()
-	: mSymbolTable(std::make_shared<SymbolTable>(SymbolTable())) {
+	: mSymbolTable(std::make_shared<SymbolTable>()) {
 
 }
 

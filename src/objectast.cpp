@@ -25,6 +25,12 @@ std::string MemberAccessAST::asString() const {
 	return mAccessExpression->asString() + "." + mMemberExpression->asString();
 }
 
+void MemberAccessAST::visit(VisitFn visitFn) const {
+	mAccessExpression->visit(visitFn);
+	mMemberExpression->visit(visitFn);
+	visitFn(this);
+}
+
 void MemberAccessAST::generateSymbols(Binder& binder, std::shared_ptr<SymbolTable> symbolTable) {
 	AbstractSyntaxTree::generateSymbols(binder, symbolTable);
 	mAccessExpression->generateSymbols(binder, symbolTable);
@@ -111,6 +117,12 @@ std::shared_ptr<ExpressionAST> NamespaceAccessAST::memberExpression() const {
 
 std::string NamespaceAccessAST::asString() const {
 	return mNamespaceExpression->asString() + "::" + mMemberExpression->asString();
+}
+
+void NamespaceAccessAST::visit(VisitFn visitFn) const {
+	mNamespaceExpression->visit(visitFn);
+	mMemberExpression->visit(visitFn);
+	visitFn(this);
 }
 
 void NamespaceAccessAST::rewrite() {

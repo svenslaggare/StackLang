@@ -11,17 +11,3 @@ std::shared_ptr<FunctionPrototypeAST> ASTHelpers::asPrototype(std::shared_ptr<Ab
 
 	return funcPrototype;
 }
-
-bool ASTHelpers::findAST(std::shared_ptr<AbstractSyntaxTree> ast, std::function<bool (std::shared_ptr<AbstractSyntaxTree> ast)> predicate, std::shared_ptr<AbstractSyntaxTree>& result) {
-	if (predicate(ast)) {
-		result = ast;
-		return true;
-	} else {
-		if (auto childAst = ast->findAST(predicate)) {
-			result = childAst;
-			return true;
-		}
-	}
-
-	return false;
-}

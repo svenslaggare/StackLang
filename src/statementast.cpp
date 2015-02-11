@@ -21,6 +21,11 @@ std::string ExpressionStatementAST::asString() const {
 	return mExpression->asString() + ";";
 }
 
+void ExpressionStatementAST::visit(VisitFn visitFn) const {
+	mExpression->visit(visitFn);
+	visitFn(this);
+}
+
 void ExpressionStatementAST::rewrite() {
 	std::shared_ptr<AbstractSyntaxTree> newAST;
 
@@ -38,14 +43,6 @@ void ExpressionStatementAST::generateSymbols(Binder& binder, std::shared_ptr<Sym
 
 void ExpressionStatementAST::typeCheck(TypeChecker& checker) {
 	mExpression->typeCheck(checker);
-}
-
-std::shared_ptr<AbstractSyntaxTree> ExpressionStatementAST::findAST(std::function<bool (std::shared_ptr<AbstractSyntaxTree> ast)> predicate) const {
-	if (predicate(mExpression)) {
-		return mExpression;
-	}
-
-	return mExpression->findAST(predicate);
 }
 
 void ExpressionStatementAST::verify(SemanticVerifier& verifier) {
@@ -80,6 +77,14 @@ std::string ReturnStatementAST::asString() const {
 	return "return" + (mReturnExpression == nullptr ? "" : " " + mReturnExpression->asString()) + ";";
 }
 
+void ReturnStatementAST::visit(VisitFn visitFn) const {
+	if (mReturnExpression != nullptr) {
+		mReturnExpression->visit(visitFn);
+	}
+
+	visitFn(this);
+}
+
 void ReturnStatementAST::rewrite() {
 	std::shared_ptr<AbstractSyntaxTree> newAST;
 
@@ -90,18 +95,6 @@ void ReturnStatementAST::rewrite() {
 	if (mReturnExpression != nullptr) {
 		mReturnExpression->rewrite();
 	}
-}
-
-std::shared_ptr<AbstractSyntaxTree> ReturnStatementAST::findAST(std::function<bool (std::shared_ptr<AbstractSyntaxTree> ast)> predicate) const {
-	if (mReturnExpression == nullptr) {
-		return nullptr;
-	}
-
-	if (predicate(mReturnExpression)) {
-		return mReturnExpression;
-	}
-
-	return mReturnExpression->findAST(predicate);
 }
 
 void ReturnStatementAST::generateSymbols(Binder& binder, std::shared_ptr<SymbolTable> symbolTable) {
@@ -156,6 +149,17 @@ std::string IfElseStatementAST::asString() const {
 	return "if (" + mConditionExpression->asString() + ") " + mThenBlock->asString() + (mElseBlock != nullptr ? " else " + mElseBlock->asString() : "");
 }
 
+void IfElseStatementAST::visit(VisitFn visitFn) const {
+	mConditionExpression->visit(visitFn);
+	mThenBlock->visit(visitFn);
+
+	if (mElseBlock != nullptr) {
+		mElseBlock->visit(visitFn);
+	}
+	
+	visitFn(this);
+}
+
 void IfElseStatementAST::rewrite() {
 	std::shared_ptr<AbstractSyntaxTree> newAST;
 
@@ -177,18 +181,6 @@ void IfElseStatementAST::rewrite() {
 	if (mElseBlock != nullptr) {
 		mElseBlock->rewrite();
 	}
-}
-
-std::shared_ptr<AbstractSyntaxTree> IfElseStatementAST::findAST(std::function<bool (std::shared_ptr<AbstractSyntaxTree> ast)> predicate) const {
-	std::shared_ptr<AbstractSyntaxTree> result;
-
-	if (ASTHelpers::findAST(mConditionExpression, predicate, result)
-		|| ASTHelpers::findAST(mThenBlock, predicate, result)
-		|| (mElseBlock != nullptr && ASTHelpers::findAST(mElseBlock, predicate, result))) {
-		return result;
-	}
-
-	return nullptr;
 }
 
 void IfElseStatementAST::generateSymbols(Binder& binder, std::shared_ptr<SymbolTable> symbolTable) {
@@ -224,44 +216,48 @@ void IfElseStatementAST::verify(SemanticVerifier& verifier) {
 	}
 }
 
+void generateBranch(std::shared_ptr<BinaryOpExpressionAST> binOpExpr, CodeGenerator& codeGen, GeneratedFunction& func, int& condIndex) {
+	auto op = binOpExpr->op();
+
+	if (op == Operator('<')) {
+		binOpExpr->leftHandSide()->generateCode(codeGen, func);
+		binOpExpr->rightHandSide()->generateCode(codeGen, func);
+		condIndex = func.numInstructions();
+		func.addInstruction("BGE");
+	} else if (op == Operator('>')) {
+		binOpExpr->leftHandSide()->generateCode(codeGen, func);
+		binOpExpr->rightHandSide()->generateCode(codeGen, func);
+		condIndex = func.numInstructions();
+		func.addInstruction("BLE");
+	} else if (op == Operator('<', '=')) {
+		binOpExpr->leftHandSide()->generateCode(codeGen, func);
+		binOpExpr->rightHandSide()->generateCode(codeGen, func);
+		condIndex = func.numInstructions();
+		func.addInstruction("BGT");
+	} else if (op == Operator('>', '=')) {
+		binOpExpr->leftHandSide()->generateCode(codeGen, func);
+		binOpExpr->rightHandSide()->generateCode(codeGen, func);
+		condIndex = func.numInstructions();
+		func.addInstruction("BLT");
+	} else if (op == Operator('=', '=')) {
+		binOpExpr->leftHandSide()->generateCode(codeGen, func);
+		binOpExpr->rightHandSide()->generateCode(codeGen, func);
+		condIndex = func.numInstructions();
+		func.addInstruction("BNE");
+	} else if (op == Operator('!', '=')) {
+		binOpExpr->leftHandSide()->generateCode(codeGen, func);
+		binOpExpr->rightHandSide()->generateCode(codeGen, func);
+		condIndex = func.numInstructions();
+		func.addInstruction("BEQ");
+	}
+}
+
 void IfElseStatementAST::generateCode(CodeGenerator& codeGen, GeneratedFunction& func) {
 	int condIndex = -1;
 
 	//If simple expression, use branch instructions
 	if (auto binOpExpr = std::dynamic_pointer_cast<BinaryOpExpressionAST>(mConditionExpression)) {
-		auto op = binOpExpr->op();
-
-		if (op == Operator('<')) {
-			binOpExpr->rightHandSide()->generateCode(codeGen, func);
-			binOpExpr->leftHandSide()->generateCode(codeGen, func);
-			condIndex = func.numInstructions();
-			func.addInstruction("BGE");
-		} else if (op == Operator('>')) {
-			binOpExpr->rightHandSide()->generateCode(codeGen, func);
-			binOpExpr->leftHandSide()->generateCode(codeGen, func);
-			condIndex = func.numInstructions();
-			func.addInstruction("BLE");
-		} else if (op == Operator('<', '=')) {
-			binOpExpr->rightHandSide()->generateCode(codeGen, func);
-			binOpExpr->leftHandSide()->generateCode(codeGen, func);
-			condIndex = func.numInstructions();
-			func.addInstruction("BGT");
-		} else if (op == Operator('>', '=')) {
-			binOpExpr->rightHandSide()->generateCode(codeGen, func);
-			binOpExpr->leftHandSide()->generateCode(codeGen, func);
-			condIndex = func.numInstructions();
-			func.addInstruction("BLT");
-		} else if (op == Operator('=', '=')) {
-			binOpExpr->rightHandSide()->generateCode(codeGen, func);
-			binOpExpr->leftHandSide()->generateCode(codeGen, func);
-			condIndex = func.numInstructions();
-			func.addInstruction("BNE");
-		} else if (op == Operator('!', '=')) {
-			binOpExpr->rightHandSide()->generateCode(codeGen, func);
-			binOpExpr->leftHandSide()->generateCode(codeGen, func);
-			condIndex = func.numInstructions();
-			func.addInstruction("BEQ");
-		}
+		generateBranch(binOpExpr, codeGen, func, condIndex);
 	}
 
 	//Else use compare & jump instructions
@@ -310,6 +306,12 @@ std::string WhileLoopStatementAST::asString() const {
 	return "while (" + mConditionExpression->asString() + ") " + mBodyBlock->asString();
 }
 
+void WhileLoopStatementAST::visit(VisitFn visitFn) const {
+	mConditionExpression->visit(visitFn);
+	mBodyBlock->visit(visitFn);
+	visitFn(this);
+}
+
 void WhileLoopStatementAST::rewrite() {
 	std::shared_ptr<AbstractSyntaxTree> newAST;
 
@@ -323,26 +325,6 @@ void WhileLoopStatementAST::rewrite() {
 
 	mConditionExpression->rewrite();
 	mBodyBlock->rewrite();
-}
-
-std::shared_ptr<AbstractSyntaxTree> WhileLoopStatementAST::findAST(std::function<bool (std::shared_ptr<AbstractSyntaxTree> ast)> predicate) const {
-	if (predicate(mConditionExpression)) {
-		return mConditionExpression;
-	} else {
-		if (auto ast = mConditionExpression->findAST(predicate)) {
-			return ast;
-		}
-	}
-
-	if (predicate(mBodyBlock)) {
-		return mBodyBlock;
-	} else {
-		if (auto ast = mBodyBlock->findAST(predicate)) {
-			return ast;
-		}
-	}
-
-	return nullptr;
 }
 
 void WhileLoopStatementAST::generateSymbols(Binder& binder, std::shared_ptr<SymbolTable> symbolTable) {
@@ -368,39 +350,7 @@ void WhileLoopStatementAST::generateCode(CodeGenerator& codeGen, GeneratedFuncti
 
 	//If simple expression, use branch instructions
 	if (auto binOpExpr = std::dynamic_pointer_cast<BinaryOpExpressionAST>(mConditionExpression)) {
-		auto op = binOpExpr->op();
-
-		if (op == Operator('<')) {
-			binOpExpr->rightHandSide()->generateCode(codeGen, func);
-			binOpExpr->leftHandSide()->generateCode(codeGen, func);
-			condIndex = func.numInstructions();
-			func.addInstruction("BGE");
-		} else if (op == Operator('>')) {
-			binOpExpr->rightHandSide()->generateCode(codeGen, func);
-			binOpExpr->leftHandSide()->generateCode(codeGen, func);
-			condIndex = func.numInstructions();
-			func.addInstruction("BLE");
-		} else if (op == Operator('<', '=')) {
-			binOpExpr->rightHandSide()->generateCode(codeGen, func);
-			binOpExpr->leftHandSide()->generateCode(codeGen, func);
-			condIndex = func.numInstructions();
-			func.addInstruction("BGT");
-		} else if (op == Operator('>', '=')) {
-			binOpExpr->rightHandSide()->generateCode(codeGen, func);
-			binOpExpr->leftHandSide()->generateCode(codeGen, func);
-			condIndex = func.numInstructions();
-			func.addInstruction("BLT");
-		} else if (op == Operator('=', '=')) {
-			binOpExpr->rightHandSide()->generateCode(codeGen, func);
-			binOpExpr->leftHandSide()->generateCode(codeGen, func);
-			condIndex = func.numInstructions();
-			func.addInstruction("BNE");
-		} else if (op == Operator('!', '=')) {
-			binOpExpr->rightHandSide()->generateCode(codeGen, func);
-			binOpExpr->leftHandSide()->generateCode(codeGen, func);
-			condIndex = func.numInstructions();
-			func.addInstruction("BEQ");
-		}
+		generateBranch(binOpExpr, codeGen, func, condIndex);
 	}
 
 	//Else use compare & jump instructions

@@ -34,6 +34,8 @@ public:
 
 	std::string asString() const override;
 
+	virtual void visit(VisitFn visitFn) const override;
+
 	virtual void generateSymbols(Binder& binder, std::shared_ptr<SymbolTable> symbolTable) override;
 
 	virtual void typeCheck(TypeChecker& checker) override;
@@ -60,6 +62,8 @@ public:
 
 	std::string asString() const override;
 
+	virtual void visit(VisitFn visitFn) const override;
+	
 	virtual void rewrite() override;
 	
 	virtual void generateSymbols(Binder& binder, std::shared_ptr<SymbolTable> symbolTable) override;

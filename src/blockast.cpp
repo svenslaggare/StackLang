@@ -40,18 +40,12 @@ void BlockAST::rewrite() {
 	}
 }
 
-std::shared_ptr<AbstractSyntaxTree> BlockAST::findAST(std::function<bool (std::shared_ptr<AbstractSyntaxTree> ast)> predicate) const {
+void BlockAST::visit(VisitFn visitFn) const {
 	for (auto statement : mStatements) {
-		if (predicate(statement)) {
-			return statement;
-		} else {
-			if (auto ast = statement->findAST(predicate)) {
-				return ast;
-			}
-		}
+		statement->visit(visitFn);
 	}
 
-	return nullptr;
+	visitFn(this);
 }
 
 void BlockAST::generateSymbols(Binder& binder, std::shared_ptr<SymbolTable> symbolTable) {

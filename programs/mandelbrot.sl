@@ -45,16 +45,6 @@ func mandel(Float realstart, Float imagstart, Float realmag, Float imagmag): Voi
 		imagstart, imagstart+imagmag*40.0, imagmag);
 }
 
-namespace std {
-	func println(Bool b): Void {
-		if (b) {
-			std::println(1);
-		} else {
-			std::println(0);
-		}
-	}
-}
-
 func main(): Int {
 	mandel(-2.3, -1.3, 0.05, 0.07);
 	return 0;

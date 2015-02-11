@@ -48,6 +48,14 @@ std::string FunctionPrototypeAST::asString() const {
 	return funcStr;
 }
 
+void FunctionPrototypeAST::visit(VisitFn visitFn) const {
+	for (auto param : mParameters) {
+		param->visit(visitFn);
+	}
+
+	visitFn(this);
+}
+
 void FunctionPrototypeAST::generateSymbols(Binder& binder, std::shared_ptr<SymbolTable> symbolTable) {
 	AbstractSyntaxTree::generateSymbols(binder, symbolTable);
 	
@@ -94,6 +102,12 @@ std::string FunctionAST::asString() const {
 	return funcStr;
 }
 
+void FunctionAST::visit(VisitFn visitFn) const {
+	mPrototype->visit(visitFn);
+	mBody->visit(visitFn);
+	visitFn(this);
+}
+
 void FunctionAST::rewrite() {
 	std::shared_ptr<AbstractSyntaxTree> newAST;
 
@@ -129,14 +143,9 @@ void FunctionAST::verify(SemanticVerifier& verifier) {
 	bool anyReturn = false;
 	auto returnType = checker.getType(mPrototype->returnType());
 
-	for (auto statement : mBody->statements()) {
-		auto returnStatement = std::dynamic_pointer_cast<ReturnStatementAST>(statement->findAST([] (std::shared_ptr<AbstractSyntaxTree> ast) {
-			return std::dynamic_pointer_cast<ReturnStatementAST>(ast) != nullptr;
-		}));
-
-		if (returnStatement == nullptr) {
-			returnStatement = std::dynamic_pointer_cast<ReturnStatementAST>(statement);
-		}
+	std::vector<const AbstractSyntaxTree*> returnStatements;
+	mBody->visit([&](const AbstractSyntaxTree* ast) {
+		auto returnStatement = dynamic_cast<const ReturnStatementAST*>(ast);
 
 		if (returnStatement != nullptr) {
 			anyReturn = true;
@@ -146,14 +155,20 @@ void FunctionAST::verify(SemanticVerifier& verifier) {
 					verifier.semanticError(returnStatement->asString() + ": Empty return only allowed in void functions.");
 				}
 
-				checker.assertSameType(*returnType, *returnStatement->returnExpression()->expressionType(checker), returnStatement->asString());
+				auto returnStatementType = returnStatement->returnExpression()->expressionType(checker);
+
+				checker.assertSameType(
+					*returnType,
+					*returnStatementType,
+					returnStatement->asString() + ": Expected type '" + returnType->name() + "' but got type '" + returnStatementType->name() + "' in return statement.",
+					true);
 			} else {
 				if (returnStatement->returnExpression() != nullptr) {
 					verifier.semanticError(returnStatement->asString() + ": Found expression after return in void function.");
 				}
 			}
 		}
-	}
+	});
 
 	if (returnType->name() != "Void" && !anyReturn) {
 		verifier.semanticError("Expected return statement in function '" + funcName + "'.");

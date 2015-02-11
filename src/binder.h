@@ -1,12 +1,10 @@
 #pragma once
-#include <map>
 #include <memory>
 #include <string>
 
-#include "symboltable.h"
-
 class ProgramAST;
 class TypeChecker;
+class SymbolTable;
 
 //Binds references
 class Binder {

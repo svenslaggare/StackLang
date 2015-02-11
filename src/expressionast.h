@@ -1,8 +1,8 @@
 #pragma once
+#include "ast.h"
+
 #include <memory>
 #include <string>
-
-#include "ast.h"
 
 class TypeChecker;
 class CodeGenerator;
@@ -22,6 +22,8 @@ public:
 
 	std::string asString() const override;
 
+	virtual void visit(VisitFn visitFn) const override;
+
 	virtual std::shared_ptr<Type> expressionType(const TypeChecker& checker) const override; 
 
 	virtual void generateCode(CodeGenerator& codeGen, GeneratedFunction& func) override;
@@ -39,6 +41,8 @@ public:
 	bool value() const;
 
 	std::string asString() const override;
+
+	virtual void visit(VisitFn visitFn) const override;
 
 	virtual std::shared_ptr<Type> expressionType(const TypeChecker& checker) const override; 
 
@@ -58,6 +62,8 @@ public:
 
 	std::string asString() const override;
 
+	virtual void visit(VisitFn visitFn) const override;
+
 	virtual std::shared_ptr<Type> expressionType(const TypeChecker& checker) const override; 
 
 	virtual void generateCode(CodeGenerator& codeGen, GeneratedFunction& func) override;
@@ -70,6 +76,8 @@ public:
 	NullRefExpressionAST();
 
 	std::string asString() const override;
+
+	virtual void visit(VisitFn visitFn) const override;
 
 	virtual std::shared_ptr<Type> expressionType(const TypeChecker& checker) const override; 
 
@@ -88,6 +96,8 @@ public:
 	std::string varName() const;
 
 	std::string asString() const override;
+
+	virtual void visit(VisitFn visitFn) const override;
 
 	virtual void generateSymbols(Binder& binder, std::shared_ptr<SymbolTable> symbolTable) override;
 
@@ -118,6 +128,8 @@ public:
 	virtual std::string type() const override;
 
 	std::string asString() const override;
+
+	virtual void visit(VisitFn visitFn) const override;
 
 	virtual void generateSymbols(Binder& binder, std::shared_ptr<SymbolTable> symbolTable) override;
 
@@ -161,6 +173,8 @@ public:
 
 	std::string asString() const override;
 
+	virtual void visit(VisitFn visitFn) const override;
+	
 	virtual void rewrite() override;
 	
 	virtual void generateSymbols(Binder& binder, std::shared_ptr<SymbolTable> symbolTable) override;

@@ -89,6 +89,10 @@ bool TypeChecker::assertTypeExists(std::string name, bool allowAuto) {
 		exists = false;
 	}
 
+	if (name == NullReferenceType().name()) {
+		exists = false;
+	}
+
 	if (!exists) {
 		typeError("There is no type named '" + name + "'.");
 		return false;
@@ -110,7 +114,7 @@ bool TypeChecker::assertNotVoid(const Type& type, std::string errorMessage) {
 	}
 }
 
-bool TypeChecker::assertSameType(const Type& expected, const Type& actual, std::string errorMessage) {
+bool TypeChecker::assertSameType(const Type& expected, const Type& actual, std::string errorMessage, bool customError) {
 	bool isSameType = expected == actual;
 
 	//Null type check
@@ -123,11 +127,14 @@ bool TypeChecker::assertSameType(const Type& expected, const Type& actual, std::
 	if (!isSameType) {
 		auto errorMsg = errorMessage;
 
-		if (errorMsg != "") {
-			errorMsg += ": ";
-		}
+		if (!customError) {
+			if (errorMsg != "") {
+				errorMsg += ": ";
+			}
 
-		errorMsg += "Expected type '" + expected.name() + "' but got type '" + actual.name() + "'.";
+			errorMsg += "Expected type '" + expected.name() + "' but got type '" + actual.name() + "'.";
+		}
+		
 		typeError(errorMsg);
 		return false;
 	}

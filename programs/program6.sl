@@ -32,6 +32,14 @@ namespace std {
 	}
 }
 
+func sum(Float[] array, Int i): Float {
+	if (i < array.length) {
+		return array[i] + sum(array, i + 1);
+	} else {
+		return 0.0;
+	}
+}
+
 func main(): Int {
 	var matrix = new Int[4, 4];
 

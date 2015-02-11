@@ -8,10 +8,6 @@ void AbstractSyntaxTree::generateSymbols(Binder& binder, std::shared_ptr<SymbolT
 	mSymbolTable = symbolTable;
 }
 
-std::shared_ptr<AbstractSyntaxTree> AbstractSyntaxTree::findAST(std::function<bool (std::shared_ptr<AbstractSyntaxTree> ast)> predicate) const {
-	return nullptr;
-}
-
 void AbstractSyntaxTree::rewrite() {
 
 }

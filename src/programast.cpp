@@ -16,7 +16,7 @@ const std::vector<std::shared_ptr<NamespaceDeclarationAST>>& ProgramAST::namespa
 	return mNamespaces;
 }
 
-void ProgramAST::visitFunctions(VisitFn visitFn, std::shared_ptr<NamespaceDeclarationAST> currentNamespace, std::string outerNamespaceName) const {
+void ProgramAST::visitFunctions(VisitFunctionsFn visitFn, std::shared_ptr<NamespaceDeclarationAST> currentNamespace, std::string outerNamespaceName) const {
 	for (auto currentMember : currentNamespace->members()) {
 		if (auto funcMember = std::dynamic_pointer_cast<FunctionAST>(currentMember)) {
 			auto funcName = outerNamespaceName != "" ? outerNamespaceName + "." +funcMember->prototype()->name() : funcMember->prototype()->name();
@@ -27,7 +27,7 @@ void ProgramAST::visitFunctions(VisitFn visitFn, std::shared_ptr<NamespaceDeclar
 	}
 }
 
-void ProgramAST::visitFunctions(VisitFn visitFn) const {
+void ProgramAST::visitFunctions(VisitFunctionsFn visitFn) const {
 	for (auto currentNamespace : mNamespaces) {
 		std::string name = "";
 
@@ -45,6 +45,14 @@ std::string ProgramAST::type() const {
 
 std::string ProgramAST::asString() const {
 	return AST::combineAST(mNamespaces, "\n\n");
+}
+
+void ProgramAST::visit(VisitFn visitFn) const {
+	for (auto currentNamespace : mNamespaces) {
+		currentNamespace->visit(visitFn);
+	}
+
+	visitFn(this);
 }
 
 void ProgramAST::rewrite() {
