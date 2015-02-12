@@ -20,9 +20,13 @@ void ExplicitConversion::applyConversion(CodeGenerator& codeGen, GeneratedFuncti
 	mConversionGenerator(codeGen, func);
 }
 
-TypeChecker::TypeChecker(const OperatorContainer& operators, std::map<std::string, std::shared_ptr<Type>> types)
-	: mOperators(operators), mTypes(types) {
+TypeChecker::TypeChecker(Binder& binder, const OperatorContainer& operators, std::map<std::string, std::shared_ptr<Type>> types)
+	: mBinder(binder), mOperators(operators), mTypes(types) {
 
+}
+
+Binder& TypeChecker::binder() {
+	return mBinder;
 }
 
 bool TypeChecker::tryMakeType(std::string name) {

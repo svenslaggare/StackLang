@@ -17,17 +17,17 @@ namespace std {
 		}
 
 		func max(Int[] array): Int {
-			var max = array[0];
+			var maxValue = array[0];
 
 			for (var i = 1; i < array.length; i += 1) {
 				var current = array[i];
-
-				if (current > max) {
-					max = current;
+			
+				if (current > maxValue) {
+					maxValue = current;
 				}
 			}
 
-			return max;
+			return maxValue;
 		}
 	}
 }
@@ -41,7 +41,7 @@ func sum(Float[] array, Int i): Float {
 }
 
 func main(): Int {
-	String str = "Hello, World!";
+	var str = "Hello, World!";
 	str[0] = 'F';
 	std::println(str);
 	return 0;

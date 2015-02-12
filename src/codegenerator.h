@@ -10,6 +10,7 @@ class FunctionPrototypeAST;
 class ProgramAST;
 class Type;
 class TypeChecker;
+class VariableSymbol;
 
 using Local = std::pair<int, std::shared_ptr<Type>>;
 
@@ -46,8 +47,14 @@ public:
 	//Creates a new local
 	int newLocal(std::string name, std::shared_ptr<Type> type);
 
+	//Creates a new local
+	int newLocal(std::shared_ptr<VariableSymbol> symbol, std::shared_ptr<Type> type);
+
 	//Returns the given local
 	Local getLocal(std::string name) const;
+
+	//Returns the local that the given symbols refers to
+	Local getLocal(std::shared_ptr<VariableSymbol> symbol) const;
 
 	//Returns the index for the given function parameter
 	int functionParameterIndex(std::string paramName) const;

@@ -164,9 +164,8 @@ void BinaryOpExpressionAST::typeCheck(TypeChecker& checker) {
 				lhsVarDec->isFunctionParameter());
 
 			//Update the symbol
-			mSymbolTable->set(
-				lhsVarDec->varName(),
-				std::make_shared<VariableSymbol>(lhsVarDec->varName(), rhsType->name(), lhsVarDec->isFunctionParameter()));
+			mSymbolTable->remove(lhsVarDec->varName());
+			mLeftHandSide->generateSymbols(checker.binder(), mSymbolTable);
 		} else {
 			//Should never happen
 			checker.typeError("Auto type is only allowed in variable declaration.");
@@ -255,14 +254,17 @@ void BinaryOpExpressionAST::generateCode(CodeGenerator& codeGen, GeneratedFuncti
 		func.addInstruction("DIV");
 	} else if (mOp == Operator('=')) {
 		if (auto varDec = std::dynamic_pointer_cast<VariableDeclarationExpressionAST>(mLeftHandSide)) {
+			auto varRefSymbol = std::dynamic_pointer_cast<VariableSymbol>(mSymbolTable->find(varDec->varName()));
 			generateSidesCode(codeGen, func);
-			func.addInstruction("STLOC " + std::to_string(func.getLocal(varDec->varName()).first));
+			//func.addInstruction("STLOC " + std::to_string(func.getLocal(varDec->varName()).first));
+			func.addInstruction("STLOC " + std::to_string(func.getLocal(varRefSymbol).first));
 		} else if (auto varRef = std::dynamic_pointer_cast<VariableReferenceExpressionAST>(mLeftHandSide)) {
 			mRightHandSide->generateCode(codeGen, func);
 			auto varRefSymbol = std::dynamic_pointer_cast<VariableSymbol>(mSymbolTable->find(varRef->varName()));
 
 			if (!varRefSymbol->isFunctionParameter()) {
-				func.addInstruction("STLOC " + std::to_string(func.getLocal(varRef->varName()).first));
+				//func.addInstruction("STLOC " + std::to_string(func.getLocal(varRef->varName()).first));
+				func.addInstruction("STLOC " + std::to_string(func.getLocal(varRefSymbol).first));
 			}
 		}
 	} else if(mOp == Operator('=', '=')) {

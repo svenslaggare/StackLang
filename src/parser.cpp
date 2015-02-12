@@ -593,6 +593,11 @@ std::shared_ptr<StatementAST> Parser::parseStatement() {
 	case TokenType::For:
 		statement = parseForLoopStatement();
 		break;
+	case TokenType::SingleChar:
+		if (isSingleCharToken('{')) {
+			statement = parseBlock();
+			break;
+		}
 	default:
 		//Simple statement, one expression.
 		auto expr = parseExpression(true);

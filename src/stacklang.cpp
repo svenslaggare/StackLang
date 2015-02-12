@@ -62,7 +62,7 @@ int main(int argc, char* argv[]) {
 	//std::cout << *programAST << std::endl;
 
 	Binder binder;
-	TypeChecker typeChecker(operators, defaultTypes);
+	TypeChecker typeChecker(binder, operators, defaultTypes);
 	SemanticVerifier verifier(binder, typeChecker);
 	CodeGenerator codeGenerator(typeChecker);
 
@@ -73,10 +73,12 @@ int main(int argc, char* argv[]) {
 
 	StackLang::Builtin::add(binder, typeChecker);
 	binder.generateSymbolTable(programAST);
+	//std::cout << "Generated symbol table." << std::endl;
 
 	programAST->typeCheck(typeChecker);
 	programAST->verify(verifier);
 
+	//std::cout << "Typechecked and verfied." << std::endl;
 	codeGenerator.generateProgram(programAST);
 	codeGenerator.printGeneratedCode();
 }

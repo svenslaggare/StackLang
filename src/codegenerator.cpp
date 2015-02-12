@@ -4,6 +4,7 @@
 #include "expressionast.h"
 #include "type.h"
 #include "typechecker.h"
+#include "symbol.h"
 
 #include <stdexcept>
 
@@ -43,8 +44,20 @@ int GeneratedFunction::newLocal(std::string name, std::shared_ptr<Type> type) {
 	return index;
 }
 
+int GeneratedFunction::newLocal(std::shared_ptr<VariableSymbol> symbol, std::shared_ptr<Type> type) {
+	return newLocal("$" + symbol->scopeName() + "$_" + symbol->name(), type);
+}
+
 Local GeneratedFunction::getLocal(std::string name) const {
-	return mLocals.at(name);
+	if (mLocals.count(name) > 0) {
+		return mLocals.at(name);
+	} else {
+		throw std::out_of_range("The local '" + name + "' is not defined.");
+	}
+}
+
+Local GeneratedFunction::getLocal(std::shared_ptr<VariableSymbol> symbol) const {
+	return getLocal("$" + symbol->scopeName() + "$_" + symbol->name());
 }
 
 int GeneratedFunction::functionParameterIndex(std::string paramName) const {

@@ -9,6 +9,7 @@ class Type;
 class ProgramAST;
 class OperatorContainer;
 
+class Binder;
 class CodeGenerator;
 class GeneratedFunction;
 
@@ -37,6 +38,8 @@ public:
 //Represents a type checker
 class TypeChecker {
 private:
+	Binder& mBinder;
+
 	std::map<std::string, std::shared_ptr<Type>> mTypes;
 	const OperatorContainer& mOperators;
 	std::multimap<std::shared_ptr<Type>, ExplicitConversion> mExplicitConversions;
@@ -46,7 +49,10 @@ private:
 	bool tryMakeType(std::string name);
 public:
 	//Creates a new type checker
-	TypeChecker(const OperatorContainer& operators, std::map<std::string, std::shared_ptr<Type>> types);
+	TypeChecker(Binder& binder, const OperatorContainer& operators, std::map<std::string, std::shared_ptr<Type>> types);
+
+	//Returns the binder
+	Binder& binder();
 
 	//Returns the defined operators
 	const OperatorContainer& operators() const;

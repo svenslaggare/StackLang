@@ -16,11 +16,13 @@ std::string Symbol::type() const {
 	return mType;
 }
 
+std::string Symbol::scopeName() const {
+	return mScopeName;
+}
+
 std::string Symbol::asString() const {
 	return "(" + mName + ", " + mType + ")";
 }
-
-#include <iostream>
 
 //Variable
 VariableSymbol::VariableSymbol(std::string name, std::string variableType, bool isFunctionParameter)

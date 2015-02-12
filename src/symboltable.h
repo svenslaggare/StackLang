@@ -12,12 +12,17 @@ class VariableSymbol;
 //Represents a symbol table;
 class SymbolTable {
 private:
+	int mScopesCreated = 0;
+	std::string mScopeName;
 	std::string mName = "";
 	std::shared_ptr<SymbolTable> mOuter;
 	std::map<std::string, std::shared_ptr<Symbol>> mInner;
 public:
 	//Creates a new symbol table
 	SymbolTable(std::shared_ptr<SymbolTable> outer = nullptr, std::string name = "");
+
+	//Returns the name of the scope
+	std::string scopeName() const;
 
 	//Returns the name of the table
 	std::string name() const;
@@ -39,6 +44,9 @@ public:
 
 	//Updates the given symbol.
 	void set(std::string name, std::shared_ptr<Symbol> symbol);
+
+	//Removes the given symbol
+	void remove(std::string name);
 
 	//Returns the entries in the inner table
 	const std::map<std::string, std::shared_ptr<Symbol>>& inner() const;

@@ -3,11 +3,14 @@
 #include <memory>
 #include <vector>
 
+class SymbolTable;
+
 //Represents a symbol
 class Symbol {
 private:
 	std::string mName;
 	std::string mType;
+	std::string mScopeName;
 public:
 	//Creates a new symbol of the given type
 	Symbol(std::string name, std::string type);
@@ -18,8 +21,13 @@ public:
 	//Returns the type of the symbol
 	std::string type() const;
 
+	//The name of the scope that the symbol is defined in
+	std::string scopeName() const;
+
 	//Returns the symbol as a string
 	virtual std::string asString() const;
+
+	friend class SymbolTable;
 };
 
 //Represents a variable symbol
@@ -77,8 +85,6 @@ public:
 	//Tries to find an overload with the given signature
 	std::shared_ptr<FunctionSignatureSymbol> findOverload(std::vector<std::string> parameterTypes) const;
 };
-
-class SymbolTable;
 
 //Represents a namespace symbol
 class NamespaceSymbol : public Symbol {

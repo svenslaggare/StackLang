@@ -4,7 +4,14 @@
 
 SymbolTable::SymbolTable(std::shared_ptr<SymbolTable> outer, std::string name)
 	: mName(name), mOuter(outer) {
+	if (outer != nullptr) {
+		mScopeName = outer->mScopeName + "-" + std::to_string(outer->mScopesCreated);
+		outer->mScopesCreated++;
+	}
+}
 
+std::string SymbolTable::scopeName() const {
+	return mScopeName;
 }
 
 std::string SymbolTable::name() const {
@@ -13,6 +20,7 @@ std::string SymbolTable::name() const {
 
 bool SymbolTable::add(std::string name, std::shared_ptr<Symbol> symbol) {
 	if (mInner.count(name) == 0) {
+		symbol->mScopeName = mScopeName;
 		mInner.insert({ name, symbol });
 		return true;
 	}
@@ -70,8 +78,15 @@ std::shared_ptr<Symbol> SymbolTable::find(std::string name) const {
 
 void SymbolTable::set(std::string name, std::shared_ptr<Symbol> symbol) {
 	if (mInner.count(name) > 0) {
+		symbol->mScopeName = mScopeName;
 		mInner[name] = symbol;
+	} else {
+		throw std::out_of_range("The symbol '" + name + "' is not defined.");
 	}
+}
+
+void SymbolTable::remove(std::string name) {
+	mInner.erase(name);
 }
 
 const std::map<std::string, std::shared_ptr<Symbol>>& SymbolTable::inner() const {

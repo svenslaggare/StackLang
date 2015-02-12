@@ -224,12 +224,14 @@ std::shared_ptr<Type> VariableReferenceExpressionAST::expressionType(const TypeC
 }
 
 void VariableReferenceExpressionAST::generateCode(CodeGenerator& codeGen, GeneratedFunction& func) {
-	bool isFuncParam = std::dynamic_pointer_cast<VariableSymbol>(mSymbolTable->find(varName()))->isFunctionParameter();
+	auto varRefSymbol = std::dynamic_pointer_cast<VariableSymbol>(mSymbolTable->find(varName()));
+	bool isFuncParam = varRefSymbol->isFunctionParameter();
 
 	if (isFuncParam) {
 		func.addInstruction("LDARG " + std::to_string(func.functionParameterIndex(mVarName)));
 	} else {
-		func.addInstruction("LDLOC " + std::to_string(func.getLocal(mVarName).first));
+		//func.addInstruction("LDLOC " + std::to_string(func.getLocal(mVarName).first));
+		func.addInstruction("LDLOC " + std::to_string(func.getLocal(varRefSymbol).first));
 	}
 }
 
@@ -266,9 +268,11 @@ void VariableDeclarationExpressionAST::visit(VisitFn visitFn) const {
 void VariableDeclarationExpressionAST::generateSymbols(Binder& binder, std::shared_ptr<SymbolTable> symbolTable) {
 	AbstractSyntaxTree::generateSymbols(binder, symbolTable);
 
-	if (!symbolTable->add(varName(), std::make_shared<VariableSymbol>(varName(), varType(), mIsFunctionParameter))) {
-		binder.error("The symbol '" + varName() + "' is already defined.");
+	if (symbolTable->find(varName()) != nullptr) {
+		binder.error("The symbol '" + varName() + "' is already defined.");	
 	}
+
+	symbolTable->add(varName(), std::make_shared<VariableSymbol>(varName(), varType(), mIsFunctionParameter));
 }
 
 void VariableDeclarationExpressionAST::typeCheck(TypeChecker& checker) {
@@ -281,7 +285,9 @@ std::shared_ptr<Type> VariableDeclarationExpressionAST::expressionType(const Typ
 
 void VariableDeclarationExpressionAST::generateCode(CodeGenerator& codeGen, GeneratedFunction& func) {
 	if (!mIsFunctionParameter) {
-		func.newLocal(mVarName, codeGen.typeChecker().findType(mVarType));
+		auto varRefSymbol = std::dynamic_pointer_cast<VariableSymbol>(mSymbolTable->find(mVarName));
+		//func.newLocal(mVarName, codeGen.typeChecker().findType(mVarType));
+		func.newLocal(varRefSymbol, codeGen.typeChecker().findType(mVarType));
 	}
 }
 
