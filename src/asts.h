@@ -8,3 +8,4 @@
 #include "arrayast.h"
 #include "objectast.h"
 #include "namespaceast.h"
+#include "classast.h"

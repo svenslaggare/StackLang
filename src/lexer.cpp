@@ -34,6 +34,10 @@ std::string Token::asString() const {
 			return "true";
 		case TokenType::False:
 			return "false";
+		case TokenType::String:
+			return "\"" + strValue + "\"";
+		case TokenType::Char:
+			return "'" + std::to_string(charValue) + "'";
 		case TokenType::If:
 			return "if";
 		case TokenType::Else:
@@ -53,11 +57,9 @@ std::string Token::asString() const {
 		case TokenType::Namespace:
 			return "namespace";	
 		case TokenType::Cast:
-			return "cast";	
-		case TokenType::String:
-			return "\"" + strValue + "\"";
-		case TokenType::Char:
-			return "'" + std::to_string(charValue) + "'";
+			return "cast";
+		case TokenType::Class:
+			return "class";	
 		case TokenType::EndOfFile:
 			return "EOF";
 	} 
@@ -143,6 +145,8 @@ std::vector<Token> Lexer::tokenize(std::istream& stream) const {
 					tokens.push_back(Token(TokenType::Namespace));
 				} else if (identStr == "cast") {
 					tokens.push_back(Token(TokenType::Cast));
+				} else if (identStr == "class") {
+					tokens.push_back(Token(TokenType::Class));
 				} else {
 					auto newToken = Token(TokenType::Identifier);
 					newToken.strValue = identStr;

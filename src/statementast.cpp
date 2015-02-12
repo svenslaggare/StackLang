@@ -1,4 +1,5 @@
 #include "statementast.h"
+#include "expressionast.h"
 #include "blockast.h"
 #include "operatorast.h"
 #include "typechecker.h"
@@ -53,7 +54,10 @@ void ExpressionStatementAST::generateCode(CodeGenerator& codeGen, GeneratedFunct
 
 	//If the return type is not void, pop the top value
 	if (mExpression->expressionType(codeGen.typeChecker())->name() != "Void") {
-		func.addInstruction("POP");
+		//As a declaration don't generate any code, don't pop.
+		if (std::dynamic_pointer_cast<VariableDeclarationExpressionAST>(mExpression) == nullptr) {
+			func.addInstruction("POP");
+		}
 	}
 }
 

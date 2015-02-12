@@ -12,6 +12,7 @@ class BlockAST;
 class StatementAST;
 class ExpressionAST;
 class NamespaceDeclarationAST;
+class ClassDefinitionAST;
 
 //Represents a parser
 class Parser {
@@ -107,6 +108,9 @@ private:
 
 	//Parses a function definition
 	std::shared_ptr<FunctionAST> parseFunctionDef();
+
+	//Parses a class definition
+	std::shared_ptr<ClassDefinitionAST> parseClassDef();
 
 	//Parses a namespace declaration
 	std::shared_ptr<NamespaceDeclarationAST> parseNamespaceDef();

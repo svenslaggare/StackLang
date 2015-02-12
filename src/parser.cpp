@@ -697,6 +697,57 @@ std::shared_ptr<FunctionAST> Parser::parseFunctionDef() {
 	return std::make_shared<FunctionAST>(std::make_shared<FunctionPrototypeAST>(name, arguments, returnType), body);
 }
 
+std::shared_ptr<ClassDefinitionAST> Parser::parseClassDef() {
+	//Eat the 'class'
+	nextToken();
+
+	if (currentToken.type() != TokenType::Identifier) {
+		compileError("Expected identifier.");
+	}
+
+	auto className = currentToken.strValue;
+	nextToken(); //Eat the name
+
+	if (currentTokenAsChar() != '{')  {
+		compileError("Expected '{' after class name.");
+	}
+
+	nextToken(); //Eat the '{'
+
+	//Parse the members
+	std::vector<std::shared_ptr<VariableDeclarationExpressionAST>> fields;
+	std::vector<std::shared_ptr<FunctionAST>> functions;
+
+	while (true) {
+		if (currentToken.type() == TokenType::Func) {
+			functions.push_back(parseFunctionDef());
+			nextToken();
+		} else if (!isSingleCharToken('}')) {
+			auto typeName = parseTypeName();
+
+			if (currentToken.type() != TokenType::Identifier) {
+				compileError("Expected identifier after field type.");
+			}
+
+			auto fieldName = currentToken.strValue;
+			nextToken(); //Eat the field name
+
+			if (!isSingleCharToken(';')) {
+				compileError("Expected ';' after field definition.");
+			}
+
+			nextToken(); //Eat the ';'
+			fields.push_back(std::make_shared<VariableDeclarationExpressionAST>(typeName, fieldName));
+		}
+
+		if (isSingleCharToken('}')) {
+			break;
+		}
+	}
+
+	return std::make_shared<ClassDefinitionAST>(className, fields, functions);
+}
+
 std::shared_ptr<NamespaceDeclarationAST> Parser::parseNamespaceDef() {
 	//Eat the 'namespace'
 	nextToken();
@@ -741,7 +792,7 @@ std::shared_ptr<ProgramAST> Parser::parse() {
 	nextToken();
 	std::vector<std::shared_ptr<AbstractSyntaxTree>> globalMembers;
 	std::vector<std::shared_ptr<NamespaceDeclarationAST>> namespaces;
-
+	
 	while (true) {
 		switch (currentToken.type()) {
 			case TokenType::EndOfFile:
@@ -756,6 +807,10 @@ std::shared_ptr<ProgramAST> Parser::parse() {
 				break;
 			case TokenType::Func:
 				globalMembers.push_back(parseFunctionDef());
+				nextToken();
+				break;
+			case TokenType::Class:
+				globalMembers.push_back(parseClassDef());
 				nextToken();
 				break;
 			default:
