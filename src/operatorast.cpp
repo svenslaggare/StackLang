@@ -7,7 +7,7 @@
 #include "expressionast.h"
 #include "arrayast.h"
 #include "objectast.h"
-#include "objectast.h"
+#include "namespaceast.h"
 #include "symbol.h"
 #include "semantics.h"
 
