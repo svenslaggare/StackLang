@@ -25,6 +25,11 @@ Object::Object(std::string name, std::shared_ptr<Type> type, std::unordered_map<
 
 }
 
+Object::Object()
+	: mName(""), mType(nullptr), mFields({}) {
+
+}
+
 std::string Object::name() const {
 	return mName;
 }

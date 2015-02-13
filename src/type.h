@@ -79,6 +79,15 @@ public:
 	virtual std::string vmType() const override;
 };
 
+//Represents a class type
+class ClassType : public ReferenceType {
+public:
+	//Creates a new class type of the given name
+	ClassType(std::string name);
+
+	virtual std::string vmType() const override;
+};
+
 namespace TypeSystem {
 	//Returns the default types
 	std::map<std::string, std::shared_ptr<Type>> defaultTypes();

@@ -133,7 +133,7 @@ public:
 	//Creates a new variable reference expression
 	VariableReferenceExpressionAST(std::string varName);
 
-	//Returns the name of the varaible
+	//Returns the name of the variable
 	std::string varName() const;
 
 	std::string asString() const override;
@@ -157,10 +157,10 @@ public:
 	//Creates a new variable declaration expression
 	VariableDeclarationExpressionAST(std::string varType, std::string varName, bool isFunctionParameter = false);
 
-	//Returns the type of the varaible
+	//Returns the type of the variable
 	std::string varType() const;
 
-	//Returns the name of the varaible
+	//Returns the name of the variable
 	std::string varName() const;
 
 	//Indicates if the decleration is of a function parameter

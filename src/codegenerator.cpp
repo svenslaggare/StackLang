@@ -1,5 +1,6 @@
 #include "codegenerator.h"
 #include "functionast.h"
+#include "classast.h"
 #include "programast.h"
 #include "expressionast.h"
 #include "type.h"
@@ -150,6 +151,32 @@ void GeneratedFunction::outputGeneratedCode(std::ostream& os) {
 	os << std::endl << "}" << std::endl;
 }
 
+//Generated class
+GeneratedClass::GeneratedClass(const Object& objectLayout)
+	: mObjectLayout(objectLayout) {
+
+}
+
+GeneratedClass::GeneratedClass() {
+
+}
+
+const Object& GeneratedClass::objectLayout() const {
+	return mObjectLayout;
+}
+
+void GeneratedClass::outputGeneratedCode(std::ostream& os) {
+	os << "struct " << mObjectLayout.name() << std::endl;
+	os << "{" << std::endl;
+
+	for (auto fieldDef : mObjectLayout.fields()) {
+		auto field = fieldDef.second;
+		os << "   " << field.name() << " " << field.type()->vmType() << std::endl;
+	}
+
+	os << "}" << std::endl;
+}
+
 //Code generator
 CodeGenerator::CodeGenerator(const TypeChecker& typeChecker)
 	: mTypeChecker(typeChecker) {
@@ -159,8 +186,12 @@ CodeGenerator::CodeGenerator(const TypeChecker& typeChecker)
 const TypeChecker& CodeGenerator::typeChecker() const {
 	return mTypeChecker;
 }
-
+	
 void CodeGenerator::generateProgram(std::shared_ptr<ProgramAST> programAST) {
+	programAST->visitClasses([&](std::shared_ptr<ClassDefinitionAST> classDef) {
+		mClasses.push_back(mTypeChecker.getObject(classDef->name()));
+	});
+
 	programAST->visitFunctions([&](std::shared_ptr<FunctionAST> func) {
 		auto& genFunc = newFunction(func->prototype());
 		func->generateCode(*this, genFunc);
@@ -186,6 +217,17 @@ GeneratedFunction& CodeGenerator::newFunction(std::shared_ptr<FunctionPrototypeA
 
 void CodeGenerator::printGeneratedCode() {
 	bool isFirst = true;
+
+	for (auto classDef : mClasses) {
+		if (!isFirst) {
+			std::cout << std::endl;
+		} else {
+			isFirst = false;
+		}
+
+		classDef.outputGeneratedCode(std::cout);
+	}
+
 	for (auto func : mFunctions) {
 		if (!isFirst) {
 			std::cout << std::endl;

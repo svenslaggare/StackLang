@@ -1,4 +1,6 @@
 #pragma once
+#include "object.h"
+
 #include <map>
 #include <vector>
 #include <string>
@@ -81,9 +83,26 @@ public:
 	void outputGeneratedCode(std::ostream& os);
 };
 
+//Represents a generated class
+class GeneratedClass {
+private:
+	Object mObjectLayout;
+public:
+	//Creates a new generated class
+	GeneratedClass(const Object& objectLayout);
+	GeneratedClass();
+
+	//Returns the object layout
+	const Object& objectLayout() const;
+
+	//Ouputs the generated class to the given stream
+	void outputGeneratedCode(std::ostream& os);
+};
+
 //Represents a code generator
 class CodeGenerator {
 private:
+	std::vector<GeneratedClass> mClasses;
 	std::vector<GeneratedFunction> mFunctions;
 	const TypeChecker& mTypeChecker;
 public:

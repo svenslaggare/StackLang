@@ -2,6 +2,7 @@
 #include "namespaceast.h"
 #include "expressionast.h"
 #include "functionast.h"
+#include "classast.h"
 #include "symboltable.h"
 #include "binder.h"
 #include "symbol.h"
@@ -29,6 +30,22 @@ void ProgramAST::visitFunctions(VisitFunctionsFn visitFn, std::shared_ptr<Namesp
 void ProgramAST::visitFunctions(VisitFunctionsFn visitFn) const {
 	for (auto currentNamespace : mNamespaces) {
 		visitFunctions(visitFn, currentNamespace);
+	}
+}
+
+void ProgramAST::visitClasses(VisitClassesFn visitFn, std::shared_ptr<NamespaceDeclarationAST> currentNamespace) const {
+	for (auto currentMember : currentNamespace->members()) {
+		if (auto classMember = std::dynamic_pointer_cast<ClassDefinitionAST>(currentMember)) {
+			visitFn(classMember);
+		} else if (auto namespaceMember = std::dynamic_pointer_cast<NamespaceDeclarationAST>(currentMember)) {
+			visitClasses(visitFn, namespaceMember);
+		}
+	}
+}
+
+void ProgramAST::visitClasses(VisitClassesFn visitFn) const {
+	for (auto currentNamespace : mNamespaces) {
+		visitClasses(visitFn, currentNamespace);
 	}
 }
 

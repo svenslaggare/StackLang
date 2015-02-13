@@ -303,7 +303,7 @@ std::shared_ptr<ExpressionAST> Parser::parseIdentifierExpression(bool allowDecla
 	return std::make_shared<CallExpressionAST>(CallExpressionAST(identifier, arguments));
 }
 
-std::shared_ptr<ExpressionAST> Parser::parseArrayDeclaration() {
+std::shared_ptr<ExpressionAST> Parser::parseNewExpression() {
 	//Eat the 'new'
 	nextToken();
 
@@ -312,11 +312,53 @@ std::shared_ptr<ExpressionAST> Parser::parseArrayDeclaration() {
 		compileError("Expected identifier.");
 	}
 
-	auto elementTypeName = currentToken.strValue;
-	nextToken(); //Eat the identifier
+	auto typeName = currentToken.strValue;
+	nextToken(); //Eat the type name
 
-	assertCurrentTokenAsChar('[', "Expected '['.");
-	nextToken(); //Eat the ']'
+	if (isSingleCharToken('[')) {
+		return parseNewArrayExpression(typeName);
+	} else if (isSingleCharToken('(')) {
+		return parseNewObjectExpression(typeName);
+	} else {
+		compileError("Expected '[' or ')'.");
+		return nullptr;
+	}
+}
+
+std::shared_ptr<ExpressionAST> Parser::parseNewObjectExpression(std::string typeName) {
+	nextToken(); //Eat the '('
+	std::vector<std::shared_ptr<ExpressionAST>> constructorArguments;
+
+	if (!(currentToken.type() == TokenType::SingleChar && currentToken.charValue == ')')) {
+		while (true) {
+			auto arg = parseExpression();
+
+			if (arg == nullptr) {
+				return arg;
+			}
+
+			constructorArguments.push_back(arg);
+
+			if (isSingleCharToken(')')) {
+				break;
+			}
+
+			if (!isSingleCharToken(',')) {
+				compileError("Expected ',' or ')' in argument list.");
+			}
+
+			nextToken();
+		}
+	}
+
+	//Eat the ')'
+	nextToken();
+
+	return std::make_shared<NewClassExpressionAST>(typeName, constructorArguments);
+}
+
+std::shared_ptr<ExpressionAST> Parser::parseNewArrayExpression(std::string elementTypeName) {
+	nextToken(); //Eat the '['
 	
 	// //Get the length expression
 	// auto lengthExpression = parseExpression();
@@ -406,7 +448,7 @@ std::shared_ptr<ExpressionAST> Parser::parsePrimaryExpression(bool allowDeclarat
 		}
 		break;
 	case TokenType::New:
-		return parseArrayDeclaration();
+		return parseNewExpression();
 	case TokenType::Cast:
 		return parseCastExpression();
 	default:
@@ -715,7 +757,7 @@ std::shared_ptr<ClassDefinitionAST> Parser::parseClassDef() {
 	nextToken(); //Eat the '{'
 
 	//Parse the members
-	std::vector<std::shared_ptr<VariableDeclarationExpressionAST>> fields;
+	std::vector<std::shared_ptr<FieldDeclarationExpressionAST>> fields;
 	std::vector<std::shared_ptr<FunctionAST>> functions;
 
 	while (true) {
@@ -737,7 +779,7 @@ std::shared_ptr<ClassDefinitionAST> Parser::parseClassDef() {
 			}
 
 			nextToken(); //Eat the ';'
-			fields.push_back(std::make_shared<VariableDeclarationExpressionAST>(typeName, fieldName));
+			fields.push_back(std::make_shared<FieldDeclarationExpressionAST>(typeName, fieldName));
 		}
 
 		if (isSingleCharToken('}')) {

@@ -76,8 +76,14 @@ private:
 	//Parses a parenthesis expression
 	std::shared_ptr<ExpressionAST> parseParenthesisExpression();
 
-	//Parses an array declaration
-	std::shared_ptr<ExpressionAST> parseArrayDeclaration();
+	//Parses a new expression
+	std::shared_ptr<ExpressionAST> parseNewExpression();
+
+	//Parses a new object expression
+	std::shared_ptr<ExpressionAST> parseNewObjectExpression(std::string typeName);
+
+	//Parses a new array expression
+	std::shared_ptr<ExpressionAST> parseNewArrayExpression(std::string elementTypeName);
 
 	//Parses a primary expression
 	std::shared_ptr<ExpressionAST> parsePrimaryExpression(bool allowDeclaration = false);

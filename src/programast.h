@@ -11,8 +11,10 @@ class SymbolTable;
 class TypeChecker;
 class NamespaceDeclarationAST;
 class FunctionAST;
+class ClassDefinitionAST;
 
 using VisitFunctionsFn = std::function<void(std::shared_ptr<FunctionAST>)>;
+using VisitClassesFn = std::function<void(std::shared_ptr<ClassDefinitionAST>)>;
 
 //Represents a program AST
 class ProgramAST : public AbstractSyntaxTree {
@@ -21,6 +23,9 @@ private:
 
 	//Visits all the functions in given namespace
 	void visitFunctions(VisitFunctionsFn visitFn, std::shared_ptr<NamespaceDeclarationAST> currentNamespace) const;
+
+	//Visits all the classes in the given namespace
+	void visitClasses(VisitClassesFn visitFn, std::shared_ptr<NamespaceDeclarationAST> currentNamespace) const;
 public:
 	ProgramAST(const std::vector<std::shared_ptr<NamespaceDeclarationAST>>& namespaces);
 
@@ -29,6 +34,9 @@ public:
 
 	//Visits all the functions in the program
 	void visitFunctions(VisitFunctionsFn visitFn) const;
+
+	//Visits all the classes in the program
+	void visitClasses(VisitClassesFn visitFn) const;
 
 	virtual std::string type() const override;
 

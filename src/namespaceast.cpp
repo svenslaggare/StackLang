@@ -1,6 +1,7 @@
 #include "namespaceast.h"
 #include "functionast.h"
 #include "expressionast.h"
+#include "classast.h"
 #include "symboltable.h"
 #include "symbol.h"
 #include "binder.h"
@@ -42,7 +43,11 @@ void NamespaceDeclarationAST::visit(VisitFn visitFn) const {
 void NamespaceDeclarationAST::rewrite() {
 	for (auto& member : mMembers) {
 		std::shared_ptr<AbstractSyntaxTree> newAST;
-		member->rewriteAST(newAST);
+		
+		if (member->rewriteAST(newAST)) {
+			member = newAST;
+		}
+
 		member->rewrite();
 	}
 }
@@ -71,6 +76,7 @@ void NamespaceDeclarationAST::generateSymbols(Binder& binder, std::shared_ptr<Sy
 
 	for (auto member : mMembers) {
 		if (auto func = std::dynamic_pointer_cast<FunctionAST>(member)) {
+			//Declare functions
 			auto funcName = func->prototype()->name();
 			std::vector<VariableSymbol> parameters;
 
@@ -101,6 +107,13 @@ void NamespaceDeclarationAST::generateSymbols(Binder& binder, std::shared_ptr<Sy
 }
 
 void NamespaceDeclarationAST::typeCheck(TypeChecker& checker) {
+	//Define classes
+	for (auto member : mMembers) {
+		 if (auto classDef = std::dynamic_pointer_cast<ClassDefinitionAST>(member)) {
+			classDef->addClassDefinition(checker);
+		}
+	}
+
 	for (auto member : mMembers) {
 		member->typeCheck(checker);
 	}

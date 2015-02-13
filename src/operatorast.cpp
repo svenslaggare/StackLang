@@ -7,6 +7,7 @@
 #include "expressionast.h"
 #include "arrayast.h"
 #include "objectast.h"
+#include "objectast.h"
 #include "symbol.h"
 #include "semantics.h"
 
@@ -112,6 +113,17 @@ bool BinaryOpExpressionAST::rewriteAST(std::shared_ptr<AbstractSyntaxTree>& newA
 		newAST = std::make_shared<ArraySetElementAST>(
 			arraySetElem->arrayRefExpression(),
 			arraySetElem->accessExpression(),
+			mRightHandSide);
+
+		return true;
+	}
+
+	auto setFieldvalue = std::dynamic_pointer_cast<MemberAccessAST>(mLeftHandSide);
+
+	if (setFieldvalue != nullptr && mOp == Operator('=')) {
+		newAST = std::make_shared<SetFieldValueAST>(
+			setFieldvalue->accessExpression(),
+			setFieldvalue->memberExpression(),
 			mRightHandSide);
 
 		return true;

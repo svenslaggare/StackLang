@@ -1,6 +1,7 @@
 #include "type.h"
 #include <regex>
 
+//Type
 Type::Type(std::string name, bool isReferenceType)
 	: mName(name), mIsReferenceType(isReferenceType) {
 
@@ -26,11 +27,13 @@ std::string Type::vmType() const {
 	return name();
 }
 
+//Auto
 AutoType::AutoType()
 	: Type("Auto") {
 
 }
 
+//Primitive
 PrimitiveType::PrimitiveType(PrimitiveTypes type)
 	: Type(TypeSystem::toString(type)) {
 
@@ -41,6 +44,7 @@ ReferenceType::ReferenceType(std::string name)
 
 }
 
+//Null type
 NullReferenceType::NullReferenceType()
 	: ReferenceType("NullRef") {
 
@@ -50,6 +54,7 @@ std::string NullReferenceType::vmType() const {
 	return "Ref.Null";
 }
 
+//Array type
 ArrayType::ArrayType(std::shared_ptr<Type> elementType)
 	: ReferenceType(elementType->name() + "[]"), mElementType(elementType) {
 
@@ -62,6 +67,17 @@ std::shared_ptr<Type> ArrayType::elementType() const {
 std::string ArrayType::vmType() const {
 	return "Ref.Array[" + elementType()->vmType() + "]";
 }
+
+//Class type
+ClassType::ClassType(std::string name)
+	: ReferenceType(name) {
+
+}
+
+std::string ClassType::vmType() const {
+	return "Ref.Struct." + name();
+}
+
 
 std::map<std::string, std::shared_ptr<Type>> TypeSystem::defaultTypes() {
 	auto intType = std::make_shared<PrimitiveType>(PrimitiveTypes::Int);

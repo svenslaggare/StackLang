@@ -31,7 +31,8 @@ private:
 public:
 	//Creates a new object
 	Object(std::string name, std::shared_ptr<Type> type, std::unordered_map<std::string, Field> fields);
-
+	Object();
+	
 	//Returns the name
 	std::string name() const;
 
