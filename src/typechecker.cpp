@@ -1,6 +1,6 @@
 #include "typechecker.h"
 #include "type.h"
-#include "programast.h"
+#include "ast/programast.h"
 #include <stdexcept>
 
 ExplicitConversion::ExplicitConversion(std::shared_ptr<Type> fromType, std::shared_ptr<Type> toType, ExplicitConversionFunction conversionGenerator)

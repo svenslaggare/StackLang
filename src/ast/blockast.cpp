@@ -1,5 +1,5 @@
 #include "blockast.h"
-#include "symboltable.h"
+#include "../symboltable.h"
 
 BlockAST::BlockAST(const std::vector<std::shared_ptr<StatementAST>>& statements)
 	: mStatements(statements) {

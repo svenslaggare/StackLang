@@ -2,10 +2,10 @@
 #include "functionast.h"
 #include "expressionast.h"
 #include "classast.h"
-#include "symboltable.h"
-#include "symbol.h"
-#include "binder.h"
-#include "helpers.h"
+#include "../symboltable.h"
+#include "../symbol.h"
+#include "../binder.h"
+#include "../helpers.h"
 
 //Namespace declaration
 NamespaceDeclarationAST::NamespaceDeclarationAST(std::string name, std::vector<std::shared_ptr<AbstractSyntaxTree>> members)

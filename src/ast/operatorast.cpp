@@ -1,15 +1,15 @@
 #include "operatorast.h"
 #include "ast.h"
-#include "typechecker.h"
-#include "type.h"
-#include "symboltable.h"
-#include "codegenerator.h"
 #include "expressionast.h"
 #include "arrayast.h"
 #include "objectast.h"
 #include "namespaceast.h"
-#include "symbol.h"
-#include "semantics.h"
+#include "../typechecker.h"
+#include "../type.h"
+#include "../symboltable.h"
+#include "../codegenerator.h"
+#include "../symbol.h"
+#include "../semantics.h"
 
 //Binary OP expression AST
 std::set<std::string> BinaryOpExpressionAST::arithmeticTypes = {

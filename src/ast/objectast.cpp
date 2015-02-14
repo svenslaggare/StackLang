@@ -1,11 +1,11 @@
 #include "objectast.h"
 #include "expressionast.h"
-#include "typechecker.h"
-#include "binder.h"
-#include "symbol.h"
-#include "symboltable.h"
-#include "type.h"
-#include "codegenerator.h"
+#include "../typechecker.h"
+#include "../binder.h"
+#include "../symbol.h"
+#include "../symboltable.h"
+#include "../type.h"
+#include "../codegenerator.h"
 
 //Member access
 MemberAccessAST::MemberAccessAST(std::shared_ptr<ExpressionAST> accessExpression, std::shared_ptr<ExpressionAST> memberExpression)

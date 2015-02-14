@@ -1,10 +1,6 @@
-#include <iostream>
-#include <sstream>
-#include <fstream>
-#include <memory>
 #include "lexer.h"
 #include "parser.h"
-#include "asts.h"
+#include "ast/asts.h"
 #include "binder.h"
 #include "type.h"
 #include "typechecker.h"
@@ -13,6 +9,11 @@
 #include "semantics.h"
 #include "builtin.h"
 #include "loader.h"
+
+#include <iostream>
+#include <sstream>
+#include <fstream>
+#include <memory>
 
 int main(int argc, char* argv[]) {
 	auto defaultTypes = TypeSystem::defaultTypes();

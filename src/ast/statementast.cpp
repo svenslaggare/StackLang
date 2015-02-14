@@ -2,10 +2,10 @@
 #include "expressionast.h"
 #include "blockast.h"
 #include "operatorast.h"
-#include "typechecker.h"
-#include "symboltable.h"
-#include "type.h"
-#include "codegenerator.h"
+#include "../typechecker.h"
+#include "../symboltable.h"
+#include "../type.h"
+#include "../codegenerator.h"
 
 //Expresssion statement AST
 ExpressionStatementAST::ExpressionStatementAST(std::shared_ptr<ExpressionAST> expression)

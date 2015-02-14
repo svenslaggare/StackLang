@@ -1,12 +1,12 @@
 #include "expressionast.h"
-#include "symboltable.h"
-#include "binder.h"
 #include "functionast.h"
-#include "typechecker.h"
-#include "type.h"
-#include "codegenerator.h"
-#include "symbol.h"
-#include "helpers.h"
+#include "../symboltable.h"
+#include "../binder.h"
+#include "../typechecker.h"
+#include "../type.h"
+#include "../codegenerator.h"
+#include "../symbol.h"
+#include "../helpers.h"
 
 //Integer expression AST
 IntegerExpressionAST::IntegerExpressionAST(int value)

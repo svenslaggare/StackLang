@@ -2,11 +2,11 @@
 #include "expressionast.h"
 #include "statementast.h"
 #include "blockast.h"
-#include "symboltable.h"
-#include "binder.h"
-#include "typechecker.h"
-#include "type.h"
-#include "semantics.h"
+#include "../symboltable.h"
+#include "../binder.h"
+#include "../typechecker.h"
+#include "../type.h"
+#include "../semantics.h"
 
 //Function prototype AST
 FunctionPrototypeAST::FunctionPrototypeAST(std::string name, const std::vector<std::shared_ptr<VariableDeclarationExpressionAST>>& parameters, std::string returnType)

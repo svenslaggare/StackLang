@@ -3,10 +3,10 @@
 #include "expressionast.h"
 #include "functionast.h"
 #include "classast.h"
-#include "symboltable.h"
-#include "binder.h"
-#include "symbol.h"
-#include "helpers.h"
+#include "../symboltable.h"
+#include "../binder.h"
+#include "../symbol.h"
+#include "../helpers.h"
 
 ProgramAST::ProgramAST(const std::vector<std::shared_ptr<NamespaceDeclarationAST>>& namespaces)
 	: mNamespaces(namespaces) {

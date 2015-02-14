@@ -1,10 +1,10 @@
 #pragma once
+#include "ast.h"
+#include "../operators.h"
+
 #include <memory>
 #include <set>
 #include <map>
-
-#include "ast.h"
-#include "operators.h"
 
 class TypeChecker;
 class Type;

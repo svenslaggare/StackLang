@@ -5,9 +5,13 @@ LDFLAGS=-std=c++11
 SRCDIR=src
 OBJDIR=obj
 EXECUTABLE=stackc
+FOLDERS = $(OBJDIR)/ast
 
 SOURCES=$(wildcard $(SRCDIR)/*.cpp)
 HEADERS=$(wildcard $(SRCDIR)/*.h)
+
+SOURCES += $(wildcard $(SRCDIR)/*/*.cpp)
+HEADERS += $(wildcard $(SRCDIR)/*/*.h)
 
 _OBJECTS=$(SOURCES:.cpp=.o)
 OBJECTS=$(patsubst $(SRCDIR)/%,$(OBJDIR)/%,$(_OBJECTS))
@@ -24,6 +28,7 @@ run: $(OBJDIR) $(SOURCES) $(EXECUTABLE)
 
 $(OBJDIR):
 	mkdir -p $(OBJDIR)
+	mkdir -p $(FOLDERS)
 
 $(EXECUTABLE): $(OBJECTS)
 	$(CC) $(LDFLAGS) $(OBJECTS) -o $@

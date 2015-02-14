@@ -1,7 +1,7 @@
 #include <stdexcept>
 #include "parser.h"
 #include "lexer.h"
-#include "asts.h"
+#include "ast/asts.h"
 
 Parser::Parser(const OperatorContainer& operators, std::vector<Token> tokens)
 	: operators(operators), tokens(tokens), tokenIndex(-1) {

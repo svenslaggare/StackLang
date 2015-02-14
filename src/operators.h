@@ -4,6 +4,7 @@
 #include <unordered_set>
 #include <vector>
 #include <memory>
+#include <functional>
 
 //Represents an operator
 class Operator {
@@ -33,6 +34,10 @@ public:
 
 	//Returns the current operator as a string
 	std::string asString() const;
+
+	//Custom hash
+	using Hash_t = std::function<std::size_t(const Operator& op)>;
+	static Hash_t HASH;
 };
 
 class Type;

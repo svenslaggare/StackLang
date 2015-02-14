@@ -1,5 +1,5 @@
 #include "symboltable.h"
-#include "ast.h"
+#include "ast/ast.h"
 #include "symbol.h"
 
 SymbolTable::SymbolTable(std::shared_ptr<SymbolTable> outer, std::string name)

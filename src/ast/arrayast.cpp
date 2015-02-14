@@ -1,13 +1,13 @@
 #include "arrayast.h"
-#include "typechecker.h"
-#include "type.h"
-#include "symboltable.h"
-#include "binder.h"
-#include "symbol.h"
-#include "codegenerator.h"
-#include "helpers.h"
 #include "statementast.h"
 #include "blockast.h"
+#include "../typechecker.h"
+#include "../type.h"
+#include "../symboltable.h"
+#include "../binder.h"
+#include "../symbol.h"
+#include "../codegenerator.h"
+#include "../helpers.h"
 
 //Array declaration
 ArrayDeclarationAST::ArrayDeclarationAST(std::string elementType, std::shared_ptr<ExpressionAST> lengthExpression)

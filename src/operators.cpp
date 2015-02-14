@@ -55,15 +55,24 @@ bool Operator::operator!=(const Operator& rhs) const {
 	return !((*this) == rhs);
 }
 
+Operator::Hash_t Operator::HASH = [](const Operator& op) {
+	return op.mOp1 + op.mOp2 + op.mIsTwoChars;
+};
+
 std::string Operator::asString() const {
 	return mIsTwoChars ? (std::string("") + mOp1 + mOp2) : std::string("") + mOp1;
 }
 
 //OperatorContainer
 OperatorContainer::OperatorContainer(
-	std::map<Operator, int> binaryOperators, std::set<Operator> unaryOperators,
-	std::unordered_set<char> assignmentOperators, std::map<Operator, std::shared_ptr<Type>> binaryOpReturnTypes)
-	: mBinaryOperators(binaryOperators), mUnaryOperators(unaryOperators), mAssignmentOperators(assignmentOperators), mBinaryOpReturnTypes(binaryOpReturnTypes) {
+	std::map<Operator, int> binaryOperators,
+	std::set<Operator> unaryOperators,
+	std::unordered_set<char> assignmentOperators,
+	std::map<Operator, std::shared_ptr<Type>> binaryOpReturnTypes)
+	: mBinaryOperators(binaryOperators),
+	  mUnaryOperators(unaryOperators),
+	  mAssignmentOperators(assignmentOperators),
+	  mBinaryOpReturnTypes(binaryOpReturnTypes) {
 	
 	for (auto op : mBinaryOperators) {
 		mBinaryOperatorChars.push_back(op.first);
