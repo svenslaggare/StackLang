@@ -258,15 +258,6 @@ std::shared_ptr<ExpressionAST> Parser::parseIdentifierExpression(bool allowDecla
 		}
 	}
 
-	//Check if member access
-	if (isSingleCharToken('.')) {
-		nextToken(); //Eat the '.'
-
-		//Get the member
-		auto memberExpr = parseIdentifierExpression(false);
-		return std::make_shared<MemberAccessAST>(identExpr, memberExpr);
-	}
-
 	if (identExpr != nullptr) {
 		return identExpr;
 	}

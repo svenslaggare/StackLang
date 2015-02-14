@@ -5,7 +5,7 @@
 SymbolTable::SymbolTable(std::shared_ptr<SymbolTable> outer, std::string name)
 	: mName(name), mOuter(outer) {
 	if (outer != nullptr) {
-		mScopeName = outer->mScopeName + "-" + std::to_string(outer->mScopesCreated);
+		mScopeName = outer->mScopeName + std::to_string(outer->mScopesCreated);
 		outer->mScopesCreated++;
 	}
 }

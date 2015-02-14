@@ -104,7 +104,11 @@ bool BinaryOpExpressionAST::rewriteAST(std::shared_ptr<AbstractSyntaxTree>& newA
 			return false;
 		}
 
-		newAST = std::make_shared<BinaryOpExpressionAST>(mLeftHandSide, std::make_shared<BinaryOpExpressionAST>(varRefExpr, mRightHandSide, op), Operator('='));
+		newAST = std::make_shared<BinaryOpExpressionAST>(
+			mLeftHandSide,
+			std::make_shared<BinaryOpExpressionAST>(varRefExpr, mRightHandSide, op),
+			Operator('='));
+
 		return true;
 	}
 
@@ -118,23 +122,37 @@ bool BinaryOpExpressionAST::rewriteAST(std::shared_ptr<AbstractSyntaxTree>& newA
 		return true;
 	}
 
-	auto setFieldvalue = std::dynamic_pointer_cast<MemberAccessAST>(mLeftHandSide);
-
-	if (setFieldvalue != nullptr && mOp == Operator('=')) {
-		newAST = std::make_shared<SetFieldValueAST>(
-			setFieldvalue->accessExpression(),
-			setFieldvalue->memberExpression(),
-			mRightHandSide);
-
-		return true;
-	}
-
 	if (mOp == Operator(':', ':')) {
 		newAST = std::make_shared<NamespaceAccessAST>(
 		 	mLeftHandSide,
 		 	mRightHandSide);
 
 		return true;
+	}
+
+	if (mOp == Operator('.')) {
+		newAST = std::make_shared<MemberAccessAST>(
+		 	mLeftHandSide,
+		 	mRightHandSide);
+
+		return true;
+	}
+
+	if (mOp == Operator('=')) {
+		std::shared_ptr<AbstractSyntaxTree> newLHS;
+		if (!mLeftHandSide->rewriteAST(newLHS)) {
+			newLHS = mLeftHandSide;
+		}
+
+		auto setFieldValue = std::dynamic_pointer_cast<MemberAccessAST>(newLHS);
+		if (setFieldValue != nullptr) {
+			newAST = std::make_shared<SetFieldValueAST>(
+				setFieldValue->accessExpression(),
+				setFieldValue->memberExpression(),
+				mRightHandSide);
+
+			return true;
+		}
 	}
 
 	return false;

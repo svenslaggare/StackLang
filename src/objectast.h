@@ -28,6 +28,8 @@ public:
 
 	virtual void visit(VisitFn visitFn) const override;
 
+	virtual void rewrite() override;
+
 	virtual void generateSymbols(Binder& binder, std::shared_ptr<SymbolTable> symbolTable) override;
 
 	virtual void typeCheck(TypeChecker& checker) override;
@@ -63,6 +65,8 @@ public:
 
 	virtual void visit(VisitFn visitFn) const override;
 
+	virtual void rewrite() override;
+	
 	virtual void generateSymbols(Binder& binder, std::shared_ptr<SymbolTable> symbolTable) override;
 
 	virtual void typeCheck(TypeChecker& checker) override;

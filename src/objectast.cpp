@@ -31,6 +31,23 @@ void MemberAccessAST::visit(VisitFn visitFn) const {
 	visitFn(this);
 }
 
+void MemberAccessAST::rewrite() {
+	std::shared_ptr<AbstractSyntaxTree> newAccess;
+
+	if (mAccessExpression->rewriteAST(newAccess)) {
+		mAccessExpression = std::dynamic_pointer_cast<ExpressionAST>(newAccess);
+	}
+
+	std::shared_ptr<AbstractSyntaxTree> newMember;
+
+	if (mMemberExpression->rewriteAST(newMember)) {
+		mMemberExpression = std::dynamic_pointer_cast<ExpressionAST>(newMember);
+	}
+
+	mAccessExpression->rewrite();
+	mMemberExpression->rewrite();
+}
+
 void MemberAccessAST::generateSymbols(Binder& binder, std::shared_ptr<SymbolTable> symbolTable) {
 	AbstractSyntaxTree::generateSymbols(binder, symbolTable);
 	mAccessExpression->generateSymbols(binder, symbolTable);
@@ -132,6 +149,30 @@ void SetFieldValueAST::visit(VisitFn visitFn) const {
 	mMemberExpression->visit(visitFn);
 	mRightHandSide->visit(visitFn);
 	visitFn(this);
+}
+
+void SetFieldValueAST::rewrite() {
+	std::shared_ptr<AbstractSyntaxTree> newObjectRef;
+
+	if (mObjectRefExpression->rewriteAST(newObjectRef)) {
+		mObjectRefExpression = std::dynamic_pointer_cast<ExpressionAST>(newObjectRef);
+	}
+
+	std::shared_ptr<AbstractSyntaxTree> newMember;
+
+	if (mMemberExpression->rewriteAST(newMember)) {
+		mMemberExpression = std::dynamic_pointer_cast<ExpressionAST>(newMember);
+	}
+
+	std::shared_ptr<AbstractSyntaxTree> newRHS;
+
+	if (mRightHandSide->rewriteAST(newRHS)) {
+		mRightHandSide = std::dynamic_pointer_cast<ExpressionAST>(newRHS);
+	}
+
+	mObjectRefExpression->rewrite();
+	mMemberExpression->rewrite();
+	mRightHandSide->rewrite();
 }
 
 void SetFieldValueAST::generateSymbols(Binder& binder, std::shared_ptr<SymbolTable> symbolTable) {

@@ -7,9 +7,18 @@ class Point {
 	}
 }
 
+class string {
+	Char[] chars;
+}
+
 func main(): Int {
 	Point p = new Point();
-	p.x = 4.0 + 3.0;
+	p.x = 4.0;
 	std::println(p.x);
+
+	var str = new string();
+	str.chars = "Troll";
+	std::println(str.chars.length);
+
 	return 0;
 }

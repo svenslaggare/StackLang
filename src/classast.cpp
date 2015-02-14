@@ -88,10 +88,20 @@ std::string ClassDefinitionAST::asString() const {
 		[](std::shared_ptr<FieldDeclarationExpressionAST> field) {
 			return field->asString() + ";";
 		}, "\n");
-	return "class " + mName + " {\n" + fieldsStr + "\n\n" + AST::combineAST(mFunctions, "\n\n") + "\n}";
-}
 
-#include <iostream>
+	auto funcsStr = AST::combineAST(mFunctions, "\n\n");
+
+	auto classStr = "class " + mName + " {\n";
+
+	classStr += fieldsStr;
+
+	if (funcsStr != "") {
+		classStr += "\n\n" + funcsStr;
+	}
+
+	classStr += "\n}";
+	return classStr;
+}
 
 void ClassDefinitionAST::addClassDefinition(TypeChecker& checker) const {
 	if (checker.findType(name()) == nullptr) {

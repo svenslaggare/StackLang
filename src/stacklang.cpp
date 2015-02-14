@@ -29,6 +29,7 @@ int main(int argc, char* argv[]) {
 			{ Operator('<', '='), 5 }, { Operator('>', '='), 5 }, 
 			{ Operator('=', '='), 4 }, { Operator('!', '='), 4 }, { Operator('&', '&'), 3 }, { Operator('|', '|'), 2 },
 			{ Operator('+', '='), 1 }, { Operator('-', '='), 1 }, { Operator('*', '='), 1 }, { Operator('/', '='), 1 },
+			{ Operator('.'), 7 },
 			{ Operator(':', ':'), 8 }
 		},
 		{ Operator('!'), Operator('-') },
@@ -59,6 +60,7 @@ int main(int argc, char* argv[]) {
 	auto programAST = parser.parse();
 
 	programAST->rewrite();
+	//programAST->rewrite();
 	// std::cout << *programAST << std::endl;
 
 	Binder binder;
