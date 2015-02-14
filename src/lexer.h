@@ -63,12 +63,13 @@ std::ostream& operator<<(std::ostream& os, const Token& token);
 class Lexer {
 private:
 	const std::unordered_set<char>& mOpTable;
+	const std::unordered_set<char>& mTwoOpTable;
 
 	//Signals that an error has occurred
 	void error(std::string message) const;
 public:
 	//Creates a new lexer
-	Lexer(const std::unordered_set<char>& opTable);
+	Lexer(const std::unordered_set<char>& opTable, const std::unordered_set<char>& twoOpTable);
 
 	//Tokenizes the given input streaqm
 	std::vector<Token> tokenize(std::istream& stream) const;

@@ -70,8 +70,8 @@ std::ostream& operator<<(std::ostream& os, const Token& token) {
 	return os;
 }
 
-Lexer::Lexer(const std::unordered_set<char>& opTable)
-	: mOpTable(opTable) {
+Lexer::Lexer(const std::unordered_set<char>& opTable, const std::unordered_set<char>& twoOpTable)
+	: mOpTable(opTable), mTwoOpTable(twoOpTable) {
 
 }
 
@@ -244,8 +244,9 @@ std::vector<Token> Lexer::tokenize(std::istream& stream) const {
 			Token newToken;
 
 			//Merge two single chars to the 'TwoChars' type
-			auto allowedDoubleChar = (currentChar == '=' || currentChar == '&' || currentChar == '|' || currentChar == ':');
-			
+			//auto allowedDoubleChar = (currentChar == '=' || currentChar == '&' || currentChar == '|' || currentChar == ':');
+			auto allowedDoubleChar = mTwoOpTable.count(currentChar) > 0;
+
 			if (prevToken.type() == TokenType::SingleChar && allowedDoubleChar && mOpTable.count(prevToken.charValue) > 0) {
 				newToken = Token(TokenType::TwoChars);
 				newToken.charValue = prevToken.charValue;

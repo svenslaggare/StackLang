@@ -40,7 +40,7 @@ int main(int argc, char* argv[]) {
 			{ Operator('=', '='), boolType }, { Operator('!', '='), boolType }, { Operator('&', '&'), boolType }, { Operator('|', '|'), boolType }, 
 		});
 
-	Lexer lexer(operators.operatorChars());
+	Lexer lexer(operators.operatorChars(), operators.twoCharOpChars());
 	std::string filePath = "";
 
 	if (argc > 1) {

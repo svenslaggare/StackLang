@@ -52,6 +52,7 @@ private:
 
 	std::vector<Operator> mBinaryOperatorChars;
 	std::unordered_set<char> mOperatorChars;
+	std::unordered_set<char> mTwoCharOpChars;
 public:
 	//Creates a new operator container
 	OperatorContainer(std::map<Operator, int> binaryOperators, std::set<Operator> unaryOperators,
@@ -74,6 +75,9 @@ public:
 
 	//Return the return types for binary operators. Only operators that return something different than the operands is listed.
 	const std::map<Operator, std::shared_ptr<Type>>& binaryOpReturnTypes() const;
+
+	//Returns the character that can be the second character in a two-char operator
+	const std::unordered_set<char> & twoCharOpChars() const;
 
 	//Returns the precedence for the given operator
 	int getPrecedence(Operator op) const;

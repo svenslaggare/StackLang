@@ -80,6 +80,7 @@ OperatorContainer::OperatorContainer(
 
 		if (op.first.isTwoChars()) {
 			mOperatorChars.insert(op.first.op2());
+			mTwoCharOpChars.insert(op.first.op2());
 		}
 	}
 
@@ -110,6 +111,10 @@ const std::set<Operator>& OperatorContainer::unaryOperators() const {
 
 const std::map<Operator, std::shared_ptr<Type>>& OperatorContainer::binaryOpReturnTypes() const { 
 	return mBinaryOpReturnTypes;
+}
+
+const std::unordered_set<char> & OperatorContainer::twoCharOpChars() const {
+	return mTwoCharOpChars;
 }
 
 int OperatorContainer::getPrecedence(Operator op) const {
