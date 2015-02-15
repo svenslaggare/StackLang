@@ -17,14 +17,28 @@ _OBJECTS=$(SOURCES:.cpp=.o)
 OBJECTS=$(patsubst $(SRCDIR)/%,$(OBJDIR)/%,$(_OBJECTS))
 
 TEST_PROGRAM=programs/program7.sl
+STACKJIT=../StackJIT/stackjit
+
+TESTS_DIR=tests
+TEST_RUNNERS_DIR=$(TESTS_DIR)/runners
+TEST_EXECUTABLE=test
 
 all: $(OBJDIR) $(SOURCES) $(EXECUTABLE)
 
 test: $(OBJDIR) $(SOURCES) $(EXECUTABLE)
-	./stackc $(TEST_PROGRAM)
+	./$(EXECUTABLE $(TEST_PROGRAM)
 
 run: $(OBJDIR) $(SOURCES) $(EXECUTABLE)
-	./stackc $(TEST_PROGRAM) | ../StackJIT/stackjit -i ../StackJIT/rtlib/rtlib.sbc -nogc
+	./$(EXECUTABLE $(TEST_PROGRAM) | $(STACKJIT) -i ../StackJIT/rtlib/rtlib.sbc -nogc
+
+%.sl: $(OBJDIR) $(SOURCES) $(EXECUTABLE)
+	./$(EXECUTABLE) $*.sl
+
+run-tests: $(TESTS_DIR)/compiler-test.h
+	mkdir -p $(TEST_RUNNERS_DIR)
+	cxxtestgen --error-printer -o $(TEST_RUNNERS_DIR)/compilertest_runner.cpp $(TESTS_DIR)/compiler-test.h
+	$(CC) $(LDFLAGS) -o $(TEST_EXECUTABLE) -I $(CXXTEST) $(TEST_RUNNERS_DIR)/compilertest_runner.cpp
+	./$(TEST_EXECUTABLE)
 
 $(OBJDIR):
 	mkdir -p $(OBJDIR)
@@ -39,3 +53,5 @@ $(OBJDIR)/%.o: $(SRCDIR)/%.cpp $(HEADERS)
 clean:
 	rm -rf $(OBJDIR)
 	rm $(EXECUTABLE)
+	rm -rf $(TEST_RUNNERS_DIR)
+	rm $(TEST_EXECUTABLE)

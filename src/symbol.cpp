@@ -25,8 +25,8 @@ std::string Symbol::asString() const {
 }
 
 //Variable
-VariableSymbol::VariableSymbol(std::string name, std::string variableType, bool isFunctionParameter)
-	: Symbol(name, "Variable"), mVariableType(variableType), mIsFunctionParameter(isFunctionParameter) {
+VariableSymbol::VariableSymbol(std::string name, std::string variableType, VariableSymbolAttribute attribute, std::string className)
+	: Symbol(name, "Variable"), mVariableType(variableType), mAttribute(attribute), mClassName(className) {
 
 }
 
@@ -38,8 +38,11 @@ std::string VariableSymbol::variableType() const {
 	return mVariableType;
 }
 
-bool VariableSymbol::isFunctionParameter() const {
-	return mIsFunctionParameter;
+VariableSymbolAttribute VariableSymbol::attribute() const {
+	return mAttribute;
+}
+std::string VariableSymbol::className() const {
+	return mClassName;
 }
 
 //Function
@@ -125,5 +128,15 @@ NamespaceSymbol::NamespaceSymbol(std::string name, std::shared_ptr<SymbolTable> 
 }
 
 std::shared_ptr<SymbolTable> NamespaceSymbol::symbolTable() const {
+	return mSymbolTable;
+}
+
+//Class
+ClassSymbol::ClassSymbol(std::string name, std::shared_ptr<SymbolTable> symbolTable)
+	: Symbol(name, "Class"), mSymbolTable(symbolTable) {
+
+}
+
+std::shared_ptr<SymbolTable> ClassSymbol::symbolTable() const {
 	return mSymbolTable;
 }

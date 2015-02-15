@@ -1,7 +1,3 @@
-func newIntArray(Int len): Int[] {
-	return new Int[len];
-}
-
 func printbool(Bool b): Void {
 	if (b) {
 		std::println(1);
@@ -19,13 +15,14 @@ func printLength(Bool[] bools): Void {
 }
 
 func printLength(Int[][] matrix): Void {
-	#std::println(matrix.length);
-	#std::println(matrix[0].length);
+	std::println(matrix.length);
+	std::println(matrix[0].length);
 }
 
 func main(): Int {
-	var matrix = new Int[5];
+	var matrix = new Int[5, 5];
 	printLength(matrix);
-	std::gc::collect();
+	matrix[4][4] = 1337;
+	std::println(matrix[4][4]);
 	return 0;
 }

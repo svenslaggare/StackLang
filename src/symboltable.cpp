@@ -56,7 +56,7 @@ void SymbolTable::newFunction(std::string name, const std::vector<std::pair<std:
 	std::vector<VariableSymbol> parameterSymbols;
 
 	for (auto param : parameters) {
-		parameterSymbols.push_back(VariableSymbol(param.second, param.first, true));
+		parameterSymbols.push_back(VariableSymbol(param.second, param.first, VariableSymbolAttribute::FUNCTION_PARAMETER));
 	}
 
 	addFunction(name, parameterSymbols, returnType);

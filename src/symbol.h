@@ -30,22 +30,34 @@ public:
 	friend class SymbolTable;
 };
 
+enum class VariableSymbolAttribute
+{
+	NONE,
+	FUNCTION_PARAMETER,
+	FIELD,
+	THIS_REFERENCE
+};
+
 //Represents a variable symbol
 class VariableSymbol : public Symbol {
 private:
 	std::string mVariableType;
-	bool mIsFunctionParameter;
+	VariableSymbolAttribute mAttribute;
+	std::string mClassName;
 public:
 	//Creates a new variable symbol of the given type
-	VariableSymbol(std::string name, std::string variableType, bool isFunctionParameter = false);
+	VariableSymbol(std::string name, std::string variableType, VariableSymbolAttribute attribute = VariableSymbolAttribute::NONE, std::string className = "");
 
 	virtual std::string asString() const override;
 
 	//Returns the type of the variable
 	std::string variableType() const;
 
-	//Indicates if the variable is a function parameter
-	bool isFunctionParameter() const;
+	//Return the attribute
+	VariableSymbolAttribute attribute() const;
+
+	//The class name if field
+	std::string className() const;
 };
 
 //Represents a function signature symbol
@@ -93,6 +105,18 @@ private:
 public:
 	//Creates a new namespace with the given symbols
 	NamespaceSymbol(std::string name, std::shared_ptr<SymbolTable> symbolTable);
+
+	//Returns the symbol table
+	std::shared_ptr<SymbolTable> symbolTable() const;
+};
+
+//Represents a class symbol
+class ClassSymbol : public Symbol {
+private:
+	std::shared_ptr<SymbolTable> mSymbolTable;
+public:
+	//Creates a new class with the given symbols
+	ClassSymbol(std::string name, std::shared_ptr<SymbolTable> symbolTable);
 
 	//Returns the symbol table
 	std::shared_ptr<SymbolTable> symbolTable() const;

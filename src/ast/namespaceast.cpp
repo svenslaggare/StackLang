@@ -45,7 +45,7 @@ void NamespaceDeclarationAST::rewrite() {
 	for (auto& member : mMembers) {
 		std::shared_ptr<AbstractSyntaxTree> newAST;
 		
-		if (member->rewriteAST(newAST)) {
+		while (member->rewriteAST(newAST)) {
 			member = newAST;
 		}
 
@@ -82,7 +82,10 @@ void NamespaceDeclarationAST::generateSymbols(Binder& binder, std::shared_ptr<Sy
 			std::vector<VariableSymbol> parameters;
 
 			for (auto param : func->prototype()->parameters()) {
-				parameters.push_back(VariableSymbol(param->varName(), param->varType(), true));
+				parameters.push_back(VariableSymbol(
+					param->varName(),
+					param->varType(),
+					VariableSymbolAttribute::FUNCTION_PARAMETER));
 			}
 
 			auto symbol = namespaceTable->find(funcName);

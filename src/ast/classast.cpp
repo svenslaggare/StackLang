@@ -46,7 +46,9 @@ void FieldDeclarationExpressionAST::generateSymbols(Binder& binder, std::shared_
 		binder.error("The symbol '" + fieldName() + "' is already defined.");	
 	}
 
-	symbolTable->add(fieldName(), std::make_shared<VariableSymbol>(fieldName(), fieldType()));
+	symbolTable->add(
+		fieldName(),
+		std::make_shared<VariableSymbol>(fieldName(), fieldType(), VariableSymbolAttribute::FIELD, mSymbolTable->name()));
 }
 
 void FieldDeclarationExpressionAST::typeCheck(TypeChecker& checker) {
@@ -126,7 +128,7 @@ void ClassDefinitionAST::rewrite() {
 	for (auto& field : mFields) {
 		std::shared_ptr<AbstractSyntaxTree> newAST;
 
-		if (field->rewriteAST(newAST)) {
+		while (field->rewriteAST(newAST)) {
 			field = std::dynamic_pointer_cast<FieldDeclarationExpressionAST>(newAST);
 		}
 
@@ -136,7 +138,7 @@ void ClassDefinitionAST::rewrite() {
 	for (auto& func : mFunctions) {
 		std::shared_ptr<AbstractSyntaxTree> newAST;
 
-		if (func->rewriteAST(newAST)) {
+		while (func->rewriteAST(newAST)) {
 			func = std::dynamic_pointer_cast<FunctionAST>(newAST);
 		}
 
@@ -157,14 +159,51 @@ void ClassDefinitionAST::visit(VisitFn visitFn) const {
 }
 
 void ClassDefinitionAST::generateSymbols(Binder& binder, std::shared_ptr<SymbolTable> symbolTable) {
-	AbstractSyntaxTree::generateSymbols(binder, SymbolTable::newInner(symbolTable));
+	auto classTable = std::make_shared<SymbolTable>(symbolTable, mName);
+	AbstractSyntaxTree::generateSymbols(binder, classTable);
+
+	mSymbolTable->add("this", std::make_shared<VariableSymbol>("this", mName, VariableSymbolAttribute::THIS_REFERENCE));
 
 	for (auto field : mFields) {
 		field->generateSymbols(binder, mSymbolTable);
 	}
 
 	for (auto func : mFunctions) {
+		//Declare member functions
+		auto funcName = func->prototype()->name();
+		std::vector<VariableSymbol> parameters;
+
+		for (auto param : func->prototype()->parameters()) {
+			parameters.push_back(VariableSymbol(
+				param->varName(),
+				param->varType(),
+				VariableSymbolAttribute::FUNCTION_PARAMETER));
+		}
+
+		auto symbol = mSymbolTable->find(funcName);
+
+		if (symbol != nullptr && std::dynamic_pointer_cast<FunctionSymbol>(symbol) == nullptr) {
+			binder.error("The symbol '" + funcName + "' is already defined.");
+		}
+
+		if (!mSymbolTable->addFunction(funcName, parameters, func->prototype()->returnType())) {
+			auto paramsStr = Helpers::join<VariableSymbol>(
+				parameters,
+				[](VariableSymbol param) { return param.variableType(); },
+				", ");
+
+			binder.error("The already exists a function with the given signature: '" + funcName + "(" + paramsStr + ")" + "'.");
+		}
+	}
+
+	for (auto func : mFunctions) {
 		func->generateSymbols(binder, mSymbolTable);
+	}
+
+	if (symbolTable->find(mName) == nullptr) {
+		symbolTable->add(mName, std::make_shared<ClassSymbol>(mName, mSymbolTable));
+	} else {
+		binder.error("The symbol '" + mName + "' is already defined.");
 	}
 }
 

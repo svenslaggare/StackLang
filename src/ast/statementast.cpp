@@ -29,7 +29,7 @@ void ExpressionStatementAST::visit(VisitFn visitFn) const {
 void ExpressionStatementAST::rewrite() {
 	std::shared_ptr<AbstractSyntaxTree> newAST;
 
-	if (mExpression->rewriteAST(newAST)) {
+	while (mExpression->rewriteAST(newAST)) {
 		mExpression = std::dynamic_pointer_cast<ExpressionAST>(newAST);
 	}
 

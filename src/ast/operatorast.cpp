@@ -61,13 +61,13 @@ void BinaryOpExpressionAST::visit(VisitFn visitFn) const {
 void BinaryOpExpressionAST::rewrite() {
 	std::shared_ptr<AbstractSyntaxTree> newLHS;
 
-	if (mLeftHandSide->rewriteAST(newLHS)) {
+	while (mLeftHandSide->rewriteAST(newLHS)) {
 		mLeftHandSide = std::dynamic_pointer_cast<ExpressionAST>(newLHS);
 	}
 
 	std::shared_ptr<AbstractSyntaxTree> newRHS;
 
-	if (mRightHandSide->rewriteAST(newRHS)) {
+	while (mRightHandSide->rewriteAST(newRHS)) {
 		mRightHandSide = std::dynamic_pointer_cast<ExpressionAST>(newRHS);
 	}
 
@@ -118,6 +118,7 @@ bool BinaryOpExpressionAST::rewriteAST(std::shared_ptr<AbstractSyntaxTree>& newA
 			arraySetElem->arrayRefExpression(),
 			arraySetElem->accessExpression(),
 			mRightHandSide);
+		newAST->rewrite();
 
 		return true;
 	}
@@ -126,6 +127,7 @@ bool BinaryOpExpressionAST::rewriteAST(std::shared_ptr<AbstractSyntaxTree>& newA
 		newAST = std::make_shared<NamespaceAccessAST>(
 		 	mLeftHandSide,
 		 	mRightHandSide);
+		newAST->rewrite();
 
 		return true;
 	}
@@ -134,7 +136,7 @@ bool BinaryOpExpressionAST::rewriteAST(std::shared_ptr<AbstractSyntaxTree>& newA
 		newAST = std::make_shared<MemberAccessAST>(
 		 	mLeftHandSide,
 		 	mRightHandSide);
-
+		newAST->rewrite();
 		return true;
 	}
 
@@ -239,7 +241,7 @@ void BinaryOpExpressionAST::verify(SemanticVerifier& verifier) {
 		if (auto varRef = std::dynamic_pointer_cast<VariableReferenceExpressionAST>(mLeftHandSide)) {
 			auto varDec = std::dynamic_pointer_cast<VariableSymbol>(mSymbolTable->find(varRef->varName()));
 
-			if (varDec->isFunctionParameter()) {
+			if (varDec->attribute() == VariableSymbolAttribute::FUNCTION_PARAMETER) {
 				verifier.semanticError("Assignment to function parameter is not allowed.");
 			}
 		} else if (auto varDec = std::dynamic_pointer_cast<VariableDeclarationExpressionAST>(mLeftHandSide) != nullptr) {
@@ -292,7 +294,7 @@ void BinaryOpExpressionAST::generateCode(CodeGenerator& codeGen, GeneratedFuncti
 			mRightHandSide->generateCode(codeGen, func);
 			auto varRefSymbol = std::dynamic_pointer_cast<VariableSymbol>(mSymbolTable->find(varRef->varName()));
 
-			if (!varRefSymbol->isFunctionParameter()) {
+			if (varRefSymbol->attribute() != VariableSymbolAttribute::FUNCTION_PARAMETER) {
 				//func.addInstruction("STLOC " + std::to_string(func.getLocal(varRef->varName()).first));
 				func.addInstruction("STLOC " + std::to_string(func.getLocal(varRefSymbol).first));
 			}

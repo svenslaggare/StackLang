@@ -122,23 +122,14 @@ void MultiDimArrayDeclarationAST::typeCheck(TypeChecker& checker) {
 	checker.assertTypeExists(mElementType, false);
 	checker.assertNotVoid(*checker.findType(mElementType), "Arrays of type 'Void' is not allowed.");
 
-	//Create the array type if not created
-	checker.getType(typeString());
+	//Create all array types
+	for (int i = 0; i < mLengthExpressions.size(); i++) {
+		checker.getType(typeString(i));
+	}
 }
 	
 std::shared_ptr<Type> MultiDimArrayDeclarationAST::expressionType(const TypeChecker& checker) const {
 	return checker.findType(typeString());
-}
-
-void MultiDimArrayDeclarationAST::generateArrayDim(CodeGenerator& codeGen, GeneratedFunction& func, int dim) {
-	auto lengthExpr = mLengthExpressions.at(mLengthExpressions.size() - dim - 1);
-
-	if (dim == 1) {
-		lengthExpr->generateCode(codeGen, func);
-		func.addInstruction("NEWARR " + codeGen.typeChecker().findType(mElementType)->vmType());
-	} else {
-
-	}
 }
 
 void MultiDimArrayDeclarationAST::generateCode(CodeGenerator& codeGen, GeneratedFunction& func) {
@@ -163,7 +154,7 @@ void MultiDimArrayDeclarationAST::generateCode(CodeGenerator& codeGen, Generated
 	mLengthExpressions.at(0)->generateCode(codeGen, func);
 	func.addInstruction("LDLOC " + std::to_string(subArrayLocal));
 	condIndex = func.numInstructions();
-	func.addInstruction("BGE");
+	func.addInstruction("BLE");
 
 	//Body
 	func.addInstruction("LDLOC " + std::to_string(outerLocal));

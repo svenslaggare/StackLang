@@ -31,16 +31,28 @@ void MemberAccessAST::visit(VisitFn visitFn) const {
 	visitFn(this);
 }
 
+bool MemberAccessAST::rewriteAST(std::shared_ptr<AbstractSyntaxTree>& newAST) const {
+	if (auto callMember = std::dynamic_pointer_cast<CallExpressionAST>(mMemberExpression)) {
+		newAST = std::make_shared<MemberCallExpressionAST>(
+			mAccessExpression,
+			callMember);
+		newAST->rewrite();
+		return true;
+	}
+
+ 	return false;
+}
+
 void MemberAccessAST::rewrite() {
 	std::shared_ptr<AbstractSyntaxTree> newAccess;
 
-	if (mAccessExpression->rewriteAST(newAccess)) {
+	while (mAccessExpression->rewriteAST(newAccess)) {
 		mAccessExpression = std::dynamic_pointer_cast<ExpressionAST>(newAccess);
 	}
 
 	std::shared_ptr<AbstractSyntaxTree> newMember;
 
-	if (mMemberExpression->rewriteAST(newMember)) {
+	while (mMemberExpression->rewriteAST(newMember)) {
 		mMemberExpression = std::dynamic_pointer_cast<ExpressionAST>(newMember);
 	}
 
@@ -116,6 +128,105 @@ void MemberAccessAST::generateCode(CodeGenerator& codeGen, GeneratedFunction& fu
 		mAccessExpression->generateCode(codeGen, func);
 		func.addInstruction("LDFIELD " + typeRef->name() + "::" + memberName);
 	}
+}
+
+//Member call
+MemberCallExpressionAST::MemberCallExpressionAST(std::shared_ptr<ExpressionAST> accessExpression, std::shared_ptr<CallExpressionAST> memberCallExpression)
+	: mAccessExpression(accessExpression), mMemberCallExpression(memberCallExpression) {
+
+}
+
+std::shared_ptr<ExpressionAST> MemberCallExpressionAST::accessExpression() const {
+	return mAccessExpression;
+}
+
+std::shared_ptr<CallExpressionAST> MemberCallExpressionAST::memberCallExpression() const {
+	return mMemberCallExpression;
+}
+
+std::string MemberCallExpressionAST::asString() const {
+	return mAccessExpression->asString() + "." + mMemberCallExpression->asString();
+}
+
+void MemberCallExpressionAST::visit(VisitFn visitFn) const {
+	mAccessExpression->visit(visitFn);
+	mMemberCallExpression->visit(visitFn);
+	visitFn(this);
+}
+
+void MemberCallExpressionAST::rewrite() {
+	std::shared_ptr<AbstractSyntaxTree> newAccess;
+
+	if (mAccessExpression->rewriteAST(newAccess)) {
+		mAccessExpression = std::dynamic_pointer_cast<ExpressionAST>(newAccess);
+	}
+
+	std::shared_ptr<AbstractSyntaxTree> newMember;
+
+	if (mMemberCallExpression->rewriteAST(newMember)) {
+		mMemberCallExpression = std::dynamic_pointer_cast<CallExpressionAST>(newMember);
+	}
+
+	mAccessExpression->rewrite();
+	mMemberCallExpression->rewrite();
+}
+
+void MemberCallExpressionAST::generateSymbols(Binder& binder, std::shared_ptr<SymbolTable> symbolTable) {
+	AbstractSyntaxTree::generateSymbols(binder, symbolTable);
+	mAccessExpression->generateSymbols(binder, symbolTable);
+}
+
+void MemberCallExpressionAST::typeCheck(TypeChecker& checker) {
+	mAccessExpression->typeCheck(checker);
+
+	if (auto varRef = std::dynamic_pointer_cast<VariableReferenceExpressionAST>(mAccessExpression)) {
+		auto varSymbol = std::dynamic_pointer_cast<VariableSymbol>(mSymbolTable->find(varRef->varName()));
+		auto varRefType = checker.findType(varSymbol->variableType());
+
+		auto memberName = mMemberCallExpression->functionName();
+
+		std::string objName = varRefType->name();
+
+		if (std::dynamic_pointer_cast<ArrayType>(varRefType)) {
+			objName = "Array";
+		}
+
+		if (!checker.objectExists(objName)) {
+			checker.typeError(varRefType->name() + " is not an object type.");
+		}
+
+		auto classSymbol = std::dynamic_pointer_cast<ClassSymbol>(mSymbolTable->find(objName));
+		mMemberCallExpression->setCallTable(classSymbol->symbolTable());
+		mMemberCallExpression->generateSymbols(checker.binder(), mSymbolTable);
+		mMemberCallExpression->typeCheck(checker);
+	} else {
+		auto varRefType = mAccessExpression->expressionType(checker);
+		auto memberName = mMemberCallExpression->functionName();
+
+		std::string objName = varRefType->name();
+
+		if (std::dynamic_pointer_cast<ArrayType>(varRefType)) {
+			objName = "Array";
+		}
+
+		if (!checker.objectExists(objName)) {
+			checker.typeError(varRefType->name() + " is not an object type.");
+		}
+
+		auto classSymbol = std::dynamic_pointer_cast<ClassSymbol>(mSymbolTable->find(objName));
+		mMemberCallExpression->setCallTable(classSymbol->symbolTable());
+		mMemberCallExpression->generateSymbols(checker.binder(), mSymbolTable);
+		mMemberCallExpression->typeCheck(checker);
+	}
+}
+
+std::shared_ptr<Type> MemberCallExpressionAST::expressionType(const TypeChecker& checker) const {
+	return mMemberCallExpression->expressionType(checker);
+}
+
+void MemberCallExpressionAST::generateCode(CodeGenerator& codeGen, GeneratedFunction& func) {
+	mAccessExpression->generateCode(codeGen, func);
+	mMemberCallExpression->generateMemberCallCode(codeGen, func, mAccessExpression->expressionType(codeGen.typeChecker()));
 }
 
 //Set field value

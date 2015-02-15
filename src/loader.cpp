@@ -176,7 +176,10 @@ void Loader::defineFunction(const FunctionDefinition& funcDef) {
 
 	int i = 0;
 	for (auto param : funcDef.parameters) {
-		parameterSymbols.push_back(VariableSymbol("param_" + std::to_string(i), param->name(), true));
+		parameterSymbols.push_back(VariableSymbol(
+            "param_" + std::to_string(i), param->name(),
+            VariableSymbolAttribute::FUNCTION_PARAMETER));
+        
 		i++;
 	}
 

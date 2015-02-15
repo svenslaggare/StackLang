@@ -225,12 +225,18 @@ std::shared_ptr<Type> VariableReferenceExpressionAST::expressionType(const TypeC
 
 void VariableReferenceExpressionAST::generateCode(CodeGenerator& codeGen, GeneratedFunction& func) {
 	auto varRefSymbol = std::dynamic_pointer_cast<VariableSymbol>(mSymbolTable->find(varName()));
-	bool isFuncParam = varRefSymbol->isFunctionParameter();
+	bool isFuncParam = varRefSymbol->attribute() == VariableSymbolAttribute::FUNCTION_PARAMETER;
+	bool isField = varRefSymbol->attribute() == VariableSymbolAttribute::FIELD;
+	bool isThis = varRefSymbol->attribute() == VariableSymbolAttribute::THIS_REFERENCE;
 
 	if (isFuncParam) {
 		func.addInstruction("LDARG " + std::to_string(func.functionParameterIndex(mVarName)));
+	} else if (isField) {
+		func.addInstruction("LDARG 0");
+		func.addInstruction("LDFIELD " + varRefSymbol->className() + "::" + mVarName);
+	} else if (isThis) {
+		func.addInstruction("LDARG 0");
 	} else {
-		//func.addInstruction("LDLOC " + std::to_string(func.getLocal(mVarName).first));
 		func.addInstruction("LDLOC " + std::to_string(func.getLocal(varRefSymbol).first));
 	}
 }
@@ -272,7 +278,13 @@ void VariableDeclarationExpressionAST::generateSymbols(Binder& binder, std::shar
 		binder.error("The symbol '" + varName() + "' is already defined.");	
 	}
 
-	symbolTable->add(varName(), std::make_shared<VariableSymbol>(varName(), varType(), mIsFunctionParameter));
+	VariableSymbolAttribute attribute = VariableSymbolAttribute::NONE;
+
+	if (mIsFunctionParameter) {
+		attribute = VariableSymbolAttribute::FUNCTION_PARAMETER;
+	}
+
+	symbolTable->add(varName(), std::make_shared<VariableSymbol>(varName(), varType(), attribute));
 }
 
 void VariableDeclarationExpressionAST::typeCheck(TypeChecker& checker) {
@@ -286,7 +298,6 @@ std::shared_ptr<Type> VariableDeclarationExpressionAST::expressionType(const Typ
 void VariableDeclarationExpressionAST::generateCode(CodeGenerator& codeGen, GeneratedFunction& func) {
 	if (!mIsFunctionParameter) {
 		auto varRefSymbol = std::dynamic_pointer_cast<VariableSymbol>(mSymbolTable->find(mVarName));
-		//func.newLocal(mVarName, codeGen.typeChecker().findType(mVarType));
 		func.newLocal(varRefSymbol, codeGen.typeChecker().findType(mVarType));
 	}
 }
@@ -418,7 +429,7 @@ std::shared_ptr<Type> CallExpressionAST::expressionType(const TypeChecker& check
 	return checker.findType(func->returnType());
 }
 
-void CallExpressionAST::generateCode(CodeGenerator& codeGen, GeneratedFunction& func, std::string namespaceName) {
+void CallExpressionAST::generateCode(CodeGenerator& codeGen, GeneratedFunction& func, std::string scopeName) {
 	for (auto arg : arguments()) {
 		arg->generateCode(codeGen, func);
 	}
@@ -431,10 +442,25 @@ void CallExpressionAST::generateCode(CodeGenerator& codeGen, GeneratedFunction& 
 
 	auto calldedFuncName = mFunctionName;
 
-	if (namespaceName != "") {
-		calldedFuncName = namespaceName + "." + mFunctionName;
+	if (scopeName != "") {
+		calldedFuncName = scopeName + "." + mFunctionName;
 	}
 
+	func.addInstruction("CALL " + calldedFuncName + "(" + argsTypeStr + ")");
+}
+
+void CallExpressionAST::generateMemberCallCode(CodeGenerator& codeGen, GeneratedFunction& func, std::shared_ptr<Type> classType) {
+	for (auto arg : arguments()) {
+		arg->generateCode(codeGen, func);
+	}
+
+	auto argsTypeStr = classType->vmType() + (arguments().size() > 0 ? " " : "") + Helpers::join<std::shared_ptr<ExpressionAST>>(
+		arguments(),
+		[&](std::shared_ptr<ExpressionAST> arg) {
+			return arg->expressionType(codeGen.typeChecker())->vmType();
+		}, " ");
+
+	auto calldedFuncName = classType->name() + "::" + mFunctionName;
 	func.addInstruction("CALL " + calldedFuncName + "(" + argsTypeStr + ")");
 }
 

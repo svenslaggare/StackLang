@@ -19,7 +19,7 @@ private:
 	std::string mFieldName;
 public:
 	//Creates a new field declaration expression
-	FieldDeclarationExpressionAST(std::string fieldType, std::string fieldName);
+	FieldDeclarationExpressionAST( std::string fieldType, std::string fieldName);
 
 	//Returns the type of the field
 	std::string fieldType() const;

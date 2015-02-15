@@ -8,6 +8,7 @@ class TypeChecker;
 class CodeGenerator;
 class GeneratedFunction;
 class SemanticVerifier;
+class CallExpressionAST;
 
 //Represents a member access AST
 class MemberAccessAST : public ExpressionAST {
@@ -23,6 +24,38 @@ public:
 
 	//Returns the member expression
 	std::shared_ptr<ExpressionAST> memberExpression() const;
+
+	virtual std::string asString() const override;
+
+	virtual void visit(VisitFn visitFn) const override;
+
+	virtual bool rewriteAST(std::shared_ptr<AbstractSyntaxTree>& newAST) const override; 
+
+	virtual void rewrite() override;
+
+	virtual void generateSymbols(Binder& binder, std::shared_ptr<SymbolTable> symbolTable) override;
+
+	virtual void typeCheck(TypeChecker& checker) override;
+
+	virtual std::shared_ptr<Type> expressionType(const TypeChecker& checker) const override; 
+
+	virtual void generateCode(CodeGenerator& codeGen, GeneratedFunction& func) override;
+};
+
+//Represents a member call expression AST
+class MemberCallExpressionAST : public ExpressionAST {
+private:	
+	std::shared_ptr<ExpressionAST> mAccessExpression;
+	std::shared_ptr<CallExpressionAST> mMemberCallExpression;
+public:
+	//Creates a new member call expression AST
+	MemberCallExpressionAST(std::shared_ptr<ExpressionAST> accessExpression, std::shared_ptr<CallExpressionAST> memberCallExpression);
+
+	//Returns the access expression
+	std::shared_ptr<ExpressionAST> accessExpression() const;
+
+	//Returns the member expression
+	std::shared_ptr<CallExpressionAST> memberCallExpression() const;
 
 	virtual std::string asString() const override;
 

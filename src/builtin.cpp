@@ -14,6 +14,11 @@ void StackLang::Builtin::add(Binder& binder, TypeChecker& typeChecker) {
 	typeChecker.addObject(Object("Array", nullptr, { { "length", Field("length", intType) } }));
 
 	//Add conversions
-	typeChecker.defineExplicitConversion(floatType, intType, [](CodeGenerator& codeGen, GeneratedFunction& func) { func.addInstruction("CONVFLOATTOINT"); });
-	typeChecker.defineExplicitConversion(intType, floatType, [](CodeGenerator& codeGen, GeneratedFunction& func) { func.addInstruction("CONVINTTOFLOAT"); });
+	typeChecker.defineExplicitConversion(floatType, intType, [](CodeGenerator& codeGen, GeneratedFunction& func) {
+		func.addInstruction("CONVFLOATTOINT");
+	});
+
+	typeChecker.defineExplicitConversion(intType, floatType, [](CodeGenerator& codeGen, GeneratedFunction& func) {
+		func.addInstruction("CONVINTTOFLOAT");
+	});
 }

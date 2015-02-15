@@ -59,9 +59,6 @@ public:
 
 	virtual std::shared_ptr<Type> expressionType(const TypeChecker& checker) const override; 
 
-	//Generates an array of the given dim
-	void generateArrayDim(CodeGenerator& codeGen, GeneratedFunction& func, int dim);
-
 	virtual void generateCode(CodeGenerator& codeGen, GeneratedFunction& func) override;
 };
 

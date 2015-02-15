@@ -30,8 +30,8 @@ int main(int argc, char* argv[]) {
 			{ Operator('<', '='), 5 }, { Operator('>', '='), 5 }, 
 			{ Operator('=', '='), 4 }, { Operator('!', '='), 4 }, { Operator('&', '&'), 3 }, { Operator('|', '|'), 2 },
 			{ Operator('+', '='), 1 }, { Operator('-', '='), 1 }, { Operator('*', '='), 1 }, { Operator('/', '='), 1 },
-			{ Operator('.'), 7 },
-			{ Operator(':', ':'), 8 }
+			{ Operator('.'), 8 },
+			{ Operator(':', ':'), 9 }
 		},
 		{ Operator('!'), Operator('-') },
 		{ '+', '-', '*', '/' },

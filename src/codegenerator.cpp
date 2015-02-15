@@ -190,6 +190,24 @@ const TypeChecker& CodeGenerator::typeChecker() const {
 void CodeGenerator::generateProgram(std::shared_ptr<ProgramAST> programAST) {
 	programAST->visitClasses([&](std::shared_ptr<ClassDefinitionAST> classDef) {
 		mClasses.push_back(mTypeChecker.getObject(classDef->name()));
+		auto classType = mTypeChecker.findType(classDef->name())->name();
+
+		for (auto memberFunc : classDef->functions()) {
+			std::vector<std::shared_ptr<VariableDeclarationExpressionAST>> parameters;
+			parameters.push_back(std::make_shared<VariableDeclarationExpressionAST>(classType, "this"));
+
+			for (auto param : memberFunc->prototype()->parameters()) {
+				parameters.push_back(param);
+			}
+
+			auto memberFuncPrototype = std::make_shared<FunctionPrototypeAST>(
+				classDef->name() + "::" + memberFunc->prototype()->name(),
+				parameters,
+				memberFunc->prototype()->returnType());
+
+			auto& genFunc = newFunction(memberFuncPrototype);
+			memberFunc->generateCode(*this, genFunc);
+		}
 	});
 
 	programAST->visitFunctions([&](std::shared_ptr<FunctionAST> func) {

@@ -7,6 +7,7 @@
 #include "../typechecker.h"
 #include "../type.h"
 #include "../semantics.h"
+#include "../controlflowgraph.h"
 
 //Function prototype AST
 FunctionPrototypeAST::FunctionPrototypeAST(std::string name, const std::vector<std::shared_ptr<VariableDeclarationExpressionAST>>& parameters, std::string returnType)
@@ -191,6 +192,8 @@ void FunctionAST::verify(SemanticVerifier& verifier) {
 	if (returnType->name() != "Void" && !anyReturn) {
 		verifier.semanticError("Expected return statement in function '" + funcName + "'.");
 	}
+
+	ControlFlowGraph::createGraph(this);
 }
 
 void FunctionAST::generateCode(CodeGenerator& codeGen, GeneratedFunction& func) {
