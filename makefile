@@ -16,8 +16,8 @@ HEADERS += $(wildcard $(SRCDIR)/*/*.h)
 _OBJECTS=$(SOURCES:.cpp=.o)
 OBJECTS=$(patsubst $(SRCDIR)/%,$(OBJDIR)/%,$(_OBJECTS))
 
-TEST_PROGRAM=programs/program7.sl
 STACKJIT=../StackJIT/stackjit
+STACKJIT_OPTIONS=-i ../StackJIT/rtlib/rtlib.sbc -nogc
 
 TESTS_DIR=tests
 TEST_RUNNERS_DIR=$(TESTS_DIR)/runners
@@ -25,11 +25,11 @@ TEST_EXECUTABLE=test
 
 all: $(OBJDIR) $(SOURCES) $(EXECUTABLE)
 
-test: $(OBJDIR) $(SOURCES) $(EXECUTABLE)
-	./$(EXECUTABLE $(TEST_PROGRAM)
-
 run: $(OBJDIR) $(SOURCES) $(EXECUTABLE)
-	./$(EXECUTABLE $(TEST_PROGRAM) | $(STACKJIT) -i ../StackJIT/rtlib/rtlib.sbc -nogc
+	./$(EXECUTABLE) ${args} | $(STACKJIT) $(STACKJIT_OPTIONS)
+
+compile: $(OBJDIR) $(SOURCES) $(EXECUTABLE)
+	./$(EXECUTABLE) ${args}
 
 %.sl: $(OBJDIR) $(SOURCES) $(EXECUTABLE)
 	./$(EXECUTABLE) $*.sl

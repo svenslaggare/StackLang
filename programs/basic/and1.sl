@@ -14,8 +14,7 @@ func cond3(): Bool {
 }
 
 func main(): Int {
-	#if (cond1() && cond2() && cond3()) {
-	if (cond1() || cond2() || cond3()) {
+	if (cond1() && cond2() && cond3()) {
 		return 1;
 	} else {
 		return 0;

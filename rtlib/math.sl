@@ -5,7 +5,7 @@ namespace std {
 		}
 
 		func intMinValue(): Int {
-			return -2147483647;
+			return -2147483648;
 		}
 
 		func max(Int[] array): Int {

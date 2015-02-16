@@ -55,6 +55,16 @@ std::string stripErrorMessage(std::string errorMessage) {
 
 class CompilerTestSuite : public CxxTest::TestSuite {
 public:
+    void testBasic() {
+        TS_ASSERT_EQUALS(compileAndRun("basic/basic1"), "0\n");
+        TS_ASSERT_EQUALS(compileAndRun("basic/basic2"), "0\n1\n2\n3\n4\n5\n6\n7\n8\n9\n0\n");
+        TS_ASSERT_EQUALS(compileAndRun("basic/basic3"), "4\n");
+        TS_ASSERT_EQUALS(compileAndRun("basic/basic4"), "0\n");
+
+        TS_ASSERT_EQUALS(compileAndRun("basic/or1"), "4\n5\n1\n");
+        TS_ASSERT_EQUALS(compileAndRun("basic/and1"), "4\n0\n");
+    }
+
     void testFunctions() {
         TS_ASSERT_EQUALS(compileAndRun("functions/rec1"), "120\n");
         TS_ASSERT_EQUALS(compileAndRun("functions/rec2"), "21\n");

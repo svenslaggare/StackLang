@@ -806,11 +806,14 @@ std::shared_ptr<NamespaceDeclarationAST> Parser::parseNamespaceDef() {
 		if (currentToken.type() == TokenType::Func) {
 			members.push_back(parseFunctionDef());
 			nextToken();
+		} if (currentToken.type() == TokenType::Class) {
+			members.push_back(parseClassDef());
+			nextToken();
 		} else if (currentToken.type() == TokenType::Namespace) {
 			members.push_back(parseNamespaceDef());
 			nextToken();
 		} else if (!isSingleCharToken('}')) {
-			compileError("Expected function or namespace definiton within namespace declaration.");
+			compileError("Expected function, class or namespace definition within namespace definition.");
 		}
 
 		if (isSingleCharToken('}')) {
