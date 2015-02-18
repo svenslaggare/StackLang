@@ -454,14 +454,14 @@ void CallExpressionAST::generateMemberCallCode(CodeGenerator& codeGen, Generated
 		arg->generateCode(codeGen, func);
 	}
 
-	auto argsTypeStr = classType->vmType() + (arguments().size() > 0 ? " " : "") + Helpers::join<std::shared_ptr<ExpressionAST>>(
+	auto argsTypeStr = Helpers::join<std::shared_ptr<ExpressionAST>>(
 		arguments(),
 		[&](std::shared_ptr<ExpressionAST> arg) {
 			return arg->expressionType(codeGen.typeChecker())->vmType();
 		}, " ");
 
 	auto calldedFuncName = classType->name() + "::" + mFunctionName;
-	func.addInstruction("CALL " + calldedFuncName + "(" + argsTypeStr + ")");
+	func.addInstruction("CALLINST " + calldedFuncName + "(" + argsTypeStr + ")");
 }
 
 void CallExpressionAST::generateCode(CodeGenerator& codeGen, GeneratedFunction& func) {

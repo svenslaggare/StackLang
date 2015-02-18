@@ -26,15 +26,15 @@ TEST_EXECUTABLE=test
 all: $(OBJDIR) $(SOURCES) $(EXECUTABLE)
 
 run: $(OBJDIR) $(SOURCES) $(EXECUTABLE)
-	./$(EXECUTABLE) ${args} | $(STACKJIT) $(STACKJIT_OPTIONS)
+	./$(EXECUTABLE) ${program} | $(STACKJIT) $(STACKJIT_OPTIONS)
 
 compile: $(OBJDIR) $(SOURCES) $(EXECUTABLE)
-	./$(EXECUTABLE) ${args}
+	./$(EXECUTABLE) ${program}
 
 %.sl: $(OBJDIR) $(SOURCES) $(EXECUTABLE)
 	./$(EXECUTABLE) $*.sl
 
-run-tests: $(TESTS_DIR)/compiler-test.h
+test: $(TESTS_DIR)/compiler-test.h $(OBJDIR) $(EXECUTABLE)
 	mkdir -p $(TEST_RUNNERS_DIR)
 	cxxtestgen --error-printer -o $(TEST_RUNNERS_DIR)/compilertest_runner.cpp $(TESTS_DIR)/compiler-test.h
 	$(CC) $(LDFLAGS) -o $(TEST_EXECUTABLE) -I $(CXXTEST) $(TEST_RUNNERS_DIR)/compilertest_runner.cpp

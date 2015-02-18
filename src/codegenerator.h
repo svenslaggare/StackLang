@@ -32,13 +32,14 @@ private:
 	std::string mFunctionName;
 	std::vector<FunctionParameter> mParameters;
 	std::shared_ptr<Type> mReturnType;
+	bool mIsMemberFunction;
 
 	std::map<std::string, Local> mLocals;
 	std::vector<std::string> mInstructions;
 	std::vector<int> mReturnBranches;
 public:
 	//Creates a new generated function
-	GeneratedFunction(std::string functionName, std::vector<FunctionParameter> parameters, std::shared_ptr<Type> returnType);
+	GeneratedFunction(std::string functionName, std::vector<FunctionParameter> parameters, std::shared_ptr<Type> returnType, bool isMemberFunction = false);
 	GeneratedFunction();
 
 	//Returns the number of locals
@@ -116,7 +117,7 @@ public:
 	void generateProgram(std::shared_ptr<ProgramAST> programAST);
 
 	//Creates a new function
-	GeneratedFunction& newFunction(std::shared_ptr<FunctionPrototypeAST> functionPrototype);
+	GeneratedFunction& newFunction(std::shared_ptr<FunctionPrototypeAST> functionPrototype, bool isMemberFunction = false);
 
 	//Prints the generated code
 	void printGeneratedCode();

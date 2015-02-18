@@ -21,8 +21,8 @@ FunctionParameter::FunctionParameter()
 }
 
 //Generated function
-GeneratedFunction::GeneratedFunction(std::string functionName, std::vector<FunctionParameter> parameters, std::shared_ptr<Type> returnType)
-	: mFunctionName(functionName), mParameters(parameters), mReturnType(returnType) {
+GeneratedFunction::GeneratedFunction(std::string functionName, std::vector<FunctionParameter> parameters, std::shared_ptr<Type> returnType, bool isMemberFunction)
+	: mFunctionName(functionName), mParameters(parameters), mReturnType(returnType), mIsMemberFunction(isMemberFunction) {
 
 }
 
@@ -98,9 +98,19 @@ void GeneratedFunction::addReturnBranch(int index) {
 void GeneratedFunction::outputGeneratedCode(std::ostream& os) {
 	bool isFirst = true;
 
-	os << "func " << mFunctionName << "(";
+	if (!mIsMemberFunction) {
+		os << "func " << mFunctionName << "(";
+	} else {
+		os << "member " << mFunctionName << "(";
+	}
 
+	int arg = 0;
 	for (auto param : mParameters) {
+		if (mIsMemberFunction && arg == 0) {
+			arg++;
+			continue;
+		}
+
 		if (!isFirst) {
 			os << " ";
 		} else {
@@ -108,6 +118,7 @@ void GeneratedFunction::outputGeneratedCode(std::ostream& os) {
 		}
 
 		os << param.type->vmType();
+		arg++;
 	}
 
 	os << ") " << mReturnType->vmType() << std::endl;
@@ -192,6 +203,7 @@ void CodeGenerator::generateProgram(std::shared_ptr<ProgramAST> programAST) {
 		mClasses.push_back(mTypeChecker.getObject(classDef->name()));
 		auto classType = mTypeChecker.findType(classDef->name())->name();
 
+		//Add member functions
 		for (auto memberFunc : classDef->functions()) {
 			std::vector<std::shared_ptr<VariableDeclarationExpressionAST>> parameters;
 			parameters.push_back(std::make_shared<VariableDeclarationExpressionAST>(classType, "this"));
@@ -205,7 +217,7 @@ void CodeGenerator::generateProgram(std::shared_ptr<ProgramAST> programAST) {
 				parameters,
 				memberFunc->prototype()->returnType());
 
-			auto& genFunc = newFunction(memberFuncPrototype);
+			auto& genFunc = newFunction(memberFuncPrototype, true);
 			memberFunc->generateCode(*this, genFunc);
 		}
 	});
@@ -216,14 +228,19 @@ void CodeGenerator::generateProgram(std::shared_ptr<ProgramAST> programAST) {
 	});
 }
 
-GeneratedFunction& CodeGenerator::newFunction(std::shared_ptr<FunctionPrototypeAST> functionPrototype) {
+GeneratedFunction& CodeGenerator::newFunction(std::shared_ptr<FunctionPrototypeAST> functionPrototype, bool isMemberFunction) {
 	std::vector<FunctionParameter> parameters;
 
 	for (auto param : functionPrototype->parameters()) {
 		parameters.push_back(FunctionParameter(param->varName(), mTypeChecker.findType(param->varType())));
 	}
 
-	mFunctions.push_back(GeneratedFunction(functionPrototype->fullName("."), parameters, mTypeChecker.findType(functionPrototype->returnType())));
+	mFunctions.push_back(GeneratedFunction(
+		functionPrototype->fullName("."),
+		parameters,
+		mTypeChecker.findType(functionPrototype->returnType()),
+		isMemberFunction));
+
 	auto& newFunc = mFunctions[mFunctions.size() - 1];
 
 	if (functionPrototype->returnType() != "Void") {
