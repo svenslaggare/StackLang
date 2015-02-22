@@ -115,6 +115,9 @@ private:
 	//Parses a function definition
 	std::shared_ptr<FunctionAST> parseFunctionDef();
 
+	//Parses a constructor definition
+	std::shared_ptr<FunctionAST> parseConstructorDef(std::string className);
+
 	//Parses a class definition
 	std::shared_ptr<ClassDefinitionAST> parseClassDef();
 

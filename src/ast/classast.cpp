@@ -1,6 +1,8 @@
 #include "classast.h"
 #include "functionast.h"
 #include "expressionast.h"
+#include "blockast.h"
+#include "statementast.h"
 #include "../helpers.h"
 #include "../symboltable.h"
 #include "../binder.h"
@@ -70,6 +72,24 @@ ClassDefinitionAST::ClassDefinitionAST(
 	std::vector<std::shared_ptr<FunctionAST>> functions)
 	: mName(name), mFields(fields), mFunctions(functions) {
 	
+	bool hasConstructor = false;
+
+	for (auto func : mFunctions) {
+		if (func->prototype()->name() == ".constructor") {
+			hasConstructor = true;
+			break;
+		}
+	}
+
+	//Add default constructor
+	if (!hasConstructor) {
+		mFunctions.push_back(std::make_shared<FunctionAST>(
+			std::make_shared<FunctionPrototypeAST>(
+				".constructor",
+				std::vector<std::shared_ptr<VariableDeclarationExpressionAST>>({}),
+				"Void"),
+			std::make_shared<BlockAST>(std::vector<std::shared_ptr<StatementAST>>({}))));
+	}
 }
 
 std::string ClassDefinitionAST::name() const {
@@ -239,11 +259,45 @@ std::string NewClassExpressionAST::asString() const {
 	return "new " + mTypeName + "(" + AST::combineAST(mConstructorArguments, ", ") + ")";
 }
 
+std::shared_ptr<Symbol> NewClassExpressionAST::constructorSymbol(std::shared_ptr<SymbolTable> symbolTable) const {
+	return symbolTable->find(".constructor");
+}
+
+std::shared_ptr<FunctionSignatureSymbol> NewClassExpressionAST::constructorSignature(const TypeChecker& typeChecker) const {
+	std::vector<std::string> argumentsTypes;
+
+	for (auto arg : mConstructorArguments) {
+		argumentsTypes.push_back(arg->expressionType(typeChecker)->name());
+	}
+
+	auto classSymbol = std::dynamic_pointer_cast<ClassSymbol>(mSymbolTable->find(mTypeName));
+	auto funcSymbol = std::dynamic_pointer_cast<FunctionSymbol>(constructorSymbol(classSymbol->symbolTable()));
+	return funcSymbol->findOverload(argumentsTypes);
+}
+
 void NewClassExpressionAST::generateSymbols(Binder& binder, std::shared_ptr<SymbolTable> symbolTable) {
 	AbstractSyntaxTree::generateSymbols(binder, symbolTable);
 
-	for (auto arg : mConstructorArguments) {
-		arg->generateSymbols(binder, symbolTable);
+	auto classSymbol = std::dynamic_pointer_cast<ClassSymbol>(symbolTable->find(mTypeName));
+
+	if (classSymbol == nullptr) {
+		binder.error("There exists no class named '" + mTypeName + "'.");
+	}
+
+	auto symbol = constructorSymbol(classSymbol->symbolTable());
+
+	if (symbol == nullptr) {
+		binder.error("No constructor is defined for the class '" + mTypeName + "'.");
+	} else {
+		auto func = std::dynamic_pointer_cast<FunctionSymbol>(symbol);
+
+		for (auto arg : mConstructorArguments) {
+			arg->generateSymbols(binder, symbolTable);
+		}
+
+		if (func == nullptr) {
+			binder.error("The binded symbol is not a constructor.");
+		}
 	}
 }
 
@@ -258,13 +312,26 @@ void NewClassExpressionAST::typeCheck(TypeChecker& checker) {
 		checker.typeError(mTypeName + " is not an object type.");
 	}
 
-	if (mConstructorArguments.size() > 0) {
-		auto argsStr = Helpers::join<std::shared_ptr<ExpressionAST>>(
-			mConstructorArguments,
+	auto constructor = constructorSignature(checker);
+
+	if (constructor == nullptr) {
+		auto paramsStr = Helpers::join<std::shared_ptr<ExpressionAST>>(
+			constructorArguments(),
 			[&](std::shared_ptr<ExpressionAST> arg) { return arg->expressionType(checker)->name(); },
 			", ");
 
-		checker.typeError("There exists no constructor with the signature: " + mTypeName + "(" + argsStr  + ").");
+		checker.typeError("There exists no constructor overload with the given signature: '" + mTypeName + "(" + paramsStr + ")" + "'.");
+	}
+
+	for (int i = 0; i < constructorArguments().size(); i++) {
+		auto arg = constructorArguments().at(i);
+
+		auto param = constructor->parameters().at(i);
+
+		auto argType = arg->expressionType(checker);
+		auto paramType = checker.findType(param.variableType());
+
+		checker.assertSameType(*paramType, *argType);
 	}
 }
 
@@ -273,9 +340,24 @@ std::shared_ptr<Type> NewClassExpressionAST::expressionType(const TypeChecker& c
 }
 
 void NewClassExpressionAST::generateCode(CodeGenerator& codeGen, GeneratedFunction& func) {
+	auto classType = codeGen.typeChecker().findType(mTypeName);
+	func.addInstruction("NEWOBJ " + classType->vmType());
+
+	//Invoke the constructor
+	int tmpLocal = func.newLocal("$tmp$_" + std::to_string(func.numLocals()), classType);
+	func.addStoreLocal(tmpLocal);
+	func.addLoadLocal(tmpLocal);
+
 	for (auto arg : mConstructorArguments) {
 		arg->generateCode(codeGen, func);
 	}
 
-	func.addInstruction("NEWOBJ " + codeGen.typeChecker().findType(mTypeName)->vmType());
+	auto paramsStr = Helpers::join<std::shared_ptr<ExpressionAST>>(
+		constructorArguments(),
+		[&](std::shared_ptr<ExpressionAST> arg) { return arg->expressionType(codeGen.typeChecker())->vmType(); },
+		" ");
+
+	func.addInstruction("CALLINST " + mTypeName + "::.constructor(" + paramsStr + ")");
+
+	func.addLoadLocal(tmpLocal);
 }

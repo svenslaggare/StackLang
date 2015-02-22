@@ -730,6 +730,50 @@ std::shared_ptr<FunctionAST> Parser::parseFunctionDef() {
 	return std::make_shared<FunctionAST>(std::make_shared<FunctionPrototypeAST>(name, arguments, returnType), body);
 }
 
+std::shared_ptr<FunctionAST> Parser::parseConstructorDef(std::string className) {
+	//Eat the class name
+	nextToken();
+
+	if (currentTokenAsChar() != '(')  {
+		compileError("Expected ')' in constructor.");
+	}
+
+	//Arguments
+	nextToken(); //Eat the '('
+
+	std::vector<std::shared_ptr<VariableDeclarationExpressionAST>> arguments;
+	if (!(currentToken.type() == TokenType::SingleChar && currentToken.charValue == ')')) {
+		while (true) {
+			if (currentToken.type() == TokenType::Identifier) {
+				std::string varType = parseTypeName();
+
+				if (currentToken.type() == TokenType::Identifier) {
+					arguments.push_back(std::make_shared<VariableDeclarationExpressionAST>(varType, currentToken.strValue, true));
+				}
+			}
+
+			nextToken();
+
+			if (isSingleCharToken(')')) {
+				break;
+			}
+
+			if (!isSingleCharToken(',')) {
+				compileError("Expected ',' or ')' in argument list.");
+			}
+
+			nextToken();
+		}
+	}
+
+	nextToken(); //Eat the ')'
+
+	//Body
+	auto body = parseBlock();
+
+	return std::make_shared<FunctionAST>(std::make_shared<FunctionPrototypeAST>(".constructor", arguments, "Void"), body);
+}
+
 std::shared_ptr<ClassDefinitionAST> Parser::parseClassDef() {
 	//Eat the 'class'
 	nextToken();
@@ -754,6 +798,9 @@ std::shared_ptr<ClassDefinitionAST> Parser::parseClassDef() {
 	while (true) {
 		if (currentToken.type() == TokenType::Func) {
 			functions.push_back(parseFunctionDef());
+			nextToken();
+		} else if (currentToken.type() == TokenType::Identifier && currentToken.strValue == className) {
+			functions.push_back(parseConstructorDef(className));
 			nextToken();
 		} else if (!isSingleCharToken('}')) {
 			auto typeName = parseTypeName();

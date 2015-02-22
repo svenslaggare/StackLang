@@ -61,8 +61,7 @@ int main(int argc, char* argv[]) {
 	auto programAST = parser.parse();
 
 	programAST->rewrite();
-	//programAST->rewrite();
-	// std::cout << *programAST << std::endl;
+	//std::cout << *programAST << std::endl;
 
 	Binder binder;
 	TypeChecker typeChecker(binder, operators, defaultTypes);

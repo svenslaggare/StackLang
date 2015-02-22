@@ -11,6 +11,8 @@ class SymbolTable;
 class TypeChecker;
 class CodeGenerator;
 class GeneratedFunction;
+class Symbol;
+class FunctionSignatureSymbol;
 
 //Represents a field declaration expression AST
 class FieldDeclarationExpressionAST : public ExpressionAST {
@@ -97,6 +99,12 @@ public:
 
 	virtual std::string asString() const override;
 	
+	//Finds the symbol for the constructor
+	std::shared_ptr<Symbol> constructorSymbol(std::shared_ptr<SymbolTable> symbolTable) const;
+
+	//Returns the signature for the constructor
+	std::shared_ptr<FunctionSignatureSymbol> constructorSignature(const TypeChecker& typeChecker) const;
+
 	virtual void generateSymbols(Binder& binder, std::shared_ptr<SymbolTable> symbolTable) override;
 
 	virtual void typeCheck(TypeChecker& checker) override;
