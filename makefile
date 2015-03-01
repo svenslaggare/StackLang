@@ -17,7 +17,7 @@ _OBJECTS=$(SOURCES:.cpp=.o)
 OBJECTS=$(patsubst $(SRCDIR)/%,$(OBJDIR)/%,$(_OBJECTS))
 
 STACKJIT=../StackJIT/stackjit
-STACKJIT_OPTIONS=-i ../StackJIT/rtlib/rtlib.sbc -nogc
+STACKJIT_OPTIONS=-i ../StackJIT/rtlib/rtlib.sbc --no-gc
 
 TESTS_DIR=tests
 TEST_RUNNERS_DIR=$(TESTS_DIR)/runners

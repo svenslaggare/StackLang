@@ -340,14 +340,30 @@ std::shared_ptr<Type> NewClassExpressionAST::expressionType(const TypeChecker& c
 }
 
 void NewClassExpressionAST::generateCode(CodeGenerator& codeGen, GeneratedFunction& func) {
+	// auto classType = codeGen.typeChecker().findType(mTypeName);
+	// func.addInstruction("NEWOBJ " + classType->vmType());
+
+	// //Generate code for the constructor arguments
+	// int tmpLocal = func.newLocal("$tmp$_" + std::to_string(func.numLocals()), classType);
+	// func.addStoreLocal(tmpLocal);
+	// func.addLoadLocal(tmpLocal);
+
+	// for (auto arg : mConstructorArguments) {
+	// 	arg->generateCode(codeGen, func);
+	// }
+
+	// auto paramsStr = Helpers::join<std::shared_ptr<ExpressionAST>>(
+	// 	constructorArguments(),
+	// 	[&](std::shared_ptr<ExpressionAST> arg) { return arg->expressionType(codeGen.typeChecker())->vmType(); },
+	// 	" ");
+
+	// func.addInstruction("CALLINST " + mTypeName + "::.constructor(" + paramsStr + ")");
+
+	// func.addLoadLocal(tmpLocal);
+
 	auto classType = codeGen.typeChecker().findType(mTypeName);
-	func.addInstruction("NEWOBJ " + classType->vmType());
 
-	//Invoke the constructor
-	int tmpLocal = func.newLocal("$tmp$_" + std::to_string(func.numLocals()), classType);
-	func.addStoreLocal(tmpLocal);
-	func.addLoadLocal(tmpLocal);
-
+	//Generate code for the constructor arguments
 	for (auto arg : mConstructorArguments) {
 		arg->generateCode(codeGen, func);
 	}
@@ -357,7 +373,5 @@ void NewClassExpressionAST::generateCode(CodeGenerator& codeGen, GeneratedFuncti
 		[&](std::shared_ptr<ExpressionAST> arg) { return arg->expressionType(codeGen.typeChecker())->vmType(); },
 		" ");
 
-	func.addInstruction("CALLINST " + mTypeName + "::.constructor(" + paramsStr + ")");
-
-	func.addLoadLocal(tmpLocal);
+	func.addInstruction("NEWOBJ " + mTypeName + "::.constructor(" + paramsStr + ")");
 }
