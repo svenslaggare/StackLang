@@ -6,6 +6,7 @@
 #include <vector>
 #include <functional>
 
+class Compiler;
 class TypeChecker;
 class CodeGenerator;
 
@@ -26,7 +27,7 @@ public:
 
 	std::string asString() const override;
 
-	virtual void rewrite() override;
+	virtual void rewrite(Compiler& compiler) override;
 
 	virtual void visit(VisitFn visitFn) const override;
 

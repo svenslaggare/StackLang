@@ -65,15 +65,15 @@ void ProgramAST::visit(VisitFn visitFn) const {
 	visitFn(this);
 }
 
-void ProgramAST::rewrite() {
+void ProgramAST::rewrite(Compiler& compiler) {
 	for (auto& curretNamespace : mNamespaces) {
 		std::shared_ptr<AbstractSyntaxTree> newAST;
 
-		if (curretNamespace->rewriteAST(newAST)) {
+		while (curretNamespace->rewriteAST(newAST, compiler)) {
 			curretNamespace = std::dynamic_pointer_cast<NamespaceDeclarationAST>(newAST);
 		}
 
-		curretNamespace->rewrite();
+		curretNamespace->rewrite(compiler);
 	}
 }
 

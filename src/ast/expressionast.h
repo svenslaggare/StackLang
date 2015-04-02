@@ -4,10 +4,12 @@
 #include <memory>
 #include <string>
 
+class Compiler;
 class TypeChecker;
 class CodeGenerator;
 class Symbol;
 class SymbolTable;
+class VariableSymbol;
 
 //Represents an integer expression
 class IntegerExpressionAST : public ExpressionAST {
@@ -138,6 +140,9 @@ public:
 
 	std::string asString() const override;
 
+	//Returns the symbol that the variable references to. Returns null if not bound.
+	std::shared_ptr<VariableSymbol> symbol() const;
+
 	virtual void visit(VisitFn visitFn) const override;
 
 	virtual void generateSymbols(Binder& binder, std::shared_ptr<SymbolTable> symbolTable) override;
@@ -216,7 +221,7 @@ public:
 
 	virtual void visit(VisitFn visitFn) const override;
 	
-	virtual void rewrite() override;
+	virtual void rewrite(Compiler& compiler) override;
 	
 	virtual void generateSymbols(Binder& binder, std::shared_ptr<SymbolTable> symbolTable) override;
 
@@ -254,7 +259,7 @@ public:
 
 	virtual void visit(VisitFn visitFn) const override;
 	
-	virtual void rewrite() override;
+	virtual void rewrite(Compiler& compiler) override;
 	
 	virtual void generateSymbols(Binder& binder, std::shared_ptr<SymbolTable> symbolTable) override;
 

@@ -6,6 +6,7 @@
 #include <set>
 #include <map>
 
+class Compiler;
 class TypeChecker;
 class Type;
 class CodeGenerator;
@@ -41,9 +42,9 @@ public:
 
 	virtual void visit(VisitFn visitFn) const override;
 
-	virtual void rewrite() override;
+	virtual void rewrite(Compiler& compiler) override;
 
-	virtual bool rewriteAST(std::shared_ptr<AbstractSyntaxTree>& newAST) const override;
+	virtual bool rewriteAST(std::shared_ptr<AbstractSyntaxTree>& newAST, Compiler& compiler) const override;
 
 	virtual void generateSymbols(Binder& binder, std::shared_ptr<SymbolTable> symbolTable) override;
 
@@ -75,7 +76,7 @@ public:
 
 	virtual void visit(VisitFn visitFn) const override;
 	
-	virtual bool rewriteAST(std::shared_ptr<AbstractSyntaxTree>& newAST) const override;
+	virtual bool rewriteAST(std::shared_ptr<AbstractSyntaxTree>& newAST, Compiler& compiler) const override;
 
 	virtual void generateSymbols(Binder& binder, std::shared_ptr<SymbolTable> symbolTable) override;
 

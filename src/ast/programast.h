@@ -6,6 +6,7 @@
 #include <vector>
 #include <functional>
 
+class Compiler;
 class Binder;
 class SymbolTable;
 class TypeChecker;
@@ -44,7 +45,7 @@ public:
 
 	virtual void visit(VisitFn visitFn) const override;
 
-	virtual void rewrite() override;
+	virtual void rewrite(Compiler& compiler) override;
 	
 	virtual void generateSymbols(Binder& binder, std::shared_ptr<SymbolTable> symbolTable) override;
 

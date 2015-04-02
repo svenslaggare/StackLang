@@ -144,25 +144,25 @@ void ClassDefinitionAST::addClassDefinition(TypeChecker& checker) const {
 	}
 }
 
-void ClassDefinitionAST::rewrite() {
+void ClassDefinitionAST::rewrite(Compiler& compiler) {
 	for (auto& field : mFields) {
 		std::shared_ptr<AbstractSyntaxTree> newAST;
 
-		while (field->rewriteAST(newAST)) {
+		while (field->rewriteAST(newAST, compiler)) {
 			field = std::dynamic_pointer_cast<FieldDeclarationExpressionAST>(newAST);
 		}
 
-		field->rewrite();
+		field->rewrite(compiler);
 	}
 
 	for (auto& func : mFunctions) {
 		std::shared_ptr<AbstractSyntaxTree> newAST;
 
-		while (func->rewriteAST(newAST)) {
+		while (func->rewriteAST(newAST, compiler)) {
 			func = std::dynamic_pointer_cast<FunctionAST>(newAST);
 		}
 
-		func->rewrite();
+		func->rewrite(compiler);
 	}
 }
 

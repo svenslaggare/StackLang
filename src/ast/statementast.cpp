@@ -26,14 +26,14 @@ void ExpressionStatementAST::visit(VisitFn visitFn) const {
 	visitFn(this);
 }
 
-void ExpressionStatementAST::rewrite() {
+void ExpressionStatementAST::rewrite(Compiler& compiler) {
 	std::shared_ptr<AbstractSyntaxTree> newAST;
 
-	while (mExpression->rewriteAST(newAST)) {
+	while (mExpression->rewriteAST(newAST, compiler)) {
 		mExpression = std::dynamic_pointer_cast<ExpressionAST>(newAST);
 	}
 
-	mExpression->rewrite();
+	mExpression->rewrite(compiler);
 }
 
 void ExpressionStatementAST::generateSymbols(Binder& binder, std::shared_ptr<SymbolTable> symbolTable) {
@@ -88,15 +88,15 @@ void ReturnStatementAST::visit(VisitFn visitFn) const {
 	visitFn(this);
 }
 
-void ReturnStatementAST::rewrite() {
+void ReturnStatementAST::rewrite(Compiler& compiler) {
 	std::shared_ptr<AbstractSyntaxTree> newAST;
 
-	if (mReturnExpression != nullptr && mReturnExpression->rewriteAST(newAST)) {
+	while (mReturnExpression != nullptr && mReturnExpression->rewriteAST(newAST, compiler)) {
 		mReturnExpression = std::dynamic_pointer_cast<ExpressionAST>(newAST);
 	}
 
 	if (mReturnExpression != nullptr) {
-		mReturnExpression->rewrite();
+		mReturnExpression->rewrite(compiler);
 	}
 }
 
@@ -163,26 +163,26 @@ void IfElseStatementAST::visit(VisitFn visitFn) const {
 	visitFn(this);
 }
 
-void IfElseStatementAST::rewrite() {
+void IfElseStatementAST::rewrite(Compiler& compiler) {
 	std::shared_ptr<AbstractSyntaxTree> newAST;
 
-	if (mConditionExpression->rewriteAST(newAST)) {
+	while (mConditionExpression->rewriteAST(newAST, compiler)) {
 		mConditionExpression = std::dynamic_pointer_cast<ExpressionAST>(newAST);
 	}
 
-	if (mThenBlock->rewriteAST(newAST)) {
+	while (mThenBlock->rewriteAST(newAST, compiler)) {
 		mThenBlock = std::dynamic_pointer_cast<BlockAST>(newAST);
 	}
 
-	if (mElseBlock != nullptr && mElseBlock->rewriteAST(newAST)) {
+	while (mElseBlock != nullptr && mElseBlock->rewriteAST(newAST, compiler)) {
 		mElseBlock = std::dynamic_pointer_cast<BlockAST>(newAST);
 	}
 
-	mConditionExpression->rewrite();
-	mThenBlock->rewrite();
+	mConditionExpression->rewrite(compiler);
+	mThenBlock->rewrite(compiler);
 
 	if (mElseBlock != nullptr) {
-		mElseBlock->rewrite();
+		mElseBlock->rewrite(compiler);
 	}
 }
 
@@ -315,19 +315,19 @@ void WhileLoopStatementAST::visit(VisitFn visitFn) const {
 	visitFn(this);
 }
 
-void WhileLoopStatementAST::rewrite() {
+void WhileLoopStatementAST::rewrite(Compiler& compiler) {
 	std::shared_ptr<AbstractSyntaxTree> newAST;
 
-	if (mConditionExpression->rewriteAST(newAST)) {
+	while (mConditionExpression->rewriteAST(newAST, compiler)) {
 		mConditionExpression = std::dynamic_pointer_cast<ExpressionAST>(newAST);
 	}
 
-	if (mBodyBlock->rewriteAST(newAST)) {
+	while (mBodyBlock->rewriteAST(newAST, compiler)) {
 		mBodyBlock = std::dynamic_pointer_cast<BlockAST>(newAST);
 	}
 
-	mConditionExpression->rewrite();
-	mBodyBlock->rewrite();
+	mConditionExpression->rewrite(compiler);
+	mBodyBlock->rewrite(compiler);
 }
 
 void WhileLoopStatementAST::generateSymbols(Binder& binder, std::shared_ptr<SymbolTable> symbolTable) {
@@ -402,7 +402,7 @@ std::string ForLoopStatementAST::asString() const {
 	return "for (" + mInitExpression->asString() + "; " + mConditionExpression->asString() + "; " + mChangeExpression->asString() + ") " + mBodyBlock->asString();
 }
 
-bool ForLoopStatementAST::rewriteAST(std::shared_ptr<AbstractSyntaxTree>& newAST) const {
+bool ForLoopStatementAST::rewriteAST(std::shared_ptr<AbstractSyntaxTree>& newAST, Compiler& compiler) const {
 	auto bodyStatements = mBodyBlock->statements();
 	bodyStatements.push_back(std::make_shared<ExpressionStatementAST>(mChangeExpression));
 

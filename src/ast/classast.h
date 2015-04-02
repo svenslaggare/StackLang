@@ -6,6 +6,7 @@
 
 class FunctionAST;
 class Type;
+class Compiler;
 class Binder;
 class SymbolTable;
 class TypeChecker;
@@ -71,7 +72,7 @@ public:
 	//Adds the class definition to the given type checker
 	void addClassDefinition(TypeChecker& checker) const;
 
-	virtual void rewrite() override;
+	virtual void rewrite(Compiler& compiler) override;
 
 	virtual void visit(VisitFn visitFn) const override;
 

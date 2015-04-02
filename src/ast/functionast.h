@@ -5,6 +5,7 @@
 #include <string>
 #include <vector>
 
+class Compiler;
 class VariableDeclarationExpressionAST;
 class SymbolTable;
 class BlockAST;
@@ -70,7 +71,7 @@ public:
 
 	virtual void visit(VisitFn visitFn) const override;
 	
-	virtual void rewrite() override;
+	virtual void rewrite(Compiler& compiler) override;
 	
 	virtual void generateSymbols(Binder& binder, std::shared_ptr<SymbolTable> symbolTable) override;
 

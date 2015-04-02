@@ -41,15 +41,15 @@ void NamespaceDeclarationAST::visit(VisitFn visitFn) const {
 	visitFn(this);
 }
 
-void NamespaceDeclarationAST::rewrite() {
+void NamespaceDeclarationAST::rewrite(Compiler& compiler) {
 	for (auto& member : mMembers) {
 		std::shared_ptr<AbstractSyntaxTree> newAST;
 		
-		while (member->rewriteAST(newAST)) {
+		while (member->rewriteAST(newAST, compiler)) {
 			member = newAST;
 		}
 
-		member->rewrite();
+		member->rewrite(compiler);
 	}
 }
 
@@ -153,21 +153,21 @@ void NamespaceAccessAST::visit(VisitFn visitFn) const {
 	visitFn(this);
 }
 
-void NamespaceAccessAST::rewrite() {
+void NamespaceAccessAST::rewrite(Compiler& compiler) {
 	std::shared_ptr<AbstractSyntaxTree> newNamespace;
 
-	if (mNamespaceExpression->rewriteAST(newNamespace)) {
+	while (mNamespaceExpression->rewriteAST(newNamespace, compiler)) {
 		mNamespaceExpression = std::dynamic_pointer_cast<ExpressionAST>(newNamespace);
 	}
 
 	std::shared_ptr<AbstractSyntaxTree> newMember;
 
-	if (mMemberExpression->rewriteAST(newMember)) {
+	while (mMemberExpression->rewriteAST(newMember, compiler)) {
 		mMemberExpression = std::dynamic_pointer_cast<ExpressionAST>(newMember);
 	}
 
-	mNamespaceExpression->rewrite();
-	mMemberExpression->rewrite();
+	mNamespaceExpression->rewrite(compiler);
+	mMemberExpression->rewrite(compiler);
 }
 
 std::shared_ptr<SymbolTable> NamespaceAccessAST::findNamespaceTable(Binder& binder, std::shared_ptr<SymbolTable> symbolTable, std::shared_ptr<ExpressionAST> namespaceExpression) {

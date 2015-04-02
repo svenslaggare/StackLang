@@ -4,6 +4,7 @@
 
 #include "ast.h"
 
+class Compiler;
 class BlockAST;
 class TypeChecker;
 class CodeGenerator;
@@ -23,7 +24,7 @@ public:
 
 	virtual void visit(VisitFn visitFn) const override;
 
-	virtual void rewrite() override;
+	virtual void rewrite(Compiler& compiler) override;
 
 	virtual void generateSymbols(Binder& binder, std::shared_ptr<SymbolTable> symbolTable) override;
 
@@ -52,7 +53,7 @@ public:
 
 	virtual void visit(VisitFn visitFn) const override;
 
-	virtual void rewrite() override;
+	virtual void rewrite(Compiler& compiler) override;
 
 	virtual void generateSymbols(Binder& binder, std::shared_ptr<SymbolTable> symbolTable) override;
 
@@ -86,7 +87,7 @@ public:
 
 	virtual void visit(VisitFn visitFn) const override;
 
-	virtual void rewrite() override;
+	virtual void rewrite(Compiler& compiler) override;
 
 	virtual void generateSymbols(Binder& binder, std::shared_ptr<SymbolTable> symbolTable) override;
 
@@ -116,7 +117,7 @@ public:
 
 	virtual void visit(VisitFn visitFn) const override;
 
-	virtual void rewrite() override;
+	virtual void rewrite(Compiler& compiler) override;
 
 	virtual void generateSymbols(Binder& binder, std::shared_ptr<SymbolTable> symbolTable) override;
 
@@ -154,5 +155,5 @@ public:
 
 	std::string asString() const override;
 
-	virtual bool rewriteAST(std::shared_ptr<AbstractSyntaxTree>& newAST) const override;
+	virtual bool rewriteAST(std::shared_ptr<AbstractSyntaxTree>& newAST, Compiler& compiler) const override;
 };

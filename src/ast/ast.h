@@ -11,6 +11,7 @@ class Type;
 class CodeGenerator;
 class GeneratedFunction;
 class SemanticVerifier;
+class Compiler;
 
 //Represents an abstract syntax tree
 class AbstractSyntaxTree {
@@ -31,10 +32,10 @@ public:
 	virtual void visit(VisitFn visitFn) const {};
 
 	//Rewrites the children of the current tree
-	virtual void rewrite();
+	virtual void rewrite(Compiler& compiler);
 
 	//Rewrites the current tree and returns the result
-	virtual bool rewriteAST(std::shared_ptr<AbstractSyntaxTree>& newAST) const;
+	virtual bool rewriteAST(std::shared_ptr<AbstractSyntaxTree>& newAST, Compiler& compiler) const;
 
 	//Generates symbols
 	virtual void generateSymbols(Binder& binder, std::shared_ptr<SymbolTable> symbolTable);

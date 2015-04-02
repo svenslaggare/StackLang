@@ -28,15 +28,15 @@ std::string BlockAST::asString() const {
 	return blockStr;
 }
 
-void BlockAST::rewrite() {
+void BlockAST::rewrite(Compiler& compiler) {
 	for (auto& statement : mStatements) {
 		std::shared_ptr<AbstractSyntaxTree> newAST;
 
-		if (statement->rewriteAST(newAST)) {
+		if (statement->rewriteAST(newAST, compiler)) {
 			statement = std::dynamic_pointer_cast<StatementAST>(newAST);
 		}
 
-		statement->rewrite();
+		statement->rewrite(compiler);
 	}
 }
 

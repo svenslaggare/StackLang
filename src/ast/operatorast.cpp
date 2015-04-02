@@ -4,6 +4,7 @@
 #include "arrayast.h"
 #include "objectast.h"
 #include "namespaceast.h"
+#include "../compiler.h"
 #include "../typechecker.h"
 #include "../type.h"
 #include "../symboltable.h"
@@ -58,24 +59,24 @@ void BinaryOpExpressionAST::visit(VisitFn visitFn) const {
 	visitFn(this);
 }
 
-void BinaryOpExpressionAST::rewrite() {
+void BinaryOpExpressionAST::rewrite(Compiler& compiler) {
 	std::shared_ptr<AbstractSyntaxTree> newLHS;
 
-	while (mLeftHandSide->rewriteAST(newLHS)) {
+	while (mLeftHandSide->rewriteAST(newLHS, compiler)) {
 		mLeftHandSide = std::dynamic_pointer_cast<ExpressionAST>(newLHS);
 	}
 
 	std::shared_ptr<AbstractSyntaxTree> newRHS;
 
-	while (mRightHandSide->rewriteAST(newRHS)) {
+	while (mRightHandSide->rewriteAST(newRHS, compiler)) {
 		mRightHandSide = std::dynamic_pointer_cast<ExpressionAST>(newRHS);
 	}
 
-	mLeftHandSide->rewrite();
-	mRightHandSide->rewrite();
+	mLeftHandSide->rewrite(compiler);
+	mRightHandSide->rewrite(compiler);
 }
 
-bool BinaryOpExpressionAST::rewriteAST(std::shared_ptr<AbstractSyntaxTree>& newAST) const {
+bool BinaryOpExpressionAST::rewriteAST(std::shared_ptr<AbstractSyntaxTree>& newAST, Compiler& compiler) const {
 	bool correctOp = false;
 	Operator op(' ');
 
@@ -118,7 +119,6 @@ bool BinaryOpExpressionAST::rewriteAST(std::shared_ptr<AbstractSyntaxTree>& newA
 			arraySetElem->arrayRefExpression(),
 			arraySetElem->accessExpression(),
 			mRightHandSide);
-		newAST->rewrite();
 
 		return true;
 	}
@@ -127,7 +127,6 @@ bool BinaryOpExpressionAST::rewriteAST(std::shared_ptr<AbstractSyntaxTree>& newA
 		newAST = std::make_shared<NamespaceAccessAST>(
 		 	mLeftHandSide,
 		 	mRightHandSide);
-		newAST->rewrite();
 
 		return true;
 	}
@@ -136,13 +135,12 @@ bool BinaryOpExpressionAST::rewriteAST(std::shared_ptr<AbstractSyntaxTree>& newA
 		newAST = std::make_shared<MemberAccessAST>(
 		 	mLeftHandSide,
 		 	mRightHandSide);
-		newAST->rewrite();
 		return true;
 	}
 
 	if (mOp == Operator('=')) {
 		std::shared_ptr<AbstractSyntaxTree> newLHS;
-		if (!mLeftHandSide->rewriteAST(newLHS)) {
+		if (!mLeftHandSide->rewriteAST(newLHS, compiler)) {
 			newLHS = mLeftHandSide;
 		}
 
@@ -154,6 +152,26 @@ bool BinaryOpExpressionAST::rewriteAST(std::shared_ptr<AbstractSyntaxTree>& newA
 				mRightHandSide);
 
 			return true;
+		}
+	}
+
+	//Check if the symbols are bound
+	if (mSymbolTable != nullptr) {		
+		//After symbol binding, check if lhs is field ref. 
+		//This is for the case when the field is assigned inside a member function without a this ref.
+		if (mOp == Operator('=')) {
+			if (auto lhsVarRef = std::dynamic_pointer_cast<VariableReferenceExpressionAST>(mLeftHandSide)) {
+				if (lhsVarRef->symbol()->attribute() == VariableSymbolAttribute::FIELD) {
+					newAST = std::make_shared<SetFieldValueAST>(
+						std::make_shared<VariableReferenceExpressionAST>("this"),
+						mLeftHandSide,
+						mRightHandSide);
+
+					newAST->generateSymbols(compiler.binder(), mSymbolTable);
+
+					return true;
+				}
+			}
 		}
 	}
 
@@ -288,14 +306,12 @@ void BinaryOpExpressionAST::generateCode(CodeGenerator& codeGen, GeneratedFuncti
 		if (auto varDec = std::dynamic_pointer_cast<VariableDeclarationExpressionAST>(mLeftHandSide)) {
 			auto varRefSymbol = std::dynamic_pointer_cast<VariableSymbol>(mSymbolTable->find(varDec->varName()));
 			generateSidesCode(codeGen, func);
-			//func.addInstruction("STLOC " + std::to_string(func.getLocal(varDec->varName()).first));
 			func.addInstruction("STLOC " + std::to_string(func.getLocal(varRefSymbol).first));
 		} else if (auto varRef = std::dynamic_pointer_cast<VariableReferenceExpressionAST>(mLeftHandSide)) {
 			mRightHandSide->generateCode(codeGen, func);
 			auto varRefSymbol = std::dynamic_pointer_cast<VariableSymbol>(mSymbolTable->find(varRef->varName()));
 
 			if (varRefSymbol->attribute() != VariableSymbolAttribute::FUNCTION_PARAMETER) {
-				//func.addInstruction("STLOC " + std::to_string(func.getLocal(varRef->varName()).first));
 				func.addInstruction("STLOC " + std::to_string(func.getLocal(varRefSymbol).first));
 			}
 		}
@@ -383,7 +399,7 @@ void UnaryOpExpressionAST::visit(VisitFn visitFn) const {
 	visitFn(this);
 }
 
-bool UnaryOpExpressionAST::rewriteAST(std::shared_ptr<AbstractSyntaxTree>& newAST) const {
+bool UnaryOpExpressionAST::rewriteAST(std::shared_ptr<AbstractSyntaxTree>& newAST, Compiler& compiler) const {
 	//Rewrite -constant as a constant expression
 	if (mOp == Operator('-')) {
 		auto intExpr = std::dynamic_pointer_cast<IntegerExpressionAST>(mOperand);

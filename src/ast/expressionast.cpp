@@ -195,6 +195,14 @@ std::string VariableReferenceExpressionAST::asString() const {
 	return mVarName;
 }
 
+std::shared_ptr<VariableSymbol> VariableReferenceExpressionAST::symbol() const {
+	if (mSymbolTable == nullptr) {
+		return nullptr;
+	}
+
+	return  std::dynamic_pointer_cast<VariableSymbol>(mSymbolTable->find(varName()));
+}
+
 void VariableReferenceExpressionAST::visit(VisitFn visitFn) const {
 	visitFn(this);
 }
@@ -356,15 +364,15 @@ void CallExpressionAST::visit(VisitFn visitFn) const {
 	visitFn(this);
 }
 
-void CallExpressionAST::rewrite() {
+void CallExpressionAST::rewrite(Compiler& compiler) {
 	for (auto& arg : mArguments) {
 		std::shared_ptr<AbstractSyntaxTree> newAST;
 
-		if (arg->rewriteAST(newAST)) {
+		while (arg->rewriteAST(newAST, compiler)) {
 			arg = std::dynamic_pointer_cast<ExpressionAST>(newAST);
 		}
 
-		arg->rewrite();
+		arg->rewrite(compiler);
 	}
 }
 
@@ -491,14 +499,14 @@ void CastExpressionAST::visit(VisitFn visitFn) const {
 	visitFn(this);
 }
 
-void CastExpressionAST::rewrite() {
+void CastExpressionAST::rewrite(Compiler& compiler) {
 	std::shared_ptr<AbstractSyntaxTree> newAST;
 
-	if (mExpression->rewriteAST(newAST)) {
+	if (mExpression->rewriteAST(newAST, compiler)) {
 		mExpression = std::dynamic_pointer_cast<ExpressionAST>(newAST);
 	}
 
-	mExpression->rewrite();
+	mExpression->rewrite(compiler);
 }
 
 void CastExpressionAST::generateSymbols(Binder& binder, std::shared_ptr<SymbolTable> symbolTable) {

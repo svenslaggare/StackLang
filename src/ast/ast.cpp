@@ -8,11 +8,11 @@ void AbstractSyntaxTree::generateSymbols(Binder& binder, std::shared_ptr<SymbolT
 	mSymbolTable = symbolTable;
 }
 
-void AbstractSyntaxTree::rewrite() {
+void AbstractSyntaxTree::rewrite(Compiler& compiler) {
 
 }
 
-bool AbstractSyntaxTree::rewriteAST(std::shared_ptr<AbstractSyntaxTree>& newAST) const {
+bool AbstractSyntaxTree::rewriteAST(std::shared_ptr<AbstractSyntaxTree>& newAST, Compiler& compiler) const {
 	return false;
 }
 

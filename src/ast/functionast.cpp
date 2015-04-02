@@ -127,14 +127,14 @@ void FunctionAST::visit(VisitFn visitFn) const {
 	visitFn(this);
 }
 
-void FunctionAST::rewrite() {
+void FunctionAST::rewrite(Compiler& compiler) {
 	std::shared_ptr<AbstractSyntaxTree> newAST;
 
-	if (mBody->rewriteAST(newAST)) {
+	if (mBody->rewriteAST(newAST, compiler)) {
 		mBody = std::dynamic_pointer_cast<BlockAST>(newAST);
 	}
 
-	mBody->rewrite();
+	mBody->rewrite(compiler);
 }
 
 void FunctionAST::generateSymbols(Binder& binder, std::shared_ptr<SymbolTable> symbolTable) {

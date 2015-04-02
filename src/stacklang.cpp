@@ -1,3 +1,4 @@
+#include "compiler.h"
 #include "lexer.h"
 #include "parser.h"
 #include "ast/asts.h"
@@ -60,13 +61,15 @@ int main(int argc, char* argv[]) {
 	Parser parser(operators, tokens);
 	auto programAST = parser.parse();
 
-	programAST->rewrite();
 	//std::cout << *programAST << std::endl;
 
 	Binder binder;
 	TypeChecker typeChecker(binder, operators, defaultTypes);
 	SemanticVerifier verifier(binder, typeChecker);
 	CodeGenerator codeGenerator(typeChecker);
+	Compiler compiler(binder, typeChecker, verifier, codeGenerator);
+
+	programAST->rewrite(compiler);
 
 	//Load the runtime library
 	Loader loader(binder, typeChecker);
@@ -75,12 +78,12 @@ int main(int argc, char* argv[]) {
 
 	StackLang::Builtin::add(binder, typeChecker);
 	binder.generateSymbolTable(programAST);
-	//std::cout << "Generated symbol table." << std::endl;
+
+	programAST->rewrite(compiler);
 
 	programAST->typeCheck(typeChecker);
 	programAST->verify(verifier);
 
-	//std::cout << "Typechecked and verfied." << std::endl;
 	codeGenerator.generateProgram(programAST);
 	codeGenerator.printGeneratedCode();
 }
