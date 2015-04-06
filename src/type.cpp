@@ -197,7 +197,20 @@ std::string TypeSystem::fromVMType(std::string vmType) {
 			elementType = elementType.substr(1, elementType.length() - 2);
 			return fromVMType(elementType) + "[]";
 		} else if (typeParts[1] == "Struct") {
-			return typeParts.at(2);
+			std::string structName = "";
+			bool isFirst = true;
+
+			for (int i = 2; i < typeParts.size(); i++) {
+				if (isFirst) {
+					isFirst = false;
+				} else {
+					structName += ".";
+				}
+
+				structName += typeParts[i];
+			}
+			
+			return structName;
 		} else if (typeParts.at(1) == "Null") {
 			return NullReferenceType().name();
 		}

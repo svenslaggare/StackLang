@@ -21,10 +21,6 @@ const std::vector<std::shared_ptr<AbstractSyntaxTree>>& NamespaceDeclarationAST:
 	return mMembers;
 }
 
-std::string NamespaceDeclarationAST::type() const {
-	return "Namespace";
-}
-
 std::string NamespaceDeclarationAST::asString() const {
 	if (mName == "global") {
 		return AST::combineAST(mMembers, "\n\n");

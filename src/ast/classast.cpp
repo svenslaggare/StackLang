@@ -29,10 +29,6 @@ std::string FieldDeclarationExpressionAST::fieldName() const {
 	return mFieldName;
 }
 
-std::string FieldDeclarationExpressionAST::type() const {
-	return "Field";
-}
-
 std::string FieldDeclarationExpressionAST::asString() const {
 	return mFieldType + " " + mFieldName;
 }
@@ -102,6 +98,24 @@ const std::vector<std::shared_ptr<FieldDeclarationExpressionAST>>& ClassDefiniti
 
 const std::vector<std::shared_ptr<FunctionAST>>& ClassDefinitionAST::functions() const {
 	return mFunctions;
+}
+
+std::string ClassDefinitionAST::findNamespaceName(std::shared_ptr<SymbolTable> symbolTable, std::string sep) const {
+	if (symbolTable == nullptr) {
+		return "";
+	} else {
+		auto name = symbolTable->name();
+
+		if (name != "" && symbolTable != mSymbolTable) {
+			name += sep;
+		}
+
+		return findNamespaceName(symbolTable->outer(), sep) + name;
+	}
+}
+
+std::string ClassDefinitionAST::fullName(std::string namespaceSep) const {
+	return findNamespaceName(mSymbolTable, namespaceSep);
 }
 
 std::string ClassDefinitionAST::asString() const {
@@ -340,27 +354,6 @@ std::shared_ptr<Type> NewClassExpressionAST::expressionType(const TypeChecker& c
 }
 
 void NewClassExpressionAST::generateCode(CodeGenerator& codeGen, GeneratedFunction& func) {
-	// auto classType = codeGen.typeChecker().findType(mTypeName);
-	// func.addInstruction("NEWOBJ " + classType->vmType());
-
-	// //Generate code for the constructor arguments
-	// int tmpLocal = func.newLocal("$tmp$_" + std::to_string(func.numLocals()), classType);
-	// func.addStoreLocal(tmpLocal);
-	// func.addLoadLocal(tmpLocal);
-
-	// for (auto arg : mConstructorArguments) {
-	// 	arg->generateCode(codeGen, func);
-	// }
-
-	// auto paramsStr = Helpers::join<std::shared_ptr<ExpressionAST>>(
-	// 	constructorArguments(),
-	// 	[&](std::shared_ptr<ExpressionAST> arg) { return arg->expressionType(codeGen.typeChecker())->vmType(); },
-	// 	" ");
-
-	// func.addInstruction("CALLINST " + mTypeName + "::.constructor(" + paramsStr + ")");
-
-	// func.addLoadLocal(tmpLocal);
-
 	auto classType = codeGen.typeChecker().findType(mTypeName);
 
 	//Generate code for the constructor arguments

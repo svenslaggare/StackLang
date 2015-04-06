@@ -5,11 +5,20 @@
 #include "symbol.h"
 #include "type.h"
 #include "helpers.h"
-
 #include <stdexcept>
 
 FunctionDefinition::FunctionDefinition(std::string name, std::vector<std::shared_ptr<Type>> parameters, std::shared_ptr<Type> returnType)
 	: name(name), parameters(parameters), returnType(returnType) {
+
+}
+
+ClassDefinition::ClassDefinition(std::string name)
+    : name(name) {
+
+}
+
+ClassDefinition::ClassDefinition()
+    : name("") {
 
 }
 
@@ -171,7 +180,7 @@ std::shared_ptr<SymbolTable> getNamespaceTable(std::shared_ptr<SymbolTable> oute
 	}
 }
 
-void Loader::defineFunction(const FunctionDefinition& funcDef) {
+void Loader::defineFunction(const FunctionDefinition& funcDef, std::shared_ptr<SymbolTable> funcScope) {
 	std::vector<VariableSymbol> parameterSymbols;
 
 	int i = 0;
@@ -183,23 +192,85 @@ void Loader::defineFunction(const FunctionDefinition& funcDef) {
 		i++;
 	}
 
-	auto splittedFuncName = splitFuncName(funcDef.name);
-	auto funcScope = mBinder.symbolTable();
-	auto funcName = splittedFuncName.at(splittedFuncName.size() - 1);
-	splittedFuncName.erase(splittedFuncName.end() - 1);
+     auto funcName = funcDef.name;
 
-	if (splittedFuncName.size() > 0) {
-		funcScope = getNamespaceTable(funcScope, splittedFuncName);
-	}
+	if (funcScope == nullptr) {
+        auto splittedFuncName = splitFuncName(funcDef.name);
+        funcScope = mBinder.symbolTable();
+        funcName = splittedFuncName.at(splittedFuncName.size() - 1);
+        splittedFuncName.erase(splittedFuncName.end() - 1);
+
+        if (splittedFuncName.size() > 0) {
+            funcScope = getNamespaceTable(funcScope, splittedFuncName);
+        }
+    }
 
 	if (!funcScope->addFunction(funcName, parameterSymbols, funcDef.returnType->name())) {
         throw std::runtime_error("The function '" + funcName + "' is already defined.");
     }
 }
 
+void Loader::defineClass(const ClassDefinition& classDef) {
+    if (mTypeChecker.findType(classDef.name) == nullptr) {
+        auto classType = std::make_shared<ClassType>(classDef.name);
+        mTypeChecker.addType(classType);
+
+        std::unordered_map<std::string, Field> fields;
+
+        for (auto field : classDef.fields) {
+            auto fieldTypeName = field.first;
+            auto fieldName = field.second;
+
+            mTypeChecker.assertTypeExists(fieldTypeName, false);
+            auto fieldType = mTypeChecker.findType(fieldTypeName);
+            fields.insert({ fieldName, Field(fieldName, fieldType) });
+        }
+
+        mTypeChecker.addObject(Object(classDef.name, classType, fields));
+        auto symbolTable = mBinder.symbolTable();
+
+        if (symbolTable->find(classDef.name) == nullptr) {
+            symbolTable->add(
+                classDef.name,
+                std::make_shared<ClassSymbol>(classDef.name, std::make_shared<SymbolTable>(symbolTable)));
+        } else {
+            mBinder.error("The symbol '" + classDef.name + "' is already defined.");
+        }
+    } else {
+        mTypeChecker.typeError("The class '" + classDef.name + "' is already defined.");
+    }
+}
+
+void Loader::defineMemberFunction(const FunctionDefinition& memberDef) {
+    auto sepIndex = memberDef.name.find("::");
+
+    if (sepIndex != std::string::npos) {
+        auto className = memberDef.name.substr(0, sepIndex);
+        auto memberName = memberDef.name.substr(sepIndex + 2);
+        
+        auto classSymbol = std::dynamic_pointer_cast<ClassSymbol>(mBinder.symbolTable()->find(className));
+
+        if (classSymbol == nullptr) {
+            throw std::runtime_error("There exists no class named '" + className + "'.");
+        }
+
+        if (memberName == ".constructor" && *memberDef.returnType != PrimitiveType(PrimitiveTypes::Void)) {
+            throw std::runtime_error("Constructors must have return type 'Void");
+        }
+
+        defineFunction(
+            FunctionDefinition(memberName, memberDef.parameters, memberDef.returnType),
+            classSymbol->symbolTable());
+    } else {
+        throw std::runtime_error("Invalid member definition.");
+    }
+}
+
 void Loader::loadAssembly(std::istream& stream) {
 	auto tokens = tokenize(stream);
     bool insideBody = false;
+    bool isStruct = false;
+    ClassDefinition classDef;
 
 	for (int i = 0; i < tokens.size(); i++) {
         std::string current = tokens[i];
@@ -210,6 +281,11 @@ void Loader::loadAssembly(std::istream& stream) {
         }
 
         if (insideBody && current == "}") {
+            if (isStruct) {
+                defineClass(classDef);
+                isStruct = false;
+            }
+
             insideBody = false;
             continue;
         }
@@ -231,6 +307,25 @@ void Loader::loadAssembly(std::istream& stream) {
 
                 auto externFuncDef = parseFunctionDef(tokens, i);
                 defineFunction(FunctionDefinition(funcName, externFuncDef.parameters, externFuncDef.returnType));
+            }
+
+            //Parse the struct definition
+            if (current == "struct") {
+                auto name = nextToken(tokens, i);
+                isStruct = true;
+                classDef = ClassDefinition(name);
+            }
+
+            //Parse member function
+            if (current == "member") {
+                auto memberDef = parseFunctionDef(tokens, i);
+                defineMemberFunction(memberDef);
+            }
+        } else {
+            if (isStruct) {
+                auto fieldName = current;
+                auto fieldType = nextToken(tokens, i);
+                classDef.fields.push_back(std::make_pair(fieldType, fieldName));
             }
         }
     }

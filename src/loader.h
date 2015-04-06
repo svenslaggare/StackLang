@@ -6,14 +6,24 @@
 class Binder;
 class TypeChecker;
 class Type;
+class SymbolTable;
 
 //Represents a function defition
 struct FunctionDefinition {
-	const std::string name;
+	std::string name;
 	const std::vector<std::shared_ptr<Type>> parameters;
 	const std::shared_ptr<Type> returnType;
 
 	FunctionDefinition(std::string name, std::vector<std::shared_ptr<Type>> parameters, std::shared_ptr<Type> returnType);
+};
+
+//Represents a class definition
+struct ClassDefinition {
+	std::string name;
+	std::vector<std::pair<std::string, std::string>> fields;
+
+	ClassDefinition(std::string name);
+	ClassDefinition();
 };
 
 //Loads assemblies
@@ -32,7 +42,13 @@ private:
 	FunctionDefinition parseFunctionDef(const std::vector<std::string>& tokens, int& tokenIndex);
 
 	//Defines the given function
-	void defineFunction(const FunctionDefinition& funcDef);
+	void defineFunction(const FunctionDefinition& funcDef, std::shared_ptr<SymbolTable> funcScope = nullptr);
+
+	//Defines the given class
+	void defineClass(const ClassDefinition& classDef);
+
+	//Defines the given member function
+	void defineMemberFunction(const FunctionDefinition& memberDef);
 public:
 	//Creates a new loader
 	Loader(Binder& binder, TypeChecker& typeChecker);

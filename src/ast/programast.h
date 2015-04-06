@@ -39,8 +39,6 @@ public:
 	//Visits all the classes in the program
 	void visitClasses(VisitClassesFn visitFn) const;
 
-	virtual std::string type() const override;
-
 	std::string asString() const override;
 
 	virtual void visit(VisitFn visitFn) const override;

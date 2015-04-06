@@ -20,9 +20,6 @@ protected:
 public:
 	virtual ~AbstractSyntaxTree() {};
 
-	//Returns the type of the tree
-	virtual std::string type() const { return "AST"; }
-
 	//Returns the current AST as a string
 	virtual std::string asString() const = 0;
 

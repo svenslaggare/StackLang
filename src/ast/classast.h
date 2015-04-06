@@ -30,8 +30,6 @@ public:
 	//Returns the name of the field
 	std::string fieldName() const;
 
-	virtual std::string type() const override;
-
 	std::string asString() const override;
 
 	virtual void visit(VisitFn visitFn) const override;
@@ -51,6 +49,9 @@ private:
 	std::string mName;
 	std::vector<std::shared_ptr<FieldDeclarationExpressionAST>> mFields;
 	std::vector<std::shared_ptr<FunctionAST>> mFunctions;
+
+	//Finds the namespace name for the current class
+	std::string findNamespaceName(std::shared_ptr<SymbolTable> symbolTable, std::string sep) const;
 public:
 	//Creates a new class definition using the given fields and functions
 	ClassDefinitionAST(
@@ -66,6 +67,9 @@ public:
 
 	//Returns the member functions
 	const std::vector<std::shared_ptr<FunctionAST>>& functions() const;
+
+	//Returns the full name
+	std::string fullName(std::string namespaceSep = "::") const;
 
 	virtual std::string asString() const override;
 

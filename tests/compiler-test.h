@@ -95,5 +95,7 @@ public:
 
         TS_ASSERT_EQUALS(compileAndRun("classes/constructor1"), "1\n2\n0\n");
         TS_ASSERT_EQUALS(compileAndRun("classes/constructor2"), "1\n2\n0\n");
+
+        TS_ASSERT_EQUALS(compileAndRun("classes/loaded1"), "1\n2\n0\n");
     }
 };

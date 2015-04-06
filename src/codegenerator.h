@@ -87,11 +87,15 @@ public:
 //Represents a generated class
 class GeneratedClass {
 private:
+	std::string mName;
 	Object mObjectLayout;
 public:
 	//Creates a new generated class
-	GeneratedClass(const Object& objectLayout);
+	GeneratedClass(std::string name, const Object& objectLayout);
 	GeneratedClass();
+
+	//Returns the name of the class
+	std::string name() const;
 
 	//Returns the object layout
 	const Object& objectLayout() const;

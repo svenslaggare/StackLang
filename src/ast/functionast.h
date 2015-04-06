@@ -35,9 +35,7 @@ public:
 	const std::string returnType() const;
 
 	//Returns the full name
-	std::string fullName(std::string namespaceSep = "::") const;
-
-	virtual std::string type() const override;
+	std::string fullName(std::string namespaceSep = "::", bool memberFunc = false) const;
 
 	std::string asString() const override;
 
@@ -63,9 +61,7 @@ public:
 	const std::shared_ptr<FunctionPrototypeAST> prototype() const;
 
 	//Returns the body
-	std::shared_ptr<BlockAST> body() const;
-
-	virtual std::string type() const override;
+	std::shared_ptr<BlockAST> body() const;;
 
 	std::string asString() const override;
 

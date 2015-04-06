@@ -49,10 +49,6 @@ void ProgramAST::visitClasses(VisitClassesFn visitFn) const {
 	}
 }
 
-std::string ProgramAST::type() const {
-	return "Program";
-}
-
 std::string ProgramAST::asString() const {
 	return AST::combineAST(mNamespaces, "\n\n");
 }

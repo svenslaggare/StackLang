@@ -171,8 +171,6 @@ public:
 	//Indicates if the decleration is of a function parameter
 	bool isFunctionParameter() const;
 
-	virtual std::string type() const override;
-
 	std::string asString() const override;
 
 	virtual void visit(VisitFn visitFn) const override;

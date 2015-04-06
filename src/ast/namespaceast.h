@@ -22,8 +22,6 @@ public:
 	//Returns the members
 	const std::vector<std::shared_ptr<AbstractSyntaxTree>>& members() const;
 
-	virtual std::string type() const override;
-
 	std::string asString() const override;
 
 	virtual void visit(VisitFn visitFn) const override;

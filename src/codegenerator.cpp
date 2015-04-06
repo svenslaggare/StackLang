@@ -163,8 +163,8 @@ void GeneratedFunction::outputGeneratedCode(std::ostream& os) {
 }
 
 //Generated class
-GeneratedClass::GeneratedClass(const Object& objectLayout)
-	: mObjectLayout(objectLayout) {
+GeneratedClass::GeneratedClass(std::string name, const Object& objectLayout)
+	: mName(name), mObjectLayout(objectLayout) {
 
 }
 
@@ -172,12 +172,16 @@ GeneratedClass::GeneratedClass() {
 
 }
 
+std::string GeneratedClass::name() const {
+	return mName;
+}
+
 const Object& GeneratedClass::objectLayout() const {
 	return mObjectLayout;
 }
 
 void GeneratedClass::outputGeneratedCode(std::ostream& os) {
-	os << "struct " << mObjectLayout.name() << std::endl;
+	os << "struct " << mName << std::endl;
 	os << "{" << std::endl;
 
 	for (auto fieldDef : mObjectLayout.fields()) {
@@ -200,7 +204,7 @@ const TypeChecker& CodeGenerator::typeChecker() const {
 	
 void CodeGenerator::generateProgram(std::shared_ptr<ProgramAST> programAST) {
 	programAST->visitClasses([&](std::shared_ptr<ClassDefinitionAST> classDef) {
-		mClasses.push_back(mTypeChecker.getObject(classDef->name()));
+		mClasses.push_back(GeneratedClass(classDef->fullName("."), mTypeChecker.getObject(classDef->name())));
 		auto classType = mTypeChecker.findType(classDef->name())->name();
 
 		//Add member functions
@@ -213,7 +217,7 @@ void CodeGenerator::generateProgram(std::shared_ptr<ProgramAST> programAST) {
 			}
 
 			auto memberFuncPrototype = std::make_shared<FunctionPrototypeAST>(
-				classDef->name() + "::" + memberFunc->prototype()->name(),
+				memberFunc->prototype()->fullName(".", true),
 				parameters,
 				memberFunc->prototype()->returnType());
 

@@ -41,12 +41,12 @@ std::string FunctionPrototypeAST::findNamespaceName(std::shared_ptr<SymbolTable>
 	}
 }
 
-std::string FunctionPrototypeAST::fullName(std::string namespaceSep) const {
-	return findNamespaceName(mSymbolTable, namespaceSep) + mName;
-}
-
-std::string FunctionPrototypeAST::type() const {
-	return "FunctionPrototype";
+std::string FunctionPrototypeAST::fullName(std::string namespaceSep, bool memberFunc) const {
+	if (!memberFunc) {
+		return findNamespaceName(mSymbolTable, namespaceSep) + mName;
+	} else {
+		return findNamespaceName(mSymbolTable->outer()->outer(), namespaceSep) + mSymbolTable->outer()->name() + "::" + mName;
+	}
 }
 
 std::string FunctionPrototypeAST::asString() const {
@@ -109,10 +109,6 @@ const std::shared_ptr<FunctionPrototypeAST> FunctionAST::prototype() const {
 
 std::shared_ptr<BlockAST> FunctionAST::body() const {
 	return mBody;
-}
-
-std::string FunctionAST::type() const {
-	return "Function";
 }
 
 std::string FunctionAST::asString() const {

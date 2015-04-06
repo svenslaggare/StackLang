@@ -267,10 +267,6 @@ bool VariableDeclarationExpressionAST::isFunctionParameter() const {
 	return mIsFunctionParameter;
 }
 
-std::string VariableDeclarationExpressionAST::type() const {
-	return "Variable";
-}
-
 std::string VariableDeclarationExpressionAST::asString() const {
 	return mVarType + " " + mVarName;
 }
