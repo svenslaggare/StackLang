@@ -334,6 +334,7 @@ void BinaryOpExpressionAST::generateCode(CodeGenerator& codeGen, GeneratedFuncti
 		generateSidesCode(codeGen, func);
 		func.addInstruction("CMPLE");
 	} else if(mOp == Operator('&', '&')) {
+		//Generate with short circuit
 		int resLocal = func.newLocal("$tmp$_" + std::to_string(func.numLocals()), codeGen.typeChecker().findType("Bool"));
 
 		mLeftHandSide->generateCode(codeGen, func);
@@ -353,6 +354,7 @@ void BinaryOpExpressionAST::generateCode(CodeGenerator& codeGen, GeneratedFuncti
 
 		func.addLoadLocal(resLocal);
 	} else if(mOp == Operator('|', '|')) {
+		//Generate with short circuit
 		int resLocal = func.newLocal("$tmp$_" + std::to_string(func.numLocals()), codeGen.typeChecker().findType("Bool"));
 
 		mLeftHandSide->generateCode(codeGen, func);
