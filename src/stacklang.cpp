@@ -1,47 +1,14 @@
 #include "compiler.h"
 #include "lexer.h"
 #include "parser.h"
-#include "ast/asts.h"
-#include "binder.h"
-#include "type.h"
-#include "typechecker.h"
-#include "codegenerator.h"
-#include "operators.h"
-#include "semantics.h"
-#include "builtin.h"
-#include "loader.h"
 
 #include <iostream>
-#include <sstream>
 #include <fstream>
 #include <memory>
 
 int main(int argc, char* argv[]) {
-	auto defaultTypes = TypeSystem::defaultTypes();
+	auto compiler = Compiler::create();
 
-	auto intType = defaultTypes["Int"];
-	auto boolType = defaultTypes["Bool"];
-	auto floatType = defaultTypes["Float"];
-	auto voidType = defaultTypes["Void"];
-
-	OperatorContainer operators(
-		{
-			{ Operator('<'), 5 }, { Operator('>'), 5 }, { Operator('+'), 6 }, { Operator('-'), 6 },
-			{ Operator('*'), 7 }, { Operator('/'), 7 }, { Operator('='), 1 },
-			{ Operator('<', '='), 5 }, { Operator('>', '='), 5 }, 
-			{ Operator('=', '='), 4 }, { Operator('!', '='), 4 }, { Operator('&', '&'), 3 }, { Operator('|', '|'), 2 },
-			{ Operator('+', '='), 1 }, { Operator('-', '='), 1 }, { Operator('*', '='), 1 }, { Operator('/', '='), 1 },
-			{ Operator('.'), 8 },
-			{ Operator(':', ':'), 9 }
-		},
-		{ Operator('!'), Operator('-') },
-		{ '+', '-', '*', '/' },
-		{
-			{ Operator('<'), boolType }, { Operator('>'), boolType }, { Operator('<', '='), boolType }, { Operator('>', '='), boolType }, 
-			{ Operator('=', '='), boolType }, { Operator('!', '='), boolType }, { Operator('&', '&'), boolType }, { Operator('|', '|'), boolType }, 
-		});
-
-	Lexer lexer(operators.operatorChars(), operators.twoCharOpChars());
 	std::string filePath = "";
 
 	if (argc > 1) {
@@ -56,34 +23,14 @@ int main(int argc, char* argv[]) {
 		throw std::runtime_error("Could not open file '" + filePath + "'.");
 	}
 
-	auto tokens = lexer.tokenize(programText); 
+	auto tokens = compiler.lexer().tokenize(programText); 
 
-	Parser parser(operators, tokens);
+	Parser parser(compiler.operators(), tokens);
 	auto programAST = parser.parse();
 
-	//std::cout << *programAST << std::endl;
+	//Loads libraries
+	compiler.load();
 
-	Binder binder;
-	TypeChecker typeChecker(binder, operators, defaultTypes);
-	SemanticVerifier verifier(binder, typeChecker);
-	CodeGenerator codeGenerator(typeChecker);
-	Compiler compiler(binder, typeChecker, verifier, codeGenerator);
-
-	programAST->rewrite(compiler);
-
-	//Load the runtime library
-	Loader loader(binder, typeChecker);
-	std::fstream assemblyText("../StackJIT/rtlib/rtlib.sbc");
-	loader.loadAssembly(assemblyText);
-
-	StackLang::Builtin::add(binder, typeChecker);
-	binder.generateSymbolTable(programAST);
-
-	programAST->rewrite(compiler);
-
-	programAST->typeCheck(typeChecker);
-	programAST->verify(verifier);
-
-	codeGenerator.generateProgram(programAST);
-	codeGenerator.printGeneratedCode();
+	//Process the program
+	compiler.process(programAST);
 }

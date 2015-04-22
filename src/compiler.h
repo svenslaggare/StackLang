@@ -1,20 +1,40 @@
 #pragma once
+#include "operators.h"
+#include "binder.h"
+#include "codegenerator.h"
+#include "semantics.h"
+#include "typechecker.h"
+#include "lexer.h"
+#include <memory>
 
-class Binder;
-class TypeChecker;
-class SemanticVerifier;
-class CodeGenerator;
+class ProgramAST;
 
 //Represents a compiler
 class Compiler {
 private:
-	Binder& mBinder;
-	TypeChecker& mTypeChecker;
-	SemanticVerifier& mSemanticVerifier;
-	CodeGenerator& mCodeGenerator;
+	Lexer mLexer;
+	std::unique_ptr<OperatorContainer> mOperators;
+	std::unique_ptr<Binder> mBinder;
+	std::unique_ptr<TypeChecker> mTypeChecker;
+	std::unique_ptr<SemanticVerifier> mSemanticVerifier;
+	std::unique_ptr<CodeGenerator> mCodeGenerator;
+
+	//Creates a new compiler
+	Compiler(
+		std::unique_ptr<OperatorContainer> operators,
+		std::unique_ptr<Binder> binder,
+		std::unique_ptr<TypeChecker> typeChecker,
+		std::unique_ptr<SemanticVerifier> semanticVerifier,
+		std::unique_ptr<CodeGenerator> codeGenerator);
 public:
 	//Creates a new compiler
-	Compiler(Binder& binder, TypeChecker& typeChecker, SemanticVerifier& semanticVerifier, CodeGenerator& codeGenerator);
+	static Compiler create();
+
+	//Returns the defined operators
+	const OperatorContainer& operators() const;
+
+	//Returns the lexer
+	const Lexer& lexer() const;
 
 	//Returns the binder
 	Binder& binder();
@@ -27,4 +47,10 @@ public:
 
 	//Returns the code generator
 	CodeGenerator& codeGenerator();
+
+	//Loads libraries
+	void load();
+
+	//Process the given program
+	void process(std::shared_ptr<ProgramAST> programAST);
 };
