@@ -85,18 +85,37 @@ int Parser::getTokenPrecedence() {
 	return -1;
 }
 
-std::string Parser::parseTypeName() {
+std::string Parser::parseTypeName(bool allowArray) {
 	std::string typeName = currentToken.strValue;
 
 	nextToken(); //Eat the identifier
 
-	//Check if array type
-	while (isSingleCharToken('[')) {
-		nextToken(); //Eat the '['
-		assertCurrentTokenAsChar(']', "Expected ']'");
-		nextToken(); //Eat the ']'
+	//Parse namespace
+	while (true) {
+		if (currentToken.type() == TokenType::TwoChars
+		&& currentToken.charValue == ':'
+		&& currentToken.charValue2 == ':') {
+			nextToken(); //Eat the '::'
+			if (currentToken.type() != TokenType::Identifier) {
+				compileError("Expected identifier after '::' in type name.");
+			}
 
-		typeName += "[]";
+			typeName += "::" + currentToken.strValue;
+			nextToken(); //Eat the identifier
+		} else {
+			break;
+		}
+	}
+
+	if (allowArray) {
+		//Check if array type
+		while (isSingleCharToken('[')) {
+			nextToken(); //Eat the '['
+			assertCurrentTokenAsChar(']', "Expected ']'");
+			nextToken(); //Eat the ']'
+
+			typeName += "[]";
+		}
 	}
 
 	return typeName;
@@ -192,6 +211,23 @@ std::shared_ptr<ExpressionAST> Parser::parseIdentifierExpression(bool allowDecla
 
 	std::shared_ptr<ExpressionAST> identExpr = nullptr;
 
+	//Parse namespace
+	while (true) {
+		if (currentToken.type() == TokenType::TwoChars
+		&& currentToken.charValue == ':'
+		&& currentToken.charValue2 == ':') {
+			nextToken(); //Eat the '::'
+			if (currentToken.type() != TokenType::Identifier) {
+				compileError("Expected identifier after '::' in type name.");
+			}
+
+			identifier += "::" + currentToken.strValue;
+			nextToken(); //Eat the identifier
+		} else {
+			break;
+		}
+	}
+
 	//Variable decleration/reference
 	if (!isSingleCharToken('(')) {
 		//Check if array type
@@ -243,7 +279,7 @@ std::shared_ptr<ExpressionAST> Parser::parseIdentifierExpression(bool allowDecla
 		if (identExpr == nullptr) {
 			if (currentToken.type() == TokenType::Identifier) {
 				if (!allowDeclaration) {
-					compileError("Declaration isn't allowed.");
+					compileError("Declaration is not allowed in the current expression.");
 				}
 
 				std::string varName = currentToken.strValue;
@@ -303,9 +339,10 @@ std::shared_ptr<ExpressionAST> Parser::parseNewExpression() {
 		compileError("Expected identifier.");
 	}
 
-	auto typeName = currentToken.strValue;
-	nextToken(); //Eat the type name
-
+	// auto typeName = currentToken.strValue;
+	// nextToken(); //Eat the type name
+	auto typeName = parseTypeName(false);
+	
 	if (isSingleCharToken('[')) {
 		return parseNewArrayExpression(typeName);
 	} else if (isSingleCharToken('(')) {

@@ -1,5 +1,6 @@
 #include "objectast.h"
 #include "expressionast.h"
+#include "callast.h"
 #include "../typechecker.h"
 #include "../binder.h"
 #include "../symbol.h"
@@ -306,10 +307,6 @@ void SetFieldValueAST::typeCheck(TypeChecker& checker) {
 		auto memberName = std::dynamic_pointer_cast<VariableReferenceExpressionAST>(mMemberExpression)->varName();
 
 		std::string objName = varRefType->name();
-
-		// if (std::dynamic_pointer_cast<ArrayType>(varRefType)) {
-		// 	objName = "Array";
-		// }
 
 		if (!checker.objectExists(objName)) {
 			checker.typeError(varRefType->name() + " is not an object type.");

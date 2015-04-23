@@ -22,4 +22,10 @@ namespace Helpers {
 
 		return str;
 	}
+
+	//Splits the given string by the given delimter
+	std::vector<std::string> splitString(std::string str, std::string delimiter);
+
+	//Replaces all the occurrences in the given string
+	std::string replaceString(std::string str, std::string search, std::string replace);
 };

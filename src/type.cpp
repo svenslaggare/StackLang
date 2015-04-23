@@ -1,4 +1,5 @@
 #include "type.h"
+#include "helpers.h"
 #include <regex>
 
 //Type
@@ -75,9 +76,12 @@ ClassType::ClassType(std::string name)
 }
 
 std::string ClassType::vmType() const {
-	return "Ref.Struct." + name();
+	return "Ref.Struct." + Helpers::replaceString(name(), "::", ".");
 }
 
+std::string ClassType::vmClassName() const {
+	return Helpers::replaceString(name(), "::", ".");
+}
 
 std::map<std::string, std::shared_ptr<Type>> TypeSystem::defaultTypes() {
 	auto intType = std::make_shared<PrimitiveType>(PrimitiveTypes::Int);

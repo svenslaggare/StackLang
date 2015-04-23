@@ -86,6 +86,9 @@ public:
 	ClassType(std::string name);
 
 	virtual std::string vmType() const override;
+
+	//Returns the name of the class in the VM
+	std::string vmClassName() const;
 };
 
 namespace TypeSystem {

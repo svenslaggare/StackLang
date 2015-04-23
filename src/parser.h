@@ -47,7 +47,7 @@ private:
 	int getTokenPrecedence();
 
 	//Parses a type name
-	std::string parseTypeName();
+	std::string parseTypeName(bool allowArray = true);
 
 	//Parses an integer expression
 	std::shared_ptr<ExpressionAST> parseIntegerExpression();

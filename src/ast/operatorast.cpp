@@ -123,14 +123,6 @@ bool BinaryOpExpressionAST::rewriteAST(std::shared_ptr<AbstractSyntaxTree>& newA
 		return true;
 	}
 
-	if (mOp == Operator(':', ':')) {
-		newAST = std::make_shared<NamespaceAccessAST>(
-		 	mLeftHandSide,
-		 	mRightHandSide);
-
-		return true;
-	}
-
 	if (mOp == Operator('.')) {
 		newAST = std::make_shared<MemberAccessAST>(
 		 	mLeftHandSide,

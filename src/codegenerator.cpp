@@ -204,8 +204,8 @@ const TypeChecker& CodeGenerator::typeChecker() const {
 	
 void CodeGenerator::generateProgram(std::shared_ptr<ProgramAST> programAST) {
 	programAST->visitClasses([&](std::shared_ptr<ClassDefinitionAST> classDef) {
-		mClasses.push_back(GeneratedClass(classDef->fullName("."), mTypeChecker.getObject(classDef->name())));
-		auto classType = mTypeChecker.findType(classDef->name())->name();
+		mClasses.push_back(GeneratedClass(classDef->fullName("."), mTypeChecker.getObject(classDef->fullName())));
+		auto classType = mTypeChecker.findType(classDef->fullName())->name();
 
 		//Add member functions
 		for (auto memberFunc : classDef->functions()) {

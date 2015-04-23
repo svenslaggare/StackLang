@@ -1,6 +1,6 @@
 #pragma once
 #include "ast.h"
-
+#include "../symbol.h"
 #include <vector>
 #include <memory>
 
@@ -55,7 +55,7 @@ private:
 public:
 	//Creates a new class definition using the given fields and functions
 	ClassDefinitionAST(
-		std::string mName,
+		std::string name,
 		std::vector<std::shared_ptr<FieldDeclarationExpressionAST>> fields,
 		std::vector<std::shared_ptr<FunctionAST>> functions);
 
@@ -92,6 +92,7 @@ class NewClassExpressionAST : public ExpressionAST {
 private:
 	std::string mTypeName;
 	std::vector<std::shared_ptr<ExpressionAST>> mConstructorArguments;
+	std::shared_ptr<ClassSymbol> mClassSymbol;
 public:
 	//Creates a new new class expression AST
 	NewClassExpressionAST(std::string typeName, std::vector<std::shared_ptr<ExpressionAST>> constructorArguments);
@@ -101,6 +102,9 @@ public:
 
 	//Returns the constructor arguments
 	const std::vector<std::shared_ptr<ExpressionAST>>& constructorArguments() const;
+
+	//Finds the class symbol
+	std::shared_ptr<Symbol> findClassSymbol(Binder& binder);
 
 	virtual std::string asString() const override;
 	

@@ -6,7 +6,6 @@ namespace math {
 }
 
 func main(): Int {
-	#math::Point p = new math::Point();
-	math::Point p = null;
+	math::Point p = new math::Point();
 	return 0;
 }

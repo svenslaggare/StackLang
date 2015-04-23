@@ -2,6 +2,7 @@
 #include "expressionast.h"
 #include "statementast.h"
 #include "programast.h"
+#include "callast.h"
 #include "functionast.h"
 #include "operatorast.h"
 #include "blockast.h"

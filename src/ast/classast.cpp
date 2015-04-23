@@ -141,7 +141,7 @@ std::string ClassDefinitionAST::asString() const {
 
 void ClassDefinitionAST::addClassDefinition(TypeChecker& checker) const {
 	if (checker.findType(name()) == nullptr) {
-		auto classType = std::make_shared<ClassType>(name());
+		auto classType = std::make_shared<ClassType>(fullName());
 		checker.addType(classType);
 
 		std::unordered_map<std::string, Field> fields;
@@ -152,7 +152,7 @@ void ClassDefinitionAST::addClassDefinition(TypeChecker& checker) const {
 			fields.insert({ field->fieldName(), Field(field->fieldName(), fieldType) });
 		}
 
-		checker.addObject(Object(name(), classType, fields));
+		checker.addObject(Object(fullName(), classType, fields));
 	} else {
 		checker.typeError("The class '" + name() + "' is already defined.");
 	}
@@ -273,6 +273,30 @@ std::string NewClassExpressionAST::asString() const {
 	return "new " + mTypeName + "(" + AST::combineAST(mConstructorArguments, ", ") + ")";
 }
 
+std::shared_ptr<Symbol> NewClassExpressionAST::findClassSymbol(Binder& binder) {
+	if (mTypeName.find("::") != std::string::npos) {
+		//Split the function name
+		std::vector<std::string> parts = Helpers::splitString(mTypeName, "::");
+
+		//Find the namespace
+		std::shared_ptr<SymbolTable> namespaceTable = mSymbolTable;
+		for (std::size_t i = 0; i < parts.size() - 1; i++) {
+			auto part = parts[i];
+			auto innerTable = std::dynamic_pointer_cast<NamespaceSymbol>(namespaceTable->find(part));
+
+			if (innerTable == nullptr) {
+				binder.error("The namespace '" + part + "' is not defined.");
+			}
+
+			namespaceTable = innerTable->symbolTable();
+		}
+
+		return namespaceTable->find(parts[parts.size() - 1]);	
+	} else {
+		return mSymbolTable->find(mTypeName);
+	}
+}
+
 std::shared_ptr<Symbol> NewClassExpressionAST::constructorSymbol(std::shared_ptr<SymbolTable> symbolTable) const {
 	return symbolTable->find(".constructor");
 }
@@ -284,19 +308,19 @@ std::shared_ptr<FunctionSignatureSymbol> NewClassExpressionAST::constructorSigna
 		argumentsTypes.push_back(arg->expressionType(typeChecker)->name());
 	}
 
-	auto classSymbol = std::dynamic_pointer_cast<ClassSymbol>(mSymbolTable->find(mTypeName));
-	auto funcSymbol = std::dynamic_pointer_cast<FunctionSymbol>(constructorSymbol(classSymbol->symbolTable()));
+	auto funcSymbol = std::dynamic_pointer_cast<FunctionSymbol>(constructorSymbol(mClassSymbol->symbolTable()));
 	return funcSymbol->findOverload(argumentsTypes);
 }
 
 void NewClassExpressionAST::generateSymbols(Binder& binder, std::shared_ptr<SymbolTable> symbolTable) {
 	AbstractSyntaxTree::generateSymbols(binder, symbolTable);
-
-	auto classSymbol = std::dynamic_pointer_cast<ClassSymbol>(symbolTable->find(mTypeName));
+	auto classSymbol = std::dynamic_pointer_cast<ClassSymbol>(findClassSymbol(binder));
 
 	if (classSymbol == nullptr) {
 		binder.error("There exists no class named '" + mTypeName + "'.");
 	}
+
+	mClassSymbol = classSymbol;
 
 	auto symbol = constructorSymbol(classSymbol->symbolTable());
 
@@ -354,7 +378,7 @@ std::shared_ptr<Type> NewClassExpressionAST::expressionType(const TypeChecker& c
 }
 
 void NewClassExpressionAST::generateCode(CodeGenerator& codeGen, GeneratedFunction& func) {
-	auto classType = codeGen.typeChecker().findType(mTypeName);
+	auto classType = std::dynamic_pointer_cast<ClassType>(codeGen.typeChecker().findType(mTypeName));
 
 	//Generate code for the constructor arguments
 	for (auto arg : mConstructorArguments) {
@@ -366,5 +390,5 @@ void NewClassExpressionAST::generateCode(CodeGenerator& codeGen, GeneratedFuncti
 		[&](std::shared_ptr<ExpressionAST> arg) { return arg->expressionType(codeGen.typeChecker())->vmType(); },
 		" ");
 
-	func.addInstruction("NEWOBJ " + mTypeName + "::.constructor(" + paramsStr + ")");
+	func.addInstruction("NEWOBJ " + classType->vmClassName() + "::.constructor(" + paramsStr + ")");
 }
