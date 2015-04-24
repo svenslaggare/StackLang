@@ -107,8 +107,11 @@ CodeGenerator& Compiler::codeGenerator() {
 void Compiler::load() {
 	//Load the runtime library
 	Loader loader(binder(), typeChecker());
-	std::fstream assemblyText("../StackJIT/rtlib/rtlib.sbc");
-	loader.loadAssembly(assemblyText);
+	std::fstream rtLibText("../StackJIT/rtlib/rtlib.sbc");
+	loader.loadAssembly(rtLibText);
+
+	std::fstream vectorLibText("rtlib/vector.sbc");
+	loader.loadAssembly(vectorLibText);
 }
 
 void Compiler::process(std::shared_ptr<ProgramAST> programAST) {

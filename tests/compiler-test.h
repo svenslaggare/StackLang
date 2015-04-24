@@ -1,6 +1,7 @@
 #include <stdio.h>
 #include <string>
 #include <iostream>
+#include <initializer_list>
 #include <cxxtest/TestSuite.h>
 
 //Executes the given command
@@ -24,8 +25,20 @@ std::string executeCmd(const char* cmd) {
 }
 
 //Compiles and runs the given program
-std::string compileAndRun(std::string programName) {
-	std::string invokePath = "./stackc programs/" + programName + ".sl | ../StackJIT/stackjit -nd -i ../StackJIT/rtlib/rtlib.sbc 2>&1";
+std::string compileAndRun(std::string programName, std::initializer_list<std::string> libs = {}) {
+    std::string libsStr = "";
+
+    for (auto lib : libs) {
+        libsStr += " -i " + lib;
+    }
+
+	std::string invokePath =
+        "./stackc programs/" + programName + ".sl"
+        + " | ../StackJIT/stackjit -nd"
+        + " -i ../StackJIT/rtlib/rtlib.sbc"
+        + libsStr
+        + " 2>&1";
+
 	return executeCmd(invokePath.data());
 }
 
@@ -96,7 +109,7 @@ public:
         TS_ASSERT_EQUALS(compileAndRun("classes/constructor1"), "1\n2\n0\n");
         TS_ASSERT_EQUALS(compileAndRun("classes/constructor2"), "1\n2\n0\n");
 
-        TS_ASSERT_EQUALS(compileAndRun("classes/loaded1"), "1\n2\n0\n");
+        TS_ASSERT_EQUALS(compileAndRun("classes/loaded1", { "rtlib/vector.sbc" }), "1\n2\n0\n");
         TS_ASSERT_EQUALS(compileAndRun("classes/namespace1"), "5\n");
     }
 };
