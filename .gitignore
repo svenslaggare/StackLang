@@ -30,7 +30,7 @@ stackc
 test
 
 #Stack Bytecode
-*.sbc
+#*.sbc
 
 #Test runners
 tests/runners/*
