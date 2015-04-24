@@ -125,8 +125,9 @@ void MemberAccessAST::generateCode(CodeGenerator& codeGen, GeneratedFunction& fu
 		mAccessExpression->generateCode(codeGen, func);
 		func.addInstruction("LDLEN");
 	} else {
+		auto classTypeRef = std::dynamic_pointer_cast<ClassType>(typeRef);
 		mAccessExpression->generateCode(codeGen, func);
-		func.addInstruction("LDFIELD " + typeRef->name() + "::" + memberName);
+		func.addInstruction("LDFIELD " + classTypeRef->vmClassName() + "::" + memberName);
 	}
 }
 
@@ -339,10 +340,10 @@ void SetFieldValueAST::generateCode(CodeGenerator& codeGen, GeneratedFunction& f
 
 	auto varRef = std::dynamic_pointer_cast<VariableReferenceExpressionAST>(mObjectRefExpression);
 	auto varSymbol = std::dynamic_pointer_cast<VariableSymbol>(mSymbolTable->find(varRef->varName()));
-	auto varRefType = checker.findType(varSymbol->variableType());
+	auto varRefType = std::dynamic_pointer_cast<ClassType>(checker.findType(varSymbol->variableType()));
 	auto memberName = std::dynamic_pointer_cast<VariableReferenceExpressionAST>(mMemberExpression)->varName();
 
 	mObjectRefExpression->generateCode(codeGen, func);
 	mRightHandSide->generateCode(codeGen, func);
-	func.addInstruction("STFIELD " + varRefType->name() + "::" + memberName);
+	func.addInstruction("STFIELD " + varRefType->vmClassName() + "::" + memberName);
 }

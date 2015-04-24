@@ -39,7 +39,7 @@ public:
 	//Returns the arguments to call with
 	const std::vector<std::shared_ptr<ExpressionAST>>& arguments() const;
 
-	//Sets the call table where to look for functions. The default is the symbol table.
+	//Sets the call table where to look for functions. The default is the symbol table for the tree.
 	void setCallTable(std::shared_ptr<SymbolTable> callTable);
 
 	std::string asString() const override;

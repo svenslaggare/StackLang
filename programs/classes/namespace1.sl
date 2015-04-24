@@ -7,5 +7,7 @@ namespace math {
 
 func main(): Int {
 	math::Point p = new math::Point();
-	return 0;
+	p.x = 2;
+	p.y = 3;
+	return p.x + p.y;
 }

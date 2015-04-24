@@ -5,12 +5,13 @@
 #include <string>
 #include <vector>
 
-class Compiler;
-class VariableDeclarationExpressionAST;
+class Compiler;;
 class SymbolTable;
-class BlockAST;
 class TypeChecker;
 class CodeGenerator;
+class BlockAST;
+class VariableDeclarationExpressionAST;
+class ReturnStatementAST;
 
 //Represents a function prototype AST
 class FunctionPrototypeAST : public AbstractSyntaxTree {
@@ -53,6 +54,15 @@ class FunctionAST : public AbstractSyntaxTree {
 private:
 	std::shared_ptr<FunctionPrototypeAST> mPrototype;
 	std::shared_ptr<BlockAST> mBody;
+
+	//Checks the given return statement
+	void checkReturnStatement(SemanticVerifier& verifier, std::shared_ptr<ReturnStatementAST> returnStatement);
+
+	//Checks the branches in the function
+	bool checkBranches(SemanticVerifier& verifier, std::shared_ptr<StatementAST> statement);
+
+	//Checks the return statements
+	void checkReturnStatements(SemanticVerifier& verifier);
 public:
 	//Creates a new function
 	FunctionAST(std::shared_ptr<FunctionPrototypeAST> prototype, std::shared_ptr<BlockAST> body);

@@ -147,49 +147,82 @@ void FunctionAST::typeCheck(TypeChecker& checker) {
 	mBody->typeCheck(checker);
 }
 
+void FunctionAST::checkReturnStatement(SemanticVerifier& verifier, std::shared_ptr<ReturnStatementAST> returnStatement) {
+	auto checker = verifier.typeChecker();
+	auto returnType = checker.getType(mPrototype->returnType());
+
+	if (returnType->name() != "Void") {
+		if (returnStatement->returnExpression() == nullptr) {
+			verifier.semanticError(returnStatement->asString() + ": Empty return statement is only allowed in void functions.");
+		}
+
+		auto returnStatementType = returnStatement->returnExpression()->expressionType(checker);
+
+		checker.assertSameType(
+			*returnType,
+			*returnStatementType,
+			returnStatement->asString() + ": Expected type '" + returnType->name() + "' but got type '" + returnStatementType->name() + "' in return statement.",
+			true);
+	} else {
+		if (returnStatement->returnExpression() != nullptr) {
+			verifier.semanticError(returnStatement->asString() + ": Found expression after return in void function.");
+		}
+	}
+}
+
+bool FunctionAST::checkBranches(SemanticVerifier& verifier, std::shared_ptr<StatementAST> statement) {
+	if (auto returnStatement = std::dynamic_pointer_cast<ReturnStatementAST>(statement)) {
+		checkReturnStatement(verifier, returnStatement);
+		return true;
+	} else if (auto block = std::dynamic_pointer_cast<BlockAST>(statement)) {
+		for (auto blockStatement : block->statements()) {
+			if (checkBranches(verifier, blockStatement)) {
+				return true;
+			}
+		}
+
+		return false;
+	} else if (auto ifStatement = std::dynamic_pointer_cast<IfElseStatementAST>(statement)) {
+		bool ifReturns = checkBranches(verifier, ifStatement->thenBlock());
+
+		if (!ifReturns) {
+			return false;
+		}
+
+		if (ifStatement->elseBlock() != nullptr) {
+			return checkBranches(verifier, ifStatement->elseBlock());
+		} else {
+			return ifReturns;
+		}
+	} else if (auto whileStatement = std::dynamic_pointer_cast<WhileLoopStatementAST>(statement)) {
+		return checkBranches(verifier, whileStatement->bodyBlock());
+	} else {
+		return false;
+	}
+}
+
+void FunctionAST::checkReturnStatements(SemanticVerifier& verifier) {
+	auto checker = verifier.typeChecker();
+	bool allReturns = checkBranches(verifier, mBody);
+	auto returnType = checker.getType(mPrototype->returnType());
+
+	if (returnType->name() != "Void") {
+		if (!allReturns) {
+			verifier.semanticError("Not all branches returns.");
+		}
+	}
+
+	// if (returnType->name() != "Void" && !anyReturn) {
+	// 	verifier.semanticError("Expected return statement in function '" + funcName + "'.");
+	// }
+}
+
 void FunctionAST::verify(SemanticVerifier& verifier) {
 	mPrototype->verify(verifier);
 	mBody->verify(verifier);
 
 	//Check the return statement(s)
-	auto checker = verifier.typeChecker();
-
-	auto funcName = mPrototype->name();
-	bool anyReturn = false;
-	auto returnType = checker.getType(mPrototype->returnType());
-
-	std::vector<const AbstractSyntaxTree*> returnStatements;
-	mBody->visit([&](const AbstractSyntaxTree* ast) {
-		auto returnStatement = dynamic_cast<const ReturnStatementAST*>(ast);
-
-		if (returnStatement != nullptr) {
-			anyReturn = true;
-
-			if (returnType->name() != "Void") {
-				if (returnStatement->returnExpression() == nullptr) {
-					verifier.semanticError(returnStatement->asString() + ": Empty return statement is only allowed in void functions.");
-				}
-
-				auto returnStatementType = returnStatement->returnExpression()->expressionType(checker);
-
-				checker.assertSameType(
-					*returnType,
-					*returnStatementType,
-					returnStatement->asString() + ": Expected type '" + returnType->name() + "' but got type '" + returnStatementType->name() + "' in return statement.",
-					true);
-			} else {
-				if (returnStatement->returnExpression() != nullptr) {
-					verifier.semanticError(returnStatement->asString() + ": Found expression after return in void function.");
-				}
-			}
-		}
-	});
-
-	if (returnType->name() != "Void" && !anyReturn) {
-		verifier.semanticError("Expected return statement in function '" + funcName + "'.");
-	}
-
-	ControlFlowGraph::createGraph(this);
+	checkReturnStatements(verifier);
 }
 
 void FunctionAST::generateCode(CodeGenerator& codeGen, GeneratedFunction& func) {
