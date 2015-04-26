@@ -103,9 +103,6 @@ public:
 	//Returns the constructor arguments
 	const std::vector<std::shared_ptr<ExpressionAST>>& constructorArguments() const;
 
-	//Finds the class symbol
-	std::shared_ptr<Symbol> findClassSymbol(Binder& binder);
-
 	virtual std::string asString() const override;
 	
 	//Finds the symbol for the constructor

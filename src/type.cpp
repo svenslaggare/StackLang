@@ -83,7 +83,7 @@ std::string ClassType::vmClassName() const {
 	return Helpers::replaceString(name(), "::", ".");
 }
 
-std::map<std::string, std::shared_ptr<Type>> TypeSystem::defaultTypes() {
+Types TypeSystem::defaultTypes() {
 	auto intType = std::make_shared<PrimitiveType>(PrimitiveTypes::Int);
 	auto boolType = std::make_shared<PrimitiveType>(PrimitiveTypes::Bool);
 	auto floatType = std::make_shared<PrimitiveType>(PrimitiveTypes::Float);
@@ -140,12 +140,12 @@ std::string TypeSystem::toString(PrimitiveTypes type) {
 	}
 }
 
-std::shared_ptr<Type> TypeSystem::makeType(std::string typeName) {
+std::shared_ptr<Type> TypeSystem::makeType(std::string typeName, const Types& definedTypes) {
 	PrimitiveTypes primType;
 	if (TypeSystem::fromString(typeName, primType)) {
 		return std::make_shared<PrimitiveType>(PrimitiveType(primType));
 	} else if (typeName.at(typeName.length() - 1) == ']' && typeName.at(typeName.length() - 2) == '[') {
-		auto elementType = makeType(typeName.substr(0, typeName.length() - 2));
+		auto elementType = makeType(typeName.substr(0, typeName.length() - 2), definedTypes);
 
 		if (elementType == nullptr) {
 			return nullptr;
@@ -154,6 +154,11 @@ std::shared_ptr<Type> TypeSystem::makeType(std::string typeName) {
 		return std::make_shared<ArrayType>(elementType);
 	} else if (typeName == "NullRef") {
 		return std::make_shared<NullReferenceType>();
+	} else {
+		//Else check in the defined types
+		if (definedTypes.count(typeName) > 0) {
+			return definedTypes.at(typeName);
+		}
 	}
 
 	return nullptr;

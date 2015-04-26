@@ -76,32 +76,6 @@ void FunctionPrototypeAST::visit(VisitFn visitFn) const {
 	visitFn(this);
 }
 
-namespace {
-	//Finds the symbol for the given type
-	std::shared_ptr<Symbol> findTypeSymbol(std::shared_ptr<SymbolTable> symbolTable, std::string typeName) {
-		if (typeName.find("::") != std::string::npos) {
-			//Split the function name
-			std::vector<std::string> parts = Helpers::splitString(typeName, "::");
-
-			//Find the namespace
-			std::shared_ptr<SymbolTable> namespaceTable = symbolTable;
-			for (std::size_t i = 0; i < parts.size() - 1; i++) {
-				auto part = parts[i];
-				auto innerTable = std::dynamic_pointer_cast<NamespaceSymbol>(namespaceTable->find(part));
-
-				if (innerTable == nullptr) {
-					return nullptr;
-				}
-
-				namespaceTable = innerTable->symbolTable();
-			}
-
-			return namespaceTable->find(parts[parts.size() - 1]);		
-		} else {
-			return symbolTable->find(typeName);
-		}
-	}
-}
 
 void FunctionPrototypeAST::generateSymbols(Binder& binder, std::shared_ptr<SymbolTable> symbolTable) {
 	AbstractSyntaxTree::generateSymbols(binder, symbolTable);
@@ -110,7 +84,7 @@ void FunctionPrototypeAST::generateSymbols(Binder& binder, std::shared_ptr<Symbo
 		param->generateSymbols(binder, symbolTable);
 	}
 
-	auto returnTypeSymbol = std::dynamic_pointer_cast<ClassSymbol>(findTypeSymbol(mSymbolTable, mReturnType));
+	auto returnTypeSymbol = std::dynamic_pointer_cast<ClassSymbol>(Helpers::findSymbolInNamespace(mSymbolTable, mReturnType));
 
 	if (returnTypeSymbol != nullptr) {
 		mReturnType = returnTypeSymbol->fullName();

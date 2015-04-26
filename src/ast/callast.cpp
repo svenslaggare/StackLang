@@ -13,30 +13,6 @@ CallExpressionAST::CallExpressionAST(std::string functionName, std::vector<std::
 
 }
 
-std::shared_ptr<Symbol> CallExpressionAST::funcSymbol(Binder& binder, std::shared_ptr<SymbolTable> symbolTable) const {
-	if (mFunctionName.find("::") != std::string::npos) {
-		//Split the function name
-		std::vector<std::string> parts = Helpers::splitString(mFunctionName, "::");
-
-		//Find the namespace
-		std::shared_ptr<SymbolTable> namespaceTable = symbolTable;
-		for (std::size_t i = 0; i < parts.size() - 1; i++) {
-			auto part = parts[i];
-			auto innerTable = std::dynamic_pointer_cast<NamespaceSymbol>(namespaceTable->find(part));
-
-			if (innerTable == nullptr) {
-				binder.error("The namespace '" + part + "' is not defined.");
-			}
-
-			namespaceTable = innerTable->symbolTable();
-		}
-
-		return namespaceTable->find(parts[parts.size() - 1]);		
-	} else {
-		return symbolTable->find(mFunctionName);
-	}
-}
-
 std::shared_ptr<FunctionSignatureSymbol> CallExpressionAST::funcSignature(const TypeChecker& typeChecker) const {
 	std::vector<std::string> argumentsTypes;
 
@@ -95,7 +71,7 @@ void CallExpressionAST::rewrite(Compiler& compiler) {
 
 void CallExpressionAST::generateSymbols(Binder& binder, std::shared_ptr<SymbolTable> symbolTable) {
 	AbstractSyntaxTree::generateSymbols(binder, symbolTable);
-	auto symbol = funcSymbol(binder, callTable());
+	auto symbol = Helpers::findSymbolInNamespace(callTable(), mFunctionName);
 
 	if (symbol == nullptr) {
 		binder.error("The function '" + functionName() + "' is not defined.");

@@ -20,7 +20,7 @@ void ExplicitConversion::applyConversion(CodeGenerator& codeGen, GeneratedFuncti
 	mConversionGenerator(codeGen, func);
 }
 
-TypeChecker::TypeChecker(Binder& binder, const OperatorContainer& operators, std::map<std::string, std::shared_ptr<Type>> types)
+TypeChecker::TypeChecker(Binder& binder, const OperatorContainer& operators, std::unordered_map<std::string, std::shared_ptr<Type>> types)
 	: mBinder(binder), mOperators(operators), mTypes(types) {
 
 }
@@ -30,7 +30,7 @@ Binder& TypeChecker::binder() {
 }
 
 bool TypeChecker::tryMakeType(std::string name) {
-	auto type = TypeSystem::makeType(name);
+	auto type = TypeSystem::makeType(name, mTypes);
 
 	if (type != nullptr) {
 		mTypes.insert({ name, type });

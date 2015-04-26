@@ -30,6 +30,12 @@ std::string ArrayDeclarationAST::asString() const {
 void ArrayDeclarationAST::generateSymbols(Binder& binder, std::shared_ptr<SymbolTable> symbolTable) {
 	AbstractSyntaxTree::generateSymbols(binder, symbolTable);
 	mLengthExpression->generateSymbols(binder, symbolTable);
+
+	auto classSymbol = std::dynamic_pointer_cast<ClassSymbol>(Helpers::findSymbolInNamespace(mSymbolTable, mElementType));
+
+	if (classSymbol != nullptr) {
+		mElementType = classSymbol->fullName();
+	}
 }
 
 void ArrayDeclarationAST::typeCheck(TypeChecker& checker) {
@@ -100,6 +106,12 @@ void MultiDimArrayDeclarationAST::generateSymbols(Binder& binder, std::shared_pt
 	
 	for (auto lengthExpr : mLengthExpressions) {
 		lengthExpr->generateSymbols(binder, symbolTable);
+	}
+
+	auto classSymbol = std::dynamic_pointer_cast<ClassSymbol>(Helpers::findSymbolInNamespace(mSymbolTable, mElementType));
+
+	if (classSymbol != nullptr) {
+		mElementType = classSymbol->fullName();
 	}
 }
 

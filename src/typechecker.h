@@ -40,7 +40,7 @@ class TypeChecker {
 private:
 	Binder& mBinder;
 
-	std::map<std::string, std::shared_ptr<Type>> mTypes;
+	std::unordered_map<std::string, std::shared_ptr<Type>> mTypes;
 	const OperatorContainer& mOperators;
 	std::multimap<std::shared_ptr<Type>, ExplicitConversion> mExplicitConversions;
 	std::unordered_map<std::string, Object> mObjects;
@@ -49,7 +49,7 @@ private:
 	bool tryMakeType(std::string name);
 public:
 	//Creates a new type checker
-	TypeChecker(Binder& binder, const OperatorContainer& operators, std::map<std::string, std::shared_ptr<Type>> types);
+	TypeChecker(Binder& binder, const OperatorContainer& operators, std::unordered_map<std::string, std::shared_ptr<Type>> types);
 
 	//Returns the binder
 	Binder& binder();

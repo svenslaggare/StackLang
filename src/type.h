@@ -1,7 +1,7 @@
 #pragma once
 #include <string>
 #include <memory>
-#include <map>
+#include <unordered_map>
 
 //Represents a type
 class Type {
@@ -91,9 +91,11 @@ public:
 	std::string vmClassName() const;
 };
 
+using Types = std::unordered_map<std::string, std::shared_ptr<Type>>;
+
 namespace TypeSystem {
 	//Returns the default types
-	std::map<std::string, std::shared_ptr<Type>> defaultTypes();
+	Types defaultTypes();
 
 	//Creates a primitive type from a string
 	bool fromString(std::string typeName, PrimitiveTypes& type);
@@ -102,7 +104,7 @@ namespace TypeSystem {
 	std::string toString(PrimitiveTypes type);
 
 	//Creates a type from the given string
-	std::shared_ptr<Type> makeType(std::string typeName);
+	std::shared_ptr<Type> makeType(std::string typeName, const Types& definedTypes);
 
 	//Returns the type name from the given VM type
 	std::string fromVMType(std::string vmType);

@@ -102,6 +102,7 @@ public:
         TS_ASSERT_EQUALS(compileAndRun("namespaces/using3"), "5\n0\n");
         TS_ASSERT_EQUALS(compileAndRun("namespaces/usingclass1"), "6\n");
         TS_ASSERT_EQUALS(compileAndRun("namespaces/usingclass2"), "6\n");
+        TS_ASSERT_EQUALS(compileAndRun("namespaces/usingclass3"), "6\n");
     }
 
     void testClasses() {
@@ -113,6 +114,8 @@ public:
 
         TS_ASSERT_EQUALS(compileAndRun("classes/constructor1"), "1\n2\n0\n");
         TS_ASSERT_EQUALS(compileAndRun("classes/constructor2"), "1\n2\n0\n");
+
+        TS_ASSERT_EQUALS(compileAndRun("classes/array1"), "6\n");
 
         TS_ASSERT_EQUALS(compileAndRun("classes/loaded1", { "rtlib/vector.sbc" }), "1\n2\n0\n");
         TS_ASSERT_EQUALS(compileAndRun("classes/namespace1"), "5\n");

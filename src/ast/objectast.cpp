@@ -1,6 +1,7 @@
 #include "objectast.h"
 #include "expressionast.h"
 #include "callast.h"
+#include "arrayast.h"
 #include "../typechecker.h"
 #include "../binder.h"
 #include "../symbol.h"
@@ -301,34 +302,68 @@ void SetFieldValueAST::generateSymbols(Binder& binder, std::shared_ptr<SymbolTab
 void SetFieldValueAST::typeCheck(TypeChecker& checker) {
 	mObjectRefExpression->typeCheck(checker);
 
+	// if (auto varRef = std::dynamic_pointer_cast<VariableReferenceExpressionAST>(mObjectRefExpression)) {
+	// 	auto varSymbol = std::dynamic_pointer_cast<VariableSymbol>(mSymbolTable->find(varRef->name()));
+	// 	auto varRefType = checker.findType(varSymbol->variableType());
+
+	// 	auto memberName = std::dynamic_pointer_cast<VariableReferenceExpressionAST>(mMemberExpression)->name();
+
+	// 	std::string objName = varRefType->name();
+
+	// 	if (!checker.objectExists(objName)) {
+	// 		checker.typeError(varRefType->name() + " is not an object type.");
+	// 	}
+
+	// 	auto& object = checker.getObject(objName);
+
+	// 	if (!object.fieldExists(memberName)) {
+	// 		checker.typeError("There exists no field '" + memberName + "' in the type '" + varRefType->name() + "'.");
+	// 	}
+
+	// 	mRightHandSide->typeCheck(checker);
+
+	// 	//Check rhs
+	// 	checker.assertSameType(
+	// 		*object.getField(memberName).type(), 
+	// 		*mRightHandSide->expressionType(checker),
+	// 		asString());
+	// } else {
+	// 	std::cout << mObjectRefExpression->expressionType(checker)->name() << std::endl;
+	// 	checker.typeError("Not implemented");
+	// }
+
+	std::shared_ptr<Type> objRefType;
+
 	if (auto varRef = std::dynamic_pointer_cast<VariableReferenceExpressionAST>(mObjectRefExpression)) {
 		auto varSymbol = std::dynamic_pointer_cast<VariableSymbol>(mSymbolTable->find(varRef->name()));
-		auto varRefType = checker.findType(varSymbol->variableType());
-
-		auto memberName = std::dynamic_pointer_cast<VariableReferenceExpressionAST>(mMemberExpression)->name();
-
-		std::string objName = varRefType->name();
-
-		if (!checker.objectExists(objName)) {
-			checker.typeError(varRefType->name() + " is not an object type.");
-		}
-
-		auto& object = checker.getObject(objName);
-
-		if (!object.fieldExists(memberName)) {
-			checker.typeError("There exists no field '" + memberName + "' in the type '" + varRefType->name() + "'.");
-		}
-
-		mRightHandSide->typeCheck(checker);
-
-		//Check rhs
-		checker.assertSameType(
-			*object.getField(memberName).type(), 
-			*mRightHandSide->expressionType(checker),
-			asString());
+		objRefType = checker.findType(varSymbol->variableType());
+	} else if (auto arrayRef = std::dynamic_pointer_cast<ArrayAccessAST>(mObjectRefExpression)) {
+		objRefType = arrayRef->expressionType(checker);
 	} else {
 		checker.typeError("Not implemented");
 	}
+
+	auto memberName = std::dynamic_pointer_cast<VariableReferenceExpressionAST>(mMemberExpression)->name();
+
+	std::string objName = objRefType->name();
+
+	if (!checker.objectExists(objName)) {
+		checker.typeError(objRefType->name() + " is not an object type.");
+	}
+
+	auto& object = checker.getObject(objName);
+
+	if (!object.fieldExists(memberName)) {
+		checker.typeError("There exists no field '" + memberName + "' in the type '" + objRefType->name() + "'.");
+	}
+
+	mRightHandSide->typeCheck(checker);
+
+	//Check rhs
+	checker.assertSameType(
+		*object.getField(memberName).type(), 
+		*mRightHandSide->expressionType(checker),
+		asString());
 }
 
 std::shared_ptr<Type> SetFieldValueAST::expressionType(const TypeChecker& checker) const {
@@ -338,12 +373,18 @@ std::shared_ptr<Type> SetFieldValueAST::expressionType(const TypeChecker& checke
 void SetFieldValueAST::generateCode(CodeGenerator& codeGen, GeneratedFunction& func) {
 	auto& checker = codeGen.typeChecker();
 
-	auto varRef = std::dynamic_pointer_cast<VariableReferenceExpressionAST>(mObjectRefExpression);
-	auto varSymbol = std::dynamic_pointer_cast<VariableSymbol>(mSymbolTable->find(varRef->name()));
-	auto varRefType = std::dynamic_pointer_cast<ClassType>(checker.findType(varSymbol->variableType()));
+	std::shared_ptr<ClassType> objRefType;
+
+	if (auto varRef = std::dynamic_pointer_cast<VariableReferenceExpressionAST>(mObjectRefExpression)) {
+		auto varSymbol = std::dynamic_pointer_cast<VariableSymbol>(mSymbolTable->find(varRef->name()));
+		objRefType = std::dynamic_pointer_cast<ClassType>(checker.findType(varSymbol->variableType()));
+	} else if (auto arrayRef = std::dynamic_pointer_cast<ArrayAccessAST>(mObjectRefExpression)) {
+		objRefType = std::dynamic_pointer_cast<ClassType>(arrayRef->expressionType(checker));
+	}
+
 	auto memberName = std::dynamic_pointer_cast<VariableReferenceExpressionAST>(mMemberExpression)->name();
 
 	mObjectRefExpression->generateCode(codeGen, func);
 	mRightHandSide->generateCode(codeGen, func);
-	func.addInstruction("STFIELD " + varRefType->vmClassName() + "::" + memberName);
+	func.addInstruction("STFIELD " + objRefType->vmClassName() + "::" + memberName);
 }

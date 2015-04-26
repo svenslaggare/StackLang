@@ -277,30 +277,6 @@ std::string NewClassExpressionAST::asString() const {
 	return "new " + mTypeName + "(" + AST::combineAST(mConstructorArguments, ", ") + ")";
 }
 
-std::shared_ptr<Symbol> NewClassExpressionAST::findClassSymbol(Binder& binder) {
-	if (mTypeName.find("::") != std::string::npos) {
-		//Split the function name
-		std::vector<std::string> parts = Helpers::splitString(mTypeName, "::");
-
-		//Find the namespace
-		std::shared_ptr<SymbolTable> namespaceTable = mSymbolTable;
-		for (std::size_t i = 0; i < parts.size() - 1; i++) {
-			auto part = parts[i];
-			auto innerTable = std::dynamic_pointer_cast<NamespaceSymbol>(namespaceTable->find(part));
-
-			if (innerTable == nullptr) {
-				binder.error("The namespace '" + part + "' is not defined.");
-			}
-
-			namespaceTable = innerTable->symbolTable();
-		}
-
-		return namespaceTable->find(parts[parts.size() - 1]);	
-	} else {
-		return mSymbolTable->find(mTypeName);
-	}
-}
-
 std::shared_ptr<Symbol> NewClassExpressionAST::constructorSymbol(std::shared_ptr<SymbolTable> symbolTable) const {
 	return symbolTable->find(".constructor");
 }
@@ -318,7 +294,7 @@ std::shared_ptr<FunctionSignatureSymbol> NewClassExpressionAST::constructorSigna
 
 void NewClassExpressionAST::generateSymbols(Binder& binder, std::shared_ptr<SymbolTable> symbolTable) {
 	AbstractSyntaxTree::generateSymbols(binder, symbolTable);
-	auto classSymbol = std::dynamic_pointer_cast<ClassSymbol>(findClassSymbol(binder));
+	auto classSymbol = std::dynamic_pointer_cast<ClassSymbol>(Helpers::findSymbolInNamespace(mSymbolTable, mTypeName));
 
 	if (classSymbol == nullptr) {
 		binder.error("There exists no class named '" + mTypeName + "'.");

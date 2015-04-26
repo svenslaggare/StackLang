@@ -21,9 +21,6 @@ private:
 
 	std::shared_ptr<SymbolTable> mCallTable;
 
-	//Returns the func symbol
-	std::shared_ptr<Symbol> funcSymbol(Binder& binder, std::shared_ptr<SymbolTable> symbolTable) const;
-
 	//Finds the func signature symbol
 	std::shared_ptr<FunctionSignatureSymbol> funcSignature(const TypeChecker& typeChecker) const;
 
