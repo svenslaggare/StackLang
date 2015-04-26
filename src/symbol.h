@@ -82,9 +82,13 @@ public:
 class FunctionSymbol : public Symbol {
 private:
 	std::vector<std::shared_ptr<FunctionSignatureSymbol>> mOverloads;
+	std::string mNamespaceName;
 public:
 	//Creates a new function symbol with the given signature
-	FunctionSymbol(std::string name, std::shared_ptr<FunctionSignatureSymbol> signature);
+	FunctionSymbol(std::string name, std::shared_ptr<FunctionSignatureSymbol> signature, std::string namespaceName = "");
+
+	//Returns the name of the namespace that the function is defined in
+	std::string namespaceName() const;
 
 	virtual std::string asString() const override;
 

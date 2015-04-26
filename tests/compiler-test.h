@@ -97,6 +97,7 @@ public:
     void testNamespaces() {
         TS_ASSERT_EQUALS(compileAndRun("namespaces/simple1"), "0\n");
         TS_ASSERT_EQUALS(compileAndRun("namespaces/simple2"), "0\n");
+        TS_ASSERT_EQUALS(compileAndRun("namespaces/using1"), "5\n0\n");
     }
 
     void testClasses() {

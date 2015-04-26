@@ -46,6 +46,9 @@ private:
 	//Returns the precedence for the current token or -1 if not a operator
 	int getTokenPrecedence();
 
+	//Parses a namespace name
+	std::string parseNamespaceName();
+
 	//Parses a type name
 	std::string parseTypeName(bool allowArray = true);
 
@@ -84,6 +87,9 @@ private:
 
 	//Parses a new array expression
 	std::shared_ptr<ExpressionAST> parseNewArrayExpression(std::string elementTypeName);
+
+	//Parses a using namespace expression
+	std::shared_ptr<ExpressionAST> parseUsingNamespaceExpression();
 
 	//Parses a primary expression
 	std::shared_ptr<ExpressionAST> parsePrimaryExpression(bool allowDeclaration = false);

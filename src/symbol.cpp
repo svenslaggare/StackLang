@@ -46,9 +46,13 @@ std::string VariableSymbol::className() const {
 }
 
 //Function
-FunctionSymbol::FunctionSymbol(std::string name, std::shared_ptr<FunctionSignatureSymbol> signature)
-	: Symbol(name, "Function"), mOverloads({ signature }) {
+FunctionSymbol::FunctionSymbol(std::string name, std::shared_ptr<FunctionSignatureSymbol> signature, std::string namespaceName)
+	: Symbol(name, "Function"), mOverloads({ signature }), mNamespaceName(namespaceName) {
 
+}
+
+std::string FunctionSymbol::namespaceName() const {
+	return mNamespaceName;
 }
 
 std::string FunctionSymbol::asString() const {

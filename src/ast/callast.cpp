@@ -165,16 +165,13 @@ void CallExpressionAST::generateCode(CodeGenerator& codeGen, GeneratedFunction& 
 			return arg->expressionType(codeGen.typeChecker())->vmType();
 		}, " ");
 
-	auto calldedFuncName = mFunctionName;
+	auto nameParts = Helpers::splitString(mFunctionName, "::");
+	auto funcName = nameParts[nameParts.size() - 1];
+	auto namespaceName = Helpers::replaceString(mFuncSymbol->namespaceName(), "::", ".");
+	std::string calldedFuncName = funcName;
 
-	if (scopeName != "") {
-		calldedFuncName = scopeName + "." + mFunctionName;
-	} else {
-		calldedFuncName = Helpers::join<std::string>(
-			Helpers::splitString(mFunctionName, "::"),
-			[](std::string part) {
-				return part;
-			}, ".");	
+	if (namespaceName != "") {
+		calldedFuncName = namespaceName + "." + funcName;
 	}
 
 	func.addInstruction("CALL " + calldedFuncName + "(" + argsTypeStr + ")");

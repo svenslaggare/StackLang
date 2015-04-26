@@ -85,12 +85,9 @@ int Parser::getTokenPrecedence() {
 	return -1;
 }
 
-std::string Parser::parseTypeName(bool allowArray) {
-	std::string typeName = currentToken.strValue;
+std::string Parser::parseNamespaceName() {
+	std::string namespaceName;
 
-	nextToken(); //Eat the identifier
-
-	//Parse namespace
 	while (true) {
 		if (currentToken.type() == TokenType::TwoChars
 		&& currentToken.charValue == ':'
@@ -100,12 +97,23 @@ std::string Parser::parseTypeName(bool allowArray) {
 				compileError("Expected identifier after '::' in type name.");
 			}
 
-			typeName += "::" + currentToken.strValue;
+			namespaceName += "::" + currentToken.strValue;
 			nextToken(); //Eat the identifier
 		} else {
 			break;
 		}
 	}
+
+	return namespaceName;
+}
+
+std::string Parser::parseTypeName(bool allowArray) {
+	std::string typeName = currentToken.strValue;
+
+	nextToken(); //Eat the identifier
+
+	//Parse namespace
+	typeName += parseNamespaceName();
 
 	if (allowArray) {
 		//Check if array type
@@ -452,6 +460,23 @@ std::shared_ptr<ExpressionAST> Parser::parseParenthesisExpression() {
 	return expr;
 }
 
+std::shared_ptr<ExpressionAST> Parser::parseUsingNamespaceExpression() {
+	nextToken(); //Eat the 'using'
+
+	if (currentToken.type() != TokenType::Namespace) {
+		compileError("Expected 'namespace' after using.");
+	}
+
+	nextToken(); //Eat the 'namespace'
+
+	//Parse the name
+	std::string namespaceName = currentToken.strValue;
+	nextToken();
+	namespaceName += parseNamespaceName();
+
+	return std::make_shared<UsingNamespaceExpressionAST>(namespaceName);
+}
+
 std::shared_ptr<ExpressionAST> Parser::parsePrimaryExpression(bool allowDeclaration) {
 	switch (currentToken.type()) {
 	case TokenType::Integer:
@@ -479,6 +504,8 @@ std::shared_ptr<ExpressionAST> Parser::parsePrimaryExpression(bool allowDeclarat
 		return parseNewExpression();
 	case TokenType::Cast:
 		return parseCastExpression();
+	case TokenType::Using:
+		return parseUsingNamespaceExpression();
 	default:
 		break;
 	}	

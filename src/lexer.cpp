@@ -60,6 +60,8 @@ std::string Token::asString() const {
 			return "cast";
 		case TokenType::Class:
 			return "class";	
+		case TokenType::Using:
+			return "using";	
 		case TokenType::EndOfFile:
 			return "EOF";
 	} 
@@ -147,6 +149,8 @@ std::vector<Token> Lexer::tokenize(std::istream& stream) const {
 					tokens.push_back(Token(TokenType::Cast));
 				} else if (identStr == "class") {
 					tokens.push_back(Token(TokenType::Class));
+				} else if (identStr == "using") {
+					tokens.push_back(Token(TokenType::Using));
 				} else {
 					auto newToken = Token(TokenType::Identifier);
 					newToken.strValue = identStr;

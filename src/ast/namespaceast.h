@@ -34,3 +34,21 @@ public:
 
 	virtual void verify(SemanticVerifier& verifier) override;
 };
+
+//Represents a using namespace expression AST
+class UsingNamespaceExpressionAST : public ExpressionAST {
+private:
+	std::string mNamespace;
+public:
+	//Creates a new using namespace expression
+	UsingNamespaceExpressionAST(std::string namespaceName);
+
+	//Returns the name of the namespace
+	std::string namespaceName() const;
+
+	std::string asString() const override;
+
+	virtual void visit(VisitFn visitFn) const override;
+	
+	virtual void generateSymbols(Binder& binder, std::shared_ptr<SymbolTable> symbolTable) override;
+};

@@ -27,6 +27,9 @@ public:
 	//Returns the name of the table
 	std::string name() const;
 
+	//Returns the full name of the table
+	std::string fullName(std::string namespaceSep = "::") const;
+
 	//Adds the given symbol to the table. True if added else false.
 	bool add(std::string name, std::shared_ptr<Symbol> symbol);
 

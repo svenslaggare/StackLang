@@ -125,3 +125,38 @@ void NamespaceDeclarationAST::verify(SemanticVerifier& verifier) {
 		member->verify(verifier);
 	}
 }
+
+//Using namespace
+UsingNamespaceExpressionAST::UsingNamespaceExpressionAST(std::string namespaceName)
+	: mNamespace(namespaceName) {
+
+}
+
+std::string UsingNamespaceExpressionAST::namespaceName() const {
+	return mNamespace;
+}
+
+std::string UsingNamespaceExpressionAST::asString() const {
+	return "using " + mNamespace;
+}
+
+void UsingNamespaceExpressionAST::visit(VisitFn visitFn) const {
+	visitFn(this);
+}
+
+void UsingNamespaceExpressionAST::generateSymbols(Binder& binder, std::shared_ptr<SymbolTable> symbolTable) {
+	AbstractSyntaxTree::generateSymbols(binder, symbolTable);
+	auto symbol = symbolTable->find(mNamespace);
+
+	if (symbol == nullptr) {
+		binder.error("The symbol '" + mNamespace + "' is not defined.");
+	}
+
+	auto namespaceSymbol = std::dynamic_pointer_cast<NamespaceSymbol>(symbol);
+
+	if (namespaceSymbol == nullptr) {
+		binder.error("'" + mNamespace + "' is not a namespace.");
+	}
+
+	symbolTable->add(*namespaceSymbol->symbolTable());
+}

@@ -18,6 +18,26 @@ std::string SymbolTable::name() const {
 	return mName;
 }
 
+void getFullName(std::string namespaceSep, const SymbolTable* symbolTable, std::string& name) {
+	if (symbolTable == nullptr) {
+		return;
+	}
+
+	getFullName(namespaceSep, symbolTable->outer().get(), name);
+
+	if (name == "") {
+		name = symbolTable->name();
+	} else {
+		name += namespaceSep + symbolTable->name();
+	}
+}
+
+std::string SymbolTable::fullName(std::string namespaceSep) const {
+	std::string name;
+	getFullName(namespaceSep, this, name);
+	return name;
+}
+
 bool SymbolTable::add(std::string name, std::shared_ptr<Symbol> symbol) {
 	if (mInner.count(name) == 0) {
 		symbol->mScopeName = mScopeName;
@@ -46,7 +66,7 @@ bool SymbolTable::addFunction(std::string name, std::vector<VariableSymbol> para
 			return false;
 		}
 	} else {
-		auto func = std::make_shared<FunctionSymbol>(name, signature);
+		auto func = std::make_shared<FunctionSymbol>(name, signature, fullName());
 		mInner.insert({ name, func });
 		return true;
 	}
