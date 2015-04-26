@@ -230,9 +230,7 @@ void Loader::defineClass(const ClassDefinition& classDef) {
         auto symbolTable = mBinder.symbolTable();
 
         if (symbolTable->find(classDef.name) == nullptr) {
-            symbolTable->add(
-                classDef.name,
-                std::make_shared<ClassSymbol>(classDef.name, std::make_shared<SymbolTable>(symbolTable)));
+            symbolTable->addClass(classDef.name, std::make_shared<SymbolTable>(symbolTable));
         } else {
             mBinder.error("The symbol '" + classDef.name + "' is already defined.");
         }

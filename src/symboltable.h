@@ -8,8 +8,9 @@
 class AbstractSyntaxTree;
 class Symbol;
 class VariableSymbol;
+class Namespace;
 
-//Represents a symbol table;
+//Represents a symbol table
 class SymbolTable {
 private:
 	int mScopesCreated = 0;
@@ -17,6 +18,12 @@ private:
 	std::string mName = "";
 	std::shared_ptr<SymbolTable> mOuter;
 	std::map<std::string, std::shared_ptr<Symbol>> mInner;
+
+	//Returns the namespace that the symbol table is defined in
+	Namespace getNamespace();
+
+	//Gets the namespace parts
+	void getNamespaceParts(const SymbolTable* symbolTable, std::vector<std::string>& parts) const;
 public:
 	//Creates a new symbol table
 	SymbolTable(std::shared_ptr<SymbolTable> outer = nullptr, std::string name = "");
@@ -26,9 +33,6 @@ public:
 
 	//Returns the name of the table
 	std::string name() const;
-
-	//Returns the full name of the table
-	std::string fullName(std::string namespaceSep = "::") const;
 
 	//Adds the given symbol to the table. True if added else false.
 	bool add(std::string name, std::shared_ptr<Symbol> symbol);
@@ -41,6 +45,9 @@ public:
 
 	//Creates a new function and adds it to the symbol table
 	void newFunction(std::string name, const std::vector<std::pair<std::string, std::string>>& parameters, std::string returnType);
+
+	//Adds the given class to the symbol table
+	bool addClass(std::string name, std::shared_ptr<SymbolTable> classTable);
 
 	//Finds the given symbol. Nullptr if it doesn't exists.
 	std::shared_ptr<Symbol> find(std::string name) const;

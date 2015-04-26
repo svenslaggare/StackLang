@@ -100,6 +100,7 @@ public:
         TS_ASSERT_EQUALS(compileAndRun("namespaces/using1"), "5\n0\n");
         TS_ASSERT_EQUALS(compileAndRun("namespaces/using2"), "5\n0\n");
         TS_ASSERT_EQUALS(compileAndRun("namespaces/using3"), "5\n0\n");
+        TS_ASSERT_EQUALS(compileAndRun("namespaces/usingclass1"), "6\n");
     }
 
     void testClasses() {

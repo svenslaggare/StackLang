@@ -130,13 +130,13 @@ public:
 //Represents a variable reference expression
 class VariableReferenceExpressionAST : public ExpressionAST {
 private:
-	std::string mVarName;
+	std::string mName;
 public:
 	//Creates a new variable reference expression
-	VariableReferenceExpressionAST(std::string varName);
+	VariableReferenceExpressionAST(std::string name);
 
 	//Returns the name of the variable
-	std::string varName() const;
+	std::string name() const;
 
 	std::string asString() const override;
 
@@ -155,18 +155,21 @@ public:
 //Represents a variable declaration expression
 class VariableDeclarationExpressionAST : public ExpressionAST, public std::enable_shared_from_this<VariableDeclarationExpressionAST> {
 private:
-	std::string mVarType;
-	std::string mVarName;
+	std::string mType;
+	std::string mName;
 	bool mIsFunctionParameter;
+
+	//Finds the type symbol. This function is only intended for finding the full name of class types
+	std::shared_ptr<Symbol> findTypeSymbol(Binder& binder, std::shared_ptr<SymbolTable> symbolTable) const;
 public:
 	//Creates a new variable declaration expression
-	VariableDeclarationExpressionAST(std::string varType, std::string varName, bool isFunctionParameter = false);
+	VariableDeclarationExpressionAST(std::string type, std::string name, bool isFunctionParameter = false);
 
 	//Returns the type of the variable
-	std::string varType() const;
+	std::string type() const;
 
 	//Returns the name of the variable
-	std::string varName() const;
+	std::string name() const;
 
 	//Indicates if the decleration is of a function parameter
 	bool isFunctionParameter() const;

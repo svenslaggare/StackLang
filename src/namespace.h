@@ -11,6 +11,9 @@ private:
 
 	std::string getName(std::string sep);
 public:
+	//Creates a globa namespace
+	Namespace();
+
 	//Creates a new namespace using the given parts
 	Namespace(std::vector<std::string> parts);
 

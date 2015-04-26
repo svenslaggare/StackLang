@@ -1,6 +1,7 @@
 #include "symboltable.h"
 #include "ast/ast.h"
 #include "symbol.h"
+#include "namespace.h"
 
 SymbolTable::SymbolTable(std::shared_ptr<SymbolTable> outer, std::string name)
 	: mName(name), mOuter(outer) {
@@ -18,24 +19,22 @@ std::string SymbolTable::name() const {
 	return mName;
 }
 
-void getFullName(std::string namespaceSep, const SymbolTable* symbolTable, std::string& name) {
+void SymbolTable::getNamespaceParts(const SymbolTable* symbolTable, std::vector<std::string>& parts) const {
 	if (symbolTable == nullptr) {
 		return;
 	}
 
-	getFullName(namespaceSep, symbolTable->outer().get(), name);
+	getNamespaceParts(symbolTable->outer().get(), parts);
 
-	if (name == "") {
-		name = symbolTable->name();
-	} else {
-		name += namespaceSep + symbolTable->name();
+	if (symbolTable->name() != "") {
+		parts.push_back(symbolTable->name());
 	}
 }
 
-std::string SymbolTable::fullName(std::string namespaceSep) const {
-	std::string name;
-	getFullName(namespaceSep, this, name);
-	return name;
+Namespace SymbolTable::getNamespace() {
+	std::vector<std::string> parts;
+	getNamespaceParts(this, parts);
+	return Namespace(parts);
 }
 
 bool SymbolTable::add(std::string name, std::shared_ptr<Symbol> symbol) {
@@ -66,7 +65,7 @@ bool SymbolTable::addFunction(std::string name, std::vector<VariableSymbol> para
 			return false;
 		}
 	} else {
-		auto func = std::make_shared<FunctionSymbol>(name, signature, fullName());
+		auto func = std::make_shared<FunctionSymbol>(name, signature, getNamespace());
 		mInner.insert({ name, func });
 		return true;
 	}
@@ -80,6 +79,15 @@ void SymbolTable::newFunction(std::string name, const std::vector<std::pair<std:
 	}
 
 	addFunction(name, parameterSymbols, returnType);
+}
+
+bool SymbolTable::addClass(std::string name, std::shared_ptr<SymbolTable> classTable) {
+	if (mInner.count(name) == 0) {
+		add(name, std::make_shared<ClassSymbol>(name, classTable, getNamespace()));
+		return true;
+	} else {
+		return false;
+	}
 }
 
 std::shared_ptr<Symbol> SymbolTable::find(std::string name) const {

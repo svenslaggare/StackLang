@@ -98,9 +98,9 @@ bool BinaryOpExpressionAST::rewriteAST(std::shared_ptr<AbstractSyntaxTree>& newA
 		std::shared_ptr<ExpressionAST> varRefExpr;
 
 		if (auto varDec = std::dynamic_pointer_cast<VariableDeclarationExpressionAST>(mLeftHandSide)) {
-			varRefExpr = std::make_shared<VariableReferenceExpressionAST>(varDec->varName());
+			varRefExpr = std::make_shared<VariableReferenceExpressionAST>(varDec->name());
 		} else if (auto varRef = std::dynamic_pointer_cast<VariableReferenceExpressionAST>(mLeftHandSide)) {
-			varRefExpr = std::make_shared<VariableReferenceExpressionAST>(varRef->varName());
+			varRefExpr = std::make_shared<VariableReferenceExpressionAST>(varRef->name());
 		} else {
 			return false;
 		}
@@ -202,11 +202,11 @@ void BinaryOpExpressionAST::typeCheck(TypeChecker& checker) {
 
 			mLeftHandSide = std::make_shared<VariableDeclarationExpressionAST>(
 				rhsType->name(),
-				lhsVarDec->varName(),
+				lhsVarDec->name(),
 				lhsVarDec->isFunctionParameter());
 
 			//Update the symbol
-			mSymbolTable->remove(lhsVarDec->varName());
+			mSymbolTable->remove(lhsVarDec->name());
 			mLeftHandSide->generateSymbols(checker.binder(), mSymbolTable);
 		} else {
 			//Should never happen
@@ -249,7 +249,7 @@ void BinaryOpExpressionAST::verify(SemanticVerifier& verifier) {
 
 	if (mOp == Operator('=')) {
 		if (auto varRef = std::dynamic_pointer_cast<VariableReferenceExpressionAST>(mLeftHandSide)) {
-			auto varDec = std::dynamic_pointer_cast<VariableSymbol>(mSymbolTable->find(varRef->varName()));
+			auto varDec = std::dynamic_pointer_cast<VariableSymbol>(mSymbolTable->find(varRef->name()));
 
 			if (varDec->attribute() == VariableSymbolAttribute::FUNCTION_PARAMETER) {
 				verifier.semanticError("Assignment to function parameter is not allowed.");
@@ -296,12 +296,12 @@ void BinaryOpExpressionAST::generateCode(CodeGenerator& codeGen, GeneratedFuncti
 		func.addInstruction("DIV");
 	} else if (mOp == Operator('=')) {
 		if (auto varDec = std::dynamic_pointer_cast<VariableDeclarationExpressionAST>(mLeftHandSide)) {
-			auto varRefSymbol = std::dynamic_pointer_cast<VariableSymbol>(mSymbolTable->find(varDec->varName()));
+			auto varRefSymbol = std::dynamic_pointer_cast<VariableSymbol>(mSymbolTable->find(varDec->name()));
 			generateSidesCode(codeGen, func);
 			func.addInstruction("STLOC " + std::to_string(func.getLocal(varRefSymbol).first));
 		} else if (auto varRef = std::dynamic_pointer_cast<VariableReferenceExpressionAST>(mLeftHandSide)) {
 			mRightHandSide->generateCode(codeGen, func);
-			auto varRefSymbol = std::dynamic_pointer_cast<VariableSymbol>(mSymbolTable->find(varRef->varName()));
+			auto varRefSymbol = std::dynamic_pointer_cast<VariableSymbol>(mSymbolTable->find(varRef->name()));
 
 			if (varRefSymbol->attribute() != VariableSymbolAttribute::FUNCTION_PARAMETER) {
 				func.addInstruction("STLOC " + std::to_string(func.getLocal(varRefSymbol).first));

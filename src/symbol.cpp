@@ -46,13 +46,13 @@ std::string VariableSymbol::className() const {
 }
 
 //Function
-FunctionSymbol::FunctionSymbol(std::string name, std::shared_ptr<FunctionSignatureSymbol> signature, std::string namespaceName)
-	: Symbol(name, "Function"), mOverloads({ signature }), mNamespaceName(namespaceName) {
+FunctionSymbol::FunctionSymbol(std::string name, std::shared_ptr<FunctionSignatureSymbol> signature, Namespace definedNamespace)
+	: Symbol(name, "Function"), mOverloads({ signature }), mDefinedNamespace(definedNamespace) {
 
 }
 
-std::string FunctionSymbol::namespaceName() const {
-	return mNamespaceName;
+const Namespace& FunctionSymbol::definedNamespace() const {
+	return mDefinedNamespace;
 }
 
 std::string FunctionSymbol::asString() const {
@@ -136,11 +136,23 @@ std::shared_ptr<SymbolTable> NamespaceSymbol::symbolTable() const {
 }
 
 //Class
-ClassSymbol::ClassSymbol(std::string name, std::shared_ptr<SymbolTable> symbolTable)
-	: Symbol(name, "Class"), mSymbolTable(symbolTable) {
+ClassSymbol::ClassSymbol(std::string name, std::shared_ptr<SymbolTable> symbolTable, Namespace definedNamespace)
+	: Symbol(name, "Class"), mSymbolTable(symbolTable), mDefinedNamespace(definedNamespace) {
 
 }
 
 std::shared_ptr<SymbolTable> ClassSymbol::symbolTable() const {
 	return mSymbolTable;
+}
+
+const Namespace& ClassSymbol::definedNamespace() const {
+	return mDefinedNamespace;
+}
+
+std::string ClassSymbol::fullName() const {
+	if (mDefinedNamespace.name() != "") {
+		return mDefinedNamespace.name() + "::" + name();
+	} else {
+		return name();
+	}
 }

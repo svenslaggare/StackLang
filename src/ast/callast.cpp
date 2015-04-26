@@ -167,7 +167,8 @@ void CallExpressionAST::generateCode(CodeGenerator& codeGen, GeneratedFunction& 
 
 	auto nameParts = Helpers::splitString(mFunctionName, "::");
 	auto funcName = nameParts[nameParts.size() - 1];
-	auto namespaceName = Helpers::replaceString(mFuncSymbol->namespaceName(), "::", ".");
+	// auto namespaceName = Helpers::replaceString(mFuncSymbol->namespaceName(), "::", ".");
+	auto namespaceName = mFuncSymbol->definedNamespace().vmName();
 	std::string calldedFuncName = funcName;
 
 	if (namespaceName != "") {

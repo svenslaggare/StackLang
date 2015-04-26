@@ -73,10 +73,10 @@ void MemberAccessAST::typeCheck(TypeChecker& checker) {
 	mAccessExpression->typeCheck(checker);
 
 	if (auto varRef = std::dynamic_pointer_cast<VariableReferenceExpressionAST>(mAccessExpression)) {
-		auto varSymbol = std::dynamic_pointer_cast<VariableSymbol>(mSymbolTable->find(varRef->varName()));
+		auto varSymbol = std::dynamic_pointer_cast<VariableSymbol>(mSymbolTable->find(varRef->name()));
 		auto varRefType = checker.findType(varSymbol->variableType());
 
-		auto memberName = std::dynamic_pointer_cast<VariableReferenceExpressionAST>(mMemberExpression)->varName();
+		auto memberName = std::dynamic_pointer_cast<VariableReferenceExpressionAST>(mMemberExpression)->name();
 
 		std::string objName = varRefType->name();
 
@@ -97,11 +97,11 @@ void MemberAccessAST::typeCheck(TypeChecker& checker) {
 }
 
 std::shared_ptr<Type> MemberAccessAST::expressionType(const TypeChecker& checker) const {
-	auto memberName = std::dynamic_pointer_cast<VariableReferenceExpressionAST>(mMemberExpression)->varName();
+	auto memberName = std::dynamic_pointer_cast<VariableReferenceExpressionAST>(mMemberExpression)->name();
 	std::shared_ptr<Type> varRefType = nullptr;
 
 	if (auto varRef = std::dynamic_pointer_cast<VariableReferenceExpressionAST>(mAccessExpression)) {
-		auto varSymbol = std::dynamic_pointer_cast<VariableSymbol>(mSymbolTable->find(varRef->varName()));
+		auto varSymbol = std::dynamic_pointer_cast<VariableSymbol>(mSymbolTable->find(varRef->name()));
 		varRefType = checker.findType(varSymbol->variableType());
 	} else {
 		varRefType = mAccessExpression->expressionType(checker);
@@ -117,7 +117,7 @@ std::shared_ptr<Type> MemberAccessAST::expressionType(const TypeChecker& checker
 }
 
 void MemberAccessAST::generateCode(CodeGenerator& codeGen, GeneratedFunction& func) {
-	auto memberName = std::dynamic_pointer_cast<VariableReferenceExpressionAST>(mMemberExpression)->varName();
+	auto memberName = std::dynamic_pointer_cast<VariableReferenceExpressionAST>(mMemberExpression)->name();
 	auto typeRef = mAccessExpression->expressionType(codeGen.typeChecker());
 
 	//Special handling of the 'length' field on arrays.
@@ -181,7 +181,7 @@ void MemberCallExpressionAST::typeCheck(TypeChecker& checker) {
 	mAccessExpression->typeCheck(checker);
 
 	if (auto varRef = std::dynamic_pointer_cast<VariableReferenceExpressionAST>(mAccessExpression)) {
-		auto varSymbol = std::dynamic_pointer_cast<VariableSymbol>(mSymbolTable->find(varRef->varName()));
+		auto varSymbol = std::dynamic_pointer_cast<VariableSymbol>(mSymbolTable->find(varRef->name()));
 		auto varRefType = checker.findType(varSymbol->variableType());
 
 		auto memberName = mMemberCallExpression->functionName();
@@ -302,10 +302,10 @@ void SetFieldValueAST::typeCheck(TypeChecker& checker) {
 	mObjectRefExpression->typeCheck(checker);
 
 	if (auto varRef = std::dynamic_pointer_cast<VariableReferenceExpressionAST>(mObjectRefExpression)) {
-		auto varSymbol = std::dynamic_pointer_cast<VariableSymbol>(mSymbolTable->find(varRef->varName()));
+		auto varSymbol = std::dynamic_pointer_cast<VariableSymbol>(mSymbolTable->find(varRef->name()));
 		auto varRefType = checker.findType(varSymbol->variableType());
 
-		auto memberName = std::dynamic_pointer_cast<VariableReferenceExpressionAST>(mMemberExpression)->varName();
+		auto memberName = std::dynamic_pointer_cast<VariableReferenceExpressionAST>(mMemberExpression)->name();
 
 		std::string objName = varRefType->name();
 
@@ -339,9 +339,9 @@ void SetFieldValueAST::generateCode(CodeGenerator& codeGen, GeneratedFunction& f
 	auto& checker = codeGen.typeChecker();
 
 	auto varRef = std::dynamic_pointer_cast<VariableReferenceExpressionAST>(mObjectRefExpression);
-	auto varSymbol = std::dynamic_pointer_cast<VariableSymbol>(mSymbolTable->find(varRef->varName()));
+	auto varSymbol = std::dynamic_pointer_cast<VariableSymbol>(mSymbolTable->find(varRef->name()));
 	auto varRefType = std::dynamic_pointer_cast<ClassType>(checker.findType(varSymbol->variableType()));
-	auto memberName = std::dynamic_pointer_cast<VariableReferenceExpressionAST>(mMemberExpression)->varName();
+	auto memberName = std::dynamic_pointer_cast<VariableReferenceExpressionAST>(mMemberExpression)->name();
 
 	mObjectRefExpression->generateCode(codeGen, func);
 	mRightHandSide->generateCode(codeGen, func);

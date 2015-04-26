@@ -1,6 +1,10 @@
 #include "namespace.h"
 #include "helpers.h"
 
+Namespace::Namespace() {
+	
+}
+
 Namespace::Namespace(std::vector<std::string> parts)
 	: mParts(parts), mName(getName("::")), mVMName(getName(".")) {
 	

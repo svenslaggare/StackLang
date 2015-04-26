@@ -80,8 +80,8 @@ void NamespaceDeclarationAST::generateSymbols(Binder& binder, std::shared_ptr<Sy
 
 			for (auto param : func->prototype()->parameters()) {
 				parameters.push_back(VariableSymbol(
-					param->varName(),
-					param->varType(),
+					param->name(),
+					param->type(),
 					VariableSymbolAttribute::FUNCTION_PARAMETER));
 			}
 

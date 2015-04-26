@@ -196,7 +196,9 @@ void ClassDefinitionAST::generateSymbols(Binder& binder, std::shared_ptr<SymbolT
 	auto classTable = std::make_shared<SymbolTable>(symbolTable, mName);
 	AbstractSyntaxTree::generateSymbols(binder, classTable);
 
-	mSymbolTable->add("this", std::make_shared<VariableSymbol>("this", mName, VariableSymbolAttribute::THIS_REFERENCE));
+	mSymbolTable->add(
+		"this",
+		std::make_shared<VariableSymbol>("this", mName, VariableSymbolAttribute::THIS_REFERENCE));
 
 	for (auto field : mFields) {
 		field->generateSymbols(binder, mSymbolTable);
@@ -209,8 +211,8 @@ void ClassDefinitionAST::generateSymbols(Binder& binder, std::shared_ptr<SymbolT
 
 		for (auto param : func->prototype()->parameters()) {
 			parameters.push_back(VariableSymbol(
-				param->varName(),
-				param->varType(),
+				param->name(),
+				param->type(),
 				VariableSymbolAttribute::FUNCTION_PARAMETER));
 		}
 
@@ -235,7 +237,7 @@ void ClassDefinitionAST::generateSymbols(Binder& binder, std::shared_ptr<SymbolT
 	}
 
 	if (symbolTable->find(mName) == nullptr) {
-		symbolTable->add(mName, std::make_shared<ClassSymbol>(mName, mSymbolTable));
+		symbolTable->addClass(mName, classTable);
 	} else {
 		binder.error("The symbol '" + mName + "' is already defined.");
 	}
@@ -321,6 +323,7 @@ void NewClassExpressionAST::generateSymbols(Binder& binder, std::shared_ptr<Symb
 	}
 
 	mClassSymbol = classSymbol;
+	mTypeName = mClassSymbol->fullName();
 
 	auto symbol = constructorSymbol(classSymbol->symbolTable());
 

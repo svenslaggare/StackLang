@@ -236,7 +236,7 @@ GeneratedFunction& CodeGenerator::newFunction(std::shared_ptr<FunctionPrototypeA
 	std::vector<FunctionParameter> parameters;
 
 	for (auto param : functionPrototype->parameters()) {
-		parameters.push_back(FunctionParameter(param->varName(), mTypeChecker.findType(param->varType())));
+		parameters.push_back(FunctionParameter(param->name(), mTypeChecker.findType(param->type())));
 	}
 
 	mFunctions.push_back(GeneratedFunction(

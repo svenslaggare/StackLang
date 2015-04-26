@@ -1,4 +1,5 @@
 #pragma once
+#include "namespace.h"
 #include <string>
 #include <memory>
 #include <vector>
@@ -30,8 +31,8 @@ public:
 	friend class SymbolTable;
 };
 
-enum class VariableSymbolAttribute
-{
+//The attributes for variable symbols
+enum class VariableSymbolAttribute {
 	NONE,
 	FUNCTION_PARAMETER,
 	FIELD,
@@ -82,13 +83,13 @@ public:
 class FunctionSymbol : public Symbol {
 private:
 	std::vector<std::shared_ptr<FunctionSignatureSymbol>> mOverloads;
-	std::string mNamespaceName;
+	Namespace mDefinedNamespace;
 public:
 	//Creates a new function symbol with the given signature
-	FunctionSymbol(std::string name, std::shared_ptr<FunctionSignatureSymbol> signature, std::string namespaceName = "");
+	FunctionSymbol(std::string name, std::shared_ptr<FunctionSignatureSymbol> signature, Namespace definedNamespace = {});
 
-	//Returns the name of the namespace that the function is defined in
-	std::string namespaceName() const;
+	//Returns the namespace that the function is defined in
+	const Namespace& definedNamespace() const;
 
 	virtual std::string asString() const override;
 
@@ -118,10 +119,17 @@ public:
 class ClassSymbol : public Symbol {
 private:
 	std::shared_ptr<SymbolTable> mSymbolTable;
+	Namespace mDefinedNamespace;
 public:
 	//Creates a new class with the given symbols
-	ClassSymbol(std::string name, std::shared_ptr<SymbolTable> symbolTable);
+	ClassSymbol(std::string name, std::shared_ptr<SymbolTable> symbolTable, Namespace definedNamespace = {});
 
 	//Returns the symbol table
 	std::shared_ptr<SymbolTable> symbolTable() const;
+
+	//Returns the namespace that the class is defined in
+	const Namespace& definedNamespace() const;
+
+	//Returns the full name
+	std::string fullName() const;
 };
