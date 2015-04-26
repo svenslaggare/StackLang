@@ -923,8 +923,11 @@ std::shared_ptr<NamespaceDeclarationAST> Parser::parseNamespaceDef() {
 		} else if (currentToken.type() == TokenType::Namespace) {
 			members.push_back(parseNamespaceDef());
 			nextToken();
+		} else if (currentToken.type() == TokenType::Using) {
+			members.push_back(parseUsingNamespaceExpression());
+			nextToken();
 		} else if (!isSingleCharToken('}')) {
-			compileError("Expected function, class or namespace definition within namespace definition.");
+			compileError("Expected function, class,namespace definition or using within namespace definition.");
 		}
 
 		if (isSingleCharToken('}')) {
@@ -958,6 +961,10 @@ std::shared_ptr<ProgramAST> Parser::parse() {
 				break;
 			case TokenType::Class:
 				globalMembers.push_back(parseClassDef());
+				nextToken();
+				break;
+			case TokenType::Using:
+				globalMembers.push_back(parseUsingNamespaceExpression());
 				nextToken();
 				break;
 			default:
