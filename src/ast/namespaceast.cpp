@@ -73,7 +73,15 @@ void NamespaceDeclarationAST::generateSymbols(Binder& binder, std::shared_ptr<Sy
 	}
 
 	for (auto member : mMembers) {
+		//Add namespace-level usings
+		if (auto namespaceMember = std::dynamic_pointer_cast<UsingNamespaceExpressionAST>(member)) {
+			namespaceMember->generateSymbols(binder, namespaceTable);
+		}
+
+		//Bind functions
 		if (auto func = std::dynamic_pointer_cast<FunctionAST>(member)) {
+			func->bindSignature(binder, namespaceTable);
+
 			//Declare functions
 			auto funcName = func->prototype()->name();
 			std::vector<VariableSymbol> parameters;
@@ -103,7 +111,9 @@ void NamespaceDeclarationAST::generateSymbols(Binder& binder, std::shared_ptr<Sy
 	}
 
 	for (auto member : mMembers) {
-		member->generateSymbols(binder, namespaceTable);
+		if (!std::dynamic_pointer_cast<UsingNamespaceExpressionAST>(member)) {
+			member->generateSymbols(binder, namespaceTable);
+		}
 	}
 }
 

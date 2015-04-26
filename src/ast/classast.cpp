@@ -205,6 +205,8 @@ void ClassDefinitionAST::generateSymbols(Binder& binder, std::shared_ptr<SymbolT
 	}
 
 	for (auto func : mFunctions) {
+		func->bindSignature(binder, mSymbolTable);
+
 		//Declare member functions
 		auto funcName = func->prototype()->name();
 		std::vector<VariableSymbol> parameters;

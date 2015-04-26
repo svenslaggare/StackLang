@@ -3,10 +3,12 @@
 #include "statementast.h"
 #include "blockast.h"
 #include "../symboltable.h"
+#include "../symbol.h"
 #include "../binder.h"
 #include "../typechecker.h"
 #include "../type.h"
 #include "../semantics.h"
+#include "../helpers.h"
 
 //Function prototype AST
 FunctionPrototypeAST::FunctionPrototypeAST(std::string name, const std::vector<std::shared_ptr<VariableDeclarationExpressionAST>>& parameters, std::string returnType)
@@ -74,11 +76,44 @@ void FunctionPrototypeAST::visit(VisitFn visitFn) const {
 	visitFn(this);
 }
 
+namespace {
+	//Finds the symbol for the given type
+	std::shared_ptr<Symbol> findTypeSymbol(std::shared_ptr<SymbolTable> symbolTable, std::string typeName) {
+		if (typeName.find("::") != std::string::npos) {
+			//Split the function name
+			std::vector<std::string> parts = Helpers::splitString(typeName, "::");
+
+			//Find the namespace
+			std::shared_ptr<SymbolTable> namespaceTable = symbolTable;
+			for (std::size_t i = 0; i < parts.size() - 1; i++) {
+				auto part = parts[i];
+				auto innerTable = std::dynamic_pointer_cast<NamespaceSymbol>(namespaceTable->find(part));
+
+				if (innerTable == nullptr) {
+					return nullptr;
+				}
+
+				namespaceTable = innerTable->symbolTable();
+			}
+
+			return namespaceTable->find(parts[parts.size() - 1]);		
+		} else {
+			return symbolTable->find(typeName);
+		}
+	}
+}
+
 void FunctionPrototypeAST::generateSymbols(Binder& binder, std::shared_ptr<SymbolTable> symbolTable) {
 	AbstractSyntaxTree::generateSymbols(binder, symbolTable);
 	
 	for (auto param : mParameters) {
 		param->generateSymbols(binder, symbolTable);
+	}
+
+	auto returnTypeSymbol = std::dynamic_pointer_cast<ClassSymbol>(findTypeSymbol(mSymbolTable, mReturnType));
+
+	if (returnTypeSymbol != nullptr) {
+		mReturnType = returnTypeSymbol->fullName();
 	}
 }
 
@@ -132,13 +167,15 @@ void FunctionAST::rewrite(Compiler& compiler) {
 	mBody->rewrite(compiler);
 }
 
+void FunctionAST::bindSignature(Binder& binder, std::shared_ptr<SymbolTable> symbolTable) {
+	mBodyTable = SymbolTable::newInner(symbolTable);
+	mPrototype->generateSymbols(binder, mBodyTable);
+}
+
 void FunctionAST::generateSymbols(Binder& binder, std::shared_ptr<SymbolTable> symbolTable) {
 	AbstractSyntaxTree::generateSymbols(binder, symbolTable);
-
-	auto inner = SymbolTable::newInner(symbolTable);
-	mPrototype->generateSymbols(binder, inner);
-	mBody->setBlockTable(inner);
-	mBody->generateSymbols(binder, inner);
+	mBody->setBlockTable(mBodyTable);
+	mBody->generateSymbols(binder, mBodyTable);
 }
 
 void FunctionAST::typeCheck(TypeChecker& checker) {

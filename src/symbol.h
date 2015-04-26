@@ -62,7 +62,7 @@ public:
 };
 
 //Represents a function signature symbol
-class FunctionSignatureSymbol : Symbol {
+class FunctionSignatureSymbol : public Symbol {
 private:
 	std::vector<VariableSymbol> mParameters;
 	std::string mReturnType;

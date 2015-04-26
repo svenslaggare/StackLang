@@ -54,6 +54,7 @@ class FunctionAST : public AbstractSyntaxTree {
 private:
 	std::shared_ptr<FunctionPrototypeAST> mPrototype;
 	std::shared_ptr<BlockAST> mBody;
+	std::shared_ptr<SymbolTable> mBodyTable;
 
 	//Checks the given return statement
 	void checkReturnStatement(SemanticVerifier& verifier, std::shared_ptr<ReturnStatementAST> returnStatement);
@@ -71,13 +72,16 @@ public:
 	const std::shared_ptr<FunctionPrototypeAST> prototype() const;
 
 	//Returns the body
-	std::shared_ptr<BlockAST> body() const;;
+	std::shared_ptr<BlockAST> body() const;
 
 	std::string asString() const override;
 
 	virtual void visit(VisitFn visitFn) const override;
 	
 	virtual void rewrite(Compiler& compiler) override;
+
+	//Binds the signature of the function
+	void bindSignature(Binder& binder, std::shared_ptr<SymbolTable> symbolTable);
 	
 	virtual void generateSymbols(Binder& binder, std::shared_ptr<SymbolTable> symbolTable) override;
 
