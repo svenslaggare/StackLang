@@ -275,30 +275,6 @@ void VariableDeclarationExpressionAST::visit(VisitFn visitFn) const {
 	visitFn(this);
 }
 
-std::shared_ptr<Symbol> VariableDeclarationExpressionAST::findTypeSymbol(Binder& binder, std::shared_ptr<SymbolTable> symbolTable) const {
-	if (mType.find("::") != std::string::npos) {
-		//Split the function name
-		std::vector<std::string> parts = Helpers::splitString(mType, "::");
-
-		//Find the namespace
-		std::shared_ptr<SymbolTable> namespaceTable = symbolTable;
-		for (std::size_t i = 0; i < parts.size() - 1; i++) {
-			auto part = parts[i];
-			auto innerTable = std::dynamic_pointer_cast<NamespaceSymbol>(namespaceTable->find(part));
-
-			if (innerTable == nullptr) {
-				binder.error("The namespace '" + part + "' is not defined.");
-			}
-
-			namespaceTable = innerTable->symbolTable();
-		}
-
-		return namespaceTable->find(parts[parts.size() - 1]);		
-	} else {
-		return symbolTable->find(mType);
-	}
-}
-
 void VariableDeclarationExpressionAST::generateSymbols(Binder& binder, std::shared_ptr<SymbolTable> symbolTable) {
 	AbstractSyntaxTree::generateSymbols(binder, symbolTable);
 
@@ -313,7 +289,8 @@ void VariableDeclarationExpressionAST::generateSymbols(Binder& binder, std::shar
 	}
 
 	//Find the full name for class types
-	auto typeSymbol = std::dynamic_pointer_cast<ClassSymbol>(findTypeSymbol(binder, symbolTable));
+	auto typeSymbol = std::dynamic_pointer_cast<ClassSymbol>(Helpers::findSymbolInNamespace(symbolTable, mType));
+
 	if (typeSymbol != nullptr) {
 		mType = typeSymbol->fullName();
 	}
