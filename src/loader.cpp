@@ -297,14 +297,8 @@ void Loader::loadAssembly(std::istream& stream) {
 
             //Parse external function
             if (current == "extern") {
-                auto funcName = nextToken(tokens, i);
-
-                if (nextToken(tokens, i) != "::") {
-                    throw std::runtime_error("Expected '::' after extern function name.");
-                } 
-
                 auto externFuncDef = parseFunctionDef(tokens, i);
-                defineFunction(FunctionDefinition(funcName, externFuncDef.parameters, externFuncDef.returnType));
+                defineFunction(externFuncDef);
             }
 
             //Parse the struct definition

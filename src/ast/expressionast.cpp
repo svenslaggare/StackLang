@@ -382,7 +382,7 @@ void CastExpressionAST::typeCheck(TypeChecker& checker) {
 	auto fromType = mExpression->expressionType(checker);
 
 	if (!checker.existsExplicitConversion(fromType, toType)) {
-		checker.typeError("There exists no explicit conversion from type '" + fromType->name() + "' to type '" + toType->name() + "'.");
+		checker.typeError("There exists no explicit conversion from the type '" + fromType->name() + "' to the type '" + toType->name() + "'.");
 	}
 }
 
