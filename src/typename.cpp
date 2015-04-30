@@ -6,12 +6,12 @@ TypeName::TypeName(std::string name)
 }
 
 TypeName::TypeName(std::string name, std::unique_ptr<TypeName> elementTypeName)
-	: mName(name), mElementName(std::move(elementTypeName)) {
+	: mName(name), mElementTypeName(std::move(elementTypeName)) {
 
 }
 
 TypeName TypeName::make(std::string name) {
-
+	return TypeName(name);
 }
 
 std::string TypeName::name() const {
