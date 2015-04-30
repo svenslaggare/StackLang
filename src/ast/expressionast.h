@@ -158,9 +158,6 @@ private:
 	std::string mType;
 	std::string mName;
 	bool mIsFunctionParameter;
-
-	//Finds the type symbol. This function is only intended for finding the full name of class types
-	std::shared_ptr<Symbol> findTypeSymbol(Binder& binder, std::shared_ptr<SymbolTable> symbolTable) const;
 public:
 	//Creates a new variable declaration expression
 	VariableDeclarationExpressionAST(std::string type, std::string name, bool isFunctionParameter = false);
