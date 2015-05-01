@@ -5,6 +5,7 @@
 #include "ast/expressionast.h"
 #include "type.h"
 #include "typechecker.h"
+#include "typename.h"
 #include "symbol.h"
 
 #include <stdexcept>

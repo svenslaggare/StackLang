@@ -7,6 +7,7 @@
 #include "../codegenerator.h"
 #include "../symbol.h"
 #include "../helpers.h"
+#include "../typename.h"
 
 //Integer expression AST
 IntegerExpressionAST::IntegerExpressionAST(int value)
@@ -251,12 +252,12 @@ void VariableReferenceExpressionAST::generateCode(CodeGenerator& codeGen, Genera
 
 //Variable declaration expression AST
 VariableDeclarationExpressionAST::VariableDeclarationExpressionAST(std::string type, std::string name, bool isFunctionParameter)
-	: mType(type), mName(name), mIsFunctionParameter(isFunctionParameter) {
+	: mType(TypeName::make(type)), mName(name), mIsFunctionParameter(isFunctionParameter) {
 
 }
 
 std::string VariableDeclarationExpressionAST::type() const {
-	return mType;
+	return mType->name();
 }
 
 std::string VariableDeclarationExpressionAST::name() const {
@@ -268,7 +269,7 @@ bool VariableDeclarationExpressionAST::isFunctionParameter() const {
 }
 
 std::string VariableDeclarationExpressionAST::asString() const {
-	return mType + " " + mName;
+	return type() + " " + name();
 }
 
 void VariableDeclarationExpressionAST::visit(VisitFn visitFn) const {
@@ -288,28 +289,23 @@ void VariableDeclarationExpressionAST::generateSymbols(Binder& binder, std::shar
 		attribute = VariableSymbolAttribute::FUNCTION_PARAMETER;
 	}
 
-	//Find the full name for class types
-	auto typeSymbol = std::dynamic_pointer_cast<ClassSymbol>(Helpers::findSymbolInNamespace(symbolTable, mType));
-
-	if (typeSymbol != nullptr) {
-		mType = typeSymbol->fullName();
-	}
-
+	//Find the full name
+	mType = std::move(TypeName::make(TypeSystem::findFullName(mType.get(), symbolTable)));
 	symbolTable->add(name(), std::make_shared<VariableSymbol>(name(), type(), attribute));
 }
 
 void VariableDeclarationExpressionAST::typeCheck(TypeChecker& checker) {
-	checker.assertTypeExists(mType);
+	checker.assertTypeExists(type());
 }
 
 std::shared_ptr<Type> VariableDeclarationExpressionAST::expressionType(const TypeChecker& checker) const {
-	return checker.findType(mType);
+	return checker.findType(type());
 }
 
 void VariableDeclarationExpressionAST::generateCode(CodeGenerator& codeGen, GeneratedFunction& func) {
 	if (!mIsFunctionParameter) {
 		auto varRefSymbol = std::dynamic_pointer_cast<VariableSymbol>(mSymbolTable->find(mName));
-		func.newLocal(varRefSymbol, codeGen.typeChecker().findType(mType));
+		func.newLocal(varRefSymbol, codeGen.typeChecker().findType(type()));
 	}
 }
 

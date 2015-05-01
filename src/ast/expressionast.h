@@ -10,6 +10,7 @@ class CodeGenerator;
 class Symbol;
 class SymbolTable;
 class VariableSymbol;
+class TypeName;
 
 //Represents an integer expression
 class IntegerExpressionAST : public ExpressionAST {
@@ -153,9 +154,9 @@ public:
 };
 
 //Represents a variable declaration expression
-class VariableDeclarationExpressionAST : public ExpressionAST, public std::enable_shared_from_this<VariableDeclarationExpressionAST> {
+class VariableDeclarationExpressionAST : public ExpressionAST {
 private:
-	std::string mType;
+	std::unique_ptr<TypeName> mType;
 	std::string mName;
 	bool mIsFunctionParameter;
 public:

@@ -302,36 +302,6 @@ void SetFieldValueAST::generateSymbols(Binder& binder, std::shared_ptr<SymbolTab
 void SetFieldValueAST::typeCheck(TypeChecker& checker) {
 	mObjectRefExpression->typeCheck(checker);
 
-	// if (auto varRef = std::dynamic_pointer_cast<VariableReferenceExpressionAST>(mObjectRefExpression)) {
-	// 	auto varSymbol = std::dynamic_pointer_cast<VariableSymbol>(mSymbolTable->find(varRef->name()));
-	// 	auto varRefType = checker.findType(varSymbol->variableType());
-
-	// 	auto memberName = std::dynamic_pointer_cast<VariableReferenceExpressionAST>(mMemberExpression)->name();
-
-	// 	std::string objName = varRefType->name();
-
-	// 	if (!checker.objectExists(objName)) {
-	// 		checker.typeError(varRefType->name() + " is not an object type.");
-	// 	}
-
-	// 	auto& object = checker.getObject(objName);
-
-	// 	if (!object.fieldExists(memberName)) {
-	// 		checker.typeError("There exists no field '" + memberName + "' in the type '" + varRefType->name() + "'.");
-	// 	}
-
-	// 	mRightHandSide->typeCheck(checker);
-
-	// 	//Check rhs
-	// 	checker.assertSameType(
-	// 		*object.getField(memberName).type(), 
-	// 		*mRightHandSide->expressionType(checker),
-	// 		asString());
-	// } else {
-	// 	std::cout << mObjectRefExpression->expressionType(checker)->name() << std::endl;
-	// 	checker.typeError("Not implemented");
-	// }
-
 	std::shared_ptr<Type> objRefType;
 
 	if (auto varRef = std::dynamic_pointer_cast<VariableReferenceExpressionAST>(mObjectRefExpression)) {

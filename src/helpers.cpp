@@ -32,11 +32,10 @@ std::string Helpers::replaceString(std::string str, std::string search, std::str
 	return str;
 }
 
-//Finds the symbol for the given type
-std::shared_ptr<Symbol> Helpers::findSymbolInNamespace(std::shared_ptr<SymbolTable> symbolTable, std::string typeName) {
-	if (typeName.find("::") != std::string::npos) {
-		//Split the function name
-		std::vector<std::string> parts = Helpers::splitString(typeName, "::");
+std::shared_ptr<Symbol> Helpers::findSymbolInNamespace(std::shared_ptr<SymbolTable> symbolTable, std::string name) {
+	if (name.find("::") != std::string::npos) {
+		//Split the name
+		std::vector<std::string> parts = Helpers::splitString(name, "::");
 
 		//Find the namespace
 		std::shared_ptr<SymbolTable> namespaceTable = symbolTable;
@@ -53,6 +52,6 @@ std::shared_ptr<Symbol> Helpers::findSymbolInNamespace(std::shared_ptr<SymbolTab
 
 		return namespaceTable->find(parts[parts.size() - 1]);		
 	} else {
-		return symbolTable->find(typeName);
+		return symbolTable->find(name);
 	}
 }

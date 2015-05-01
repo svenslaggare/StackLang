@@ -2,6 +2,7 @@
 #include "parser.h"
 #include "lexer.h"
 #include "ast/asts.h"
+#include "typename.h"
 
 Parser::Parser(const OperatorContainer& operators, std::vector<Token> tokens)
 	: operators(operators), tokens(tokens), tokenIndex(-1) {
@@ -294,7 +295,9 @@ std::shared_ptr<ExpressionAST> Parser::parseIdentifierExpression(bool allowDecla
 				nextToken(); //Eat the identifier
 
 				//Declaration
-				identExpr = std::make_shared<VariableDeclarationExpressionAST>(identifier, varName);
+				identExpr = std::make_shared<VariableDeclarationExpressionAST>(
+					identifier,
+					varName);
 			} else {
 				//Reference
 				identExpr = std::make_shared<VariableReferenceExpressionAST>(identifier);

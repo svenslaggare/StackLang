@@ -7,6 +7,7 @@
 #include "../compiler.h"
 #include "../typechecker.h"
 #include "../type.h"
+#include "../typename.h"
 #include "../symboltable.h"
 #include "../codegenerator.h"
 #include "../symbol.h"

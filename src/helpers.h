@@ -34,5 +34,5 @@ namespace Helpers {
 	std::string replaceString(std::string str, std::string search, std::string replace);
 
 	//Finds a symbol defined a namespace
-	std::shared_ptr<Symbol> findSymbolInNamespace(std::shared_ptr<SymbolTable> symbolTable, std::string typeName);
+	std::shared_ptr<Symbol> findSymbolInNamespace(std::shared_ptr<SymbolTable> symbolTable, std::string name);
 };
