@@ -1,6 +1,7 @@
 #include "operatorast.h"
 #include "ast.h"
 #include "expressionast.h"
+#include "variableast.h"
 #include "arrayast.h"
 #include "objectast.h"
 #include "namespaceast.h"

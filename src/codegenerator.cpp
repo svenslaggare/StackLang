@@ -2,7 +2,7 @@
 #include "ast/functionast.h"
 #include "ast/classast.h"
 #include "ast/programast.h"
-#include "ast/expressionast.h"
+#include "ast/variableast.h"
 #include "type.h"
 #include "typechecker.h"
 #include "typename.h"

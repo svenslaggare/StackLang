@@ -1,7 +1,7 @@
 #include "namespaceast.h"
 #include "callast.h"
 #include "functionast.h"
-#include "expressionast.h"
+#include "variableast.h"
 #include "classast.h"
 #include "../symboltable.h"
 #include "../symbol.h"
