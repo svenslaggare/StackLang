@@ -1,7 +1,5 @@
 #include "type.h"
 #include "helpers.h"
-#include "typename.h"
-#include "symbol.h"
 #include <regex>
 
 //Type
@@ -228,18 +226,4 @@ std::string TypeSystem::fromVMType(std::string vmType) {
 	}
 
 	return "";
-}
-
-std::string TypeSystem::findFullName(const TypeName* const typeName, std::shared_ptr<SymbolTable> symbolTable) {
-	if (typeName->isArray()) {
-		return findFullName(typeName->elementTypeName(), symbolTable) + "[]";
-	} else {
-		auto typeSymbol = std::dynamic_pointer_cast<ClassSymbol>(Helpers::findSymbolInNamespace(symbolTable, typeName->name()));
-
-		if (typeSymbol != nullptr) {
-			return typeSymbol->fullName();
-		} else {
-			return typeName->name();
-		}
-	}
 }

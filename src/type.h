@@ -3,9 +3,6 @@
 #include <memory>
 #include <unordered_map>
 
-class TypeName;
-class SymbolTable;
-
 //Represents a type
 class Type {
 private:
@@ -111,7 +108,4 @@ namespace TypeSystem {
 
 	//Returns the type name from the given VM type
 	std::string fromVMType(std::string vmType);
-
-	//Finds the full type name using defined symbols
-	std::string findFullName(const TypeName* const typeName, std::shared_ptr<SymbolTable> symbolTable);
 };

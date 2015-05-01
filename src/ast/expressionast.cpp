@@ -290,7 +290,8 @@ void VariableDeclarationExpressionAST::generateSymbols(Binder& binder, std::shar
 	}
 
 	//Find the full name
-	mType = std::move(TypeName::make(TypeSystem::findFullName(mType.get(), symbolTable)));
+	// mType = std::move(TypeName::make(TypeSystem::findFullName(mType.get(), symbolTable)));
+	mType = std::move(TypeName::makeFull(mType.get(), symbolTable));
 	symbolTable->add(name(), std::make_shared<VariableSymbol>(name(), type(), attribute));
 }
 
