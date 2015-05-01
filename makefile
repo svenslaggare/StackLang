@@ -21,7 +21,12 @@ STACKJIT_OPTIONS=-i ../StackJIT/rtlib/rtlib.sbc --no-gc
 
 TESTS_DIR=tests
 TEST_RUNNERS_DIR=$(TESTS_DIR)/runners
-TEST_EXECUTABLE=test
+TESTS=$(wildcard $(TESTS_DIR)/*.h)
+_TESTS=$(TESTS:.h=.cpp)
+TEST_RUNNERS=$(patsubst $(TESTS_DIR)/%,$(TEST_RUNNERS_DIR)/%,$(_TESTS))
+
+MAIN_OBJECT=$(OBJDIR)/stacklang.o
+TEST_OBJECTS=$(filter-out $(MAIN_OBJECT), $(OBJECTS))
 
 all: $(OBJDIR) $(SOURCES) $(EXECUTABLE)
 
@@ -31,14 +36,17 @@ run: $(OBJDIR) $(SOURCES) $(EXECUTABLE)
 compile: $(OBJDIR) $(SOURCES) $(EXECUTABLE)
 	./$(EXECUTABLE) ${program}
 
-%.sl: $(OBJDIR) $(SOURCES) $(EXECUTABLE)
-	./$(EXECUTABLE) $*.sl
+test: $(TESTS)
 
-test: $(TESTS_DIR)/compiler-test.h $(OBJDIR) $(EXECUTABLE)
+$(TEST_RUNNERS_DIR):
 	mkdir -p $(TEST_RUNNERS_DIR)
-	cxxtestgen --error-printer -o $(TEST_RUNNERS_DIR)/compilertest_runner.cpp $(TESTS_DIR)/compiler-test.h
-	$(CC) $(LDFLAGS) -o $(TEST_EXECUTABLE) -I $(CXXTEST) $(TEST_RUNNERS_DIR)/compilertest_runner.cpp
-	./$(TEST_EXECUTABLE)
+
+$(TESTS_DIR)/%.h: $(OBJDIR) $(EXECUTABLE) $(TEST_RUNNERS_DIR) FORCE
+	cxxtestgen --error-printer -o $(TEST_RUNNERS_DIR)/$*-runner.cpp $@
+	$(CC) $(LDFLAGS) $(TEST_OBJECTS) -o $(TEST_RUNNERS_DIR)/$* -I $(CXXTEST) $(TEST_RUNNERS_DIR)/$*-runner.cpp
+	$(TEST_RUNNERS_DIR)/$*
+
+FORCE:
 
 $(OBJDIR):
 	mkdir -p $(OBJDIR)
@@ -54,4 +62,3 @@ clean:
 	rm -rf $(OBJDIR)
 	rm $(EXECUTABLE)
 	rm -rf $(TEST_RUNNERS_DIR)
-	rm $(TEST_EXECUTABLE)

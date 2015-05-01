@@ -55,7 +55,7 @@ std::string stripErrorMessage(std::string errorMessage) {
     while ((pos = errorMessage.find(delimiter)) != std::string::npos) {
         token = errorMessage.substr(0, pos);
         errorMessage.erase(0, pos + delimiter.length());
-
+        
         if (line != 0 && errorMessage.length() > 0) {
             stripedString += token + "\n";
         }
@@ -66,6 +66,7 @@ std::string stripErrorMessage(std::string errorMessage) {
     return stripedString;
 }
 
+//Tests to compile and run programs
 class CompilerTestSuite : public CxxTest::TestSuite {
 public:
     void testBasic() {

@@ -15,7 +15,8 @@ private:
 	//Creates a new array type name
 	TypeName(std::string name, std::unique_ptr<TypeName> elementTypeName);
 public:
-	TypeName make(std::string name);
+	//Constructs the given type name
+	static std::unique_ptr<TypeName> make(std::string name);
 
 	//Returns the name of the type
 	std::string name() const;
