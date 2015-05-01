@@ -72,15 +72,30 @@ void NamespaceDeclarationAST::generateSymbols(Binder& binder, std::shared_ptr<Sy
 		}
 	}
 
+	std::shared_ptr<SymbolTable> innerTable = SymbolTable::newInner(namespaceTable);
+
 	for (auto member : mMembers) {
 		//Add namespace-level usings
-		if (auto namespaceMember = std::dynamic_pointer_cast<UsingNamespaceExpressionAST>(member)) {
+		if (auto usingMember = std::dynamic_pointer_cast<UsingNamespaceExpressionAST>(member)) {
+			usingMember->generateSymbols(binder, innerTable);
+			continue;
+		}
+
+		//Bind namespaces
+		if (auto namespaceMember = std::dynamic_pointer_cast<NamespaceDeclarationAST>(member)) {
 			namespaceMember->generateSymbols(binder, namespaceTable);
+			continue;
+		}
+
+		//Bind classes
+		if (auto classMember = std::dynamic_pointer_cast<ClassDefinitionAST>(member)) {
+			classMember->generateSymbols(binder, namespaceTable);
+			continue;
 		}
 
 		//Bind functions
 		if (auto func = std::dynamic_pointer_cast<FunctionAST>(member)) {
-			func->bindSignature(binder, namespaceTable);
+			func->bindSignature(binder, innerTable);
 
 			//Declare functions
 			auto funcName = func->prototype()->name();
@@ -111,8 +126,10 @@ void NamespaceDeclarationAST::generateSymbols(Binder& binder, std::shared_ptr<Sy
 	}
 
 	for (auto member : mMembers) {
-		if (!std::dynamic_pointer_cast<UsingNamespaceExpressionAST>(member)) {
-			member->generateSymbols(binder, namespaceTable);
+		if (!(std::dynamic_pointer_cast<UsingNamespaceExpressionAST>(member)
+			  || std::dynamic_pointer_cast<NamespaceDeclarationAST>(member)
+			  || std::dynamic_pointer_cast<ClassDefinitionAST>(member))) {
+			member->generateSymbols(binder, innerTable);
 		}
 	}
 }

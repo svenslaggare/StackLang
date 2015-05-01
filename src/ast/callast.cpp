@@ -71,6 +71,7 @@ void CallExpressionAST::rewrite(Compiler& compiler) {
 
 void CallExpressionAST::generateSymbols(Binder& binder, std::shared_ptr<SymbolTable> symbolTable) {
 	AbstractSyntaxTree::generateSymbols(binder, symbolTable);
+
 	auto symbol = Helpers::findSymbolInNamespace(callTable(), mFunctionName);
 
 	if (symbol == nullptr) {

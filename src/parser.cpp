@@ -9,7 +9,7 @@ Parser::Parser(const OperatorContainer& operators, std::vector<Token> tokens)
 
 }
 
-void Parser::compileError(std::string message) {
+void Parser::error(std::string message) {
 	throw std::runtime_error(std::to_string(mCurrentLineNumber) + ": " + message);
 }
 
@@ -17,7 +17,7 @@ Token& Parser::nextToken() {
 	tokenIndex++;
 
 	if (tokenIndex >= tokens.size()) {
-		compileError("Reached end of tokens.");
+		error("Reached end of tokens.");
 	}
 
 	currentToken = tokens[tokenIndex];
@@ -35,7 +35,7 @@ Token& Parser::peekToken(int delta) {
 	int nextTokenIndex = tokenIndex + delta;
 
 	if (nextTokenIndex >= tokens.size()) {
-		compileError("Reached end of tokens.");
+		error("Reached end of tokens.");
 	}
 
 	//Skip line breaks
@@ -48,7 +48,7 @@ Token& Parser::peekToken(int delta) {
 
 char Parser::currentTokenAsChar(std::string errorMessage) {
 	if (currentToken.type() != TokenType::SingleChar) {
-		compileError(errorMessage);
+		error(errorMessage);
 	}
 
 	return currentToken.charValue;
@@ -60,7 +60,7 @@ bool Parser::isSingleCharToken(char character) {
 
 void Parser::assertCurrentTokenAsChar(char character, std::string errorMessage) {
 	if (!isSingleCharToken(character)) {
-		compileError(errorMessage);
+		error(errorMessage);
 	}
 }
 
@@ -95,7 +95,7 @@ std::string Parser::parseNamespaceName() {
 		&& currentToken.charValue2 == ':') {
 			nextToken(); //Eat the '::'
 			if (currentToken.type() != TokenType::Identifier) {
-				compileError("Expected identifier after '::' in type name.");
+				error("Expected identifier after '::' in type name.");
 			}
 
 			namespaceName += "::" + currentToken.strValue;
@@ -159,7 +159,7 @@ std::shared_ptr<ExpressionAST> Parser::parseCastExpression() {
 	nextToken();
 
 	if (!isSingleCharToken('<')) {
-		compileError("Expected '<' after cast operator.");
+		error("Expected '<' after cast operator.");
 	}
 
 	nextToken(); //Eat the '<'
@@ -168,13 +168,13 @@ std::shared_ptr<ExpressionAST> Parser::parseCastExpression() {
 	auto typeName = parseTypeName();
 
 	if (!isSingleCharToken('>')) {
-		compileError("Expected '>' after type name.");
+		error("Expected '>' after type name.");
 	}
 
 	nextToken(); //Eat the '<'
 
 	if (!isSingleCharToken('(')) {
-		compileError("Expected '('.");
+		error("Expected '('.");
 	}
 
 	nextToken(); //Eat the ')'
@@ -186,7 +186,7 @@ std::shared_ptr<ExpressionAST> Parser::parseCastExpression() {
 	} 
 
 	if (!isSingleCharToken(')')) {
-		compileError("Expected ')'.");
+		error("Expected ')'.");
 	}
 
 	nextToken(); //Eat the ')'
@@ -227,7 +227,7 @@ std::shared_ptr<ExpressionAST> Parser::parseIdentifierExpression(bool allowDecla
 		&& currentToken.charValue2 == ':') {
 			nextToken(); //Eat the '::'
 			if (currentToken.type() != TokenType::Identifier) {
-				compileError("Expected identifier after '::' in type name.");
+				error("Expected identifier after '::' in type name.");
 			}
 
 			identifier += "::" + currentToken.strValue;
@@ -288,7 +288,7 @@ std::shared_ptr<ExpressionAST> Parser::parseIdentifierExpression(bool allowDecla
 		if (identExpr == nullptr) {
 			if (currentToken.type() == TokenType::Identifier) {
 				if (!allowDeclaration) {
-					compileError("Declaration is not allowed in the current expression.");
+					error("Declaration is not allowed in the current expression.");
 				}
 
 				std::string varName = currentToken.strValue;
@@ -328,7 +328,7 @@ std::shared_ptr<ExpressionAST> Parser::parseIdentifierExpression(bool allowDecla
 			}
 
 			if (!isSingleCharToken(',')) {
-				compileError("Expected ',' or ')' in argument list.");
+				error("Expected ',' or ')' in argument list.");
 			}
 
 			nextToken();
@@ -347,7 +347,7 @@ std::shared_ptr<ExpressionAST> Parser::parseNewExpression() {
 
 	//Get the type name
 	if (currentToken.type() != TokenType::Identifier) {
-		compileError("Expected identifier.");
+		error("Expected identifier.");
 	}
 
 	// auto typeName = currentToken.strValue;
@@ -359,7 +359,7 @@ std::shared_ptr<ExpressionAST> Parser::parseNewExpression() {
 	} else if (isSingleCharToken('(')) {
 		return parseNewObjectExpression(typeName);
 	} else {
-		compileError("Expected '[' or ')'.");
+		error("Expected '[' or ')'.");
 		return nullptr;
 	}
 }
@@ -383,7 +383,7 @@ std::shared_ptr<ExpressionAST> Parser::parseNewObjectExpression(std::string type
 			}
 
 			if (!isSingleCharToken(',')) {
-				compileError("Expected ',' or ')' in argument list.");
+				error("Expected ',' or ')' in argument list.");
 			}
 
 			nextToken();
@@ -467,7 +467,7 @@ std::shared_ptr<ExpressionAST> Parser::parseUsingNamespaceExpression() {
 	nextToken(); //Eat the 'using'
 
 	if (currentToken.type() != TokenType::Namespace) {
-		compileError("Expected 'namespace' after using.");
+		error("Expected 'namespace' after using.");
 	}
 
 	nextToken(); //Eat the 'namespace'
@@ -532,11 +532,11 @@ std::shared_ptr<ExpressionAST> Parser::parseBinaryOpRHS(int exprPrecedence, std:
 
 		if (!op.isTwoChars()) {
 			if (!allowEqualAssign && op.op1() == '=') {
-				compileError("Operator '=' not allowed in current expression.");
+				error("Operator '=' not allowed in current expression.");
 			}
 		} else {
 			if (!allowEqualAssign && operators.assignmentOperators().count(op.op1()) > 0 && op.op2() == '=') {
-				compileError("Operator '=' not allowed in current expression.");
+				error("Operator '=' not allowed in current expression.");
 			}
 		}
 
@@ -579,7 +579,7 @@ std::shared_ptr<ExpressionAST> Parser::parseUnaryExpression(bool allowDeclaratio
 	if (operand != nullptr) {
 		auto op = Operator(opChar);
 		if (!operators.isUnaryDefined(op)) {
-			compileError("'" + op.asString() + "' is not a defined unary operator.");
+			error("'" + op.asString() + "' is not a defined unary operator.");
 		}
 
 		return std::make_shared<UnaryOpExpressionAST>(operand, op);
@@ -739,7 +739,7 @@ std::shared_ptr<FunctionAST> Parser::parseFunctionDef() {
 
 	//The name
 	if (currentToken.type() != TokenType::Identifier) {
-		compileError("Expected identifier.");
+		error("Expected identifier.");
 	}
 
 	std::string name = currentToken.strValue;
@@ -747,7 +747,7 @@ std::shared_ptr<FunctionAST> Parser::parseFunctionDef() {
 	//Arguments
 	nextToken(); //Eat the name
 	if (currentTokenAsChar() != '(')  {
-		compileError("Expected ')' in prototype.");
+		error("Expected ')' in prototype.");
 	}
 
 	nextToken(); //Eat the '('
@@ -770,7 +770,7 @@ std::shared_ptr<FunctionAST> Parser::parseFunctionDef() {
 			}
 
 			if (!isSingleCharToken(',')) {
-				compileError("Expected ',' or ')' in argument list.");
+				error("Expected ',' or ')' in argument list.");
 			}
 
 			nextToken();
@@ -780,13 +780,13 @@ std::shared_ptr<FunctionAST> Parser::parseFunctionDef() {
 	//Return type
 	nextToken();
 	if (currentTokenAsChar() != ':')  {
-		compileError("Expected ':' after arguments.");
+		error("Expected ':' after arguments.");
 	}
 
 	nextToken();
 
 	if (currentToken.type() != TokenType::Identifier) {
-		compileError("Expected identifier.");
+		error("Expected identifier.");
 	}
 
 	std::string returnType = parseTypeName();
@@ -802,7 +802,7 @@ std::shared_ptr<FunctionAST> Parser::parseConstructorDef(std::string className) 
 	nextToken();
 
 	if (currentTokenAsChar() != '(')  {
-		compileError("Expected ')' in constructor.");
+		error("Expected ')' in constructor.");
 	}
 
 	//Arguments
@@ -826,7 +826,7 @@ std::shared_ptr<FunctionAST> Parser::parseConstructorDef(std::string className) 
 			}
 
 			if (!isSingleCharToken(',')) {
-				compileError("Expected ',' or ')' in argument list.");
+				error("Expected ',' or ')' in argument list.");
 			}
 
 			nextToken();
@@ -846,14 +846,14 @@ std::shared_ptr<ClassDefinitionAST> Parser::parseClassDef() {
 	nextToken();
 
 	if (currentToken.type() != TokenType::Identifier) {
-		compileError("Expected identifier.");
+		error("Expected identifier.");
 	}
 
 	auto className = currentToken.strValue;
 	nextToken(); //Eat the name
 
 	if (currentTokenAsChar() != '{')  {
-		compileError("Expected '{' after class name.");
+		error("Expected '{' after class name.");
 	}
 
 	nextToken(); //Eat the '{'
@@ -873,14 +873,14 @@ std::shared_ptr<ClassDefinitionAST> Parser::parseClassDef() {
 			auto typeName = parseTypeName();
 
 			if (currentToken.type() != TokenType::Identifier) {
-				compileError("Expected identifier after field type.");
+				error("Expected identifier after field type.");
 			}
 
 			auto fieldName = currentToken.strValue;
 			nextToken(); //Eat the field name
 
 			if (!isSingleCharToken(';')) {
-				compileError("Expected ';' after field definition.");
+				error("Expected ';' after field definition.");
 			}
 
 			nextToken(); //Eat the ';'
@@ -901,14 +901,14 @@ std::shared_ptr<NamespaceDeclarationAST> Parser::parseNamespaceDef() {
 
 	//The name
 	if (currentToken.type() != TokenType::Identifier) {
-		compileError("Expected identifier.");
+		error("Expected identifier.");
 	}
 
 	std::string name = currentToken.strValue;
 	nextToken(); //Eat the name
 
 	if (currentTokenAsChar() != '{')  {
-		compileError("Expected '{' after namespace name.");
+		error("Expected '{' after namespace name.");
 	}
 
 	nextToken(); //Eat the '{'
@@ -930,7 +930,7 @@ std::shared_ptr<NamespaceDeclarationAST> Parser::parseNamespaceDef() {
 			members.push_back(parseUsingNamespaceExpression());
 			nextToken();
 		} else if (!isSingleCharToken('}')) {
-			compileError("Expected function, class,namespace definition or using within namespace definition.");
+			error("Expected function, class,namespace definition or using within namespace definition.");
 		}
 
 		if (isSingleCharToken('}')) {
@@ -971,7 +971,7 @@ std::shared_ptr<ProgramAST> Parser::parse() {
 				nextToken();
 				break;
 			default:
-				compileError("Invalid token: " + currentToken.asString());
+				error("Invalid token: " + currentToken.asString());
 				break;
 		}
 	}

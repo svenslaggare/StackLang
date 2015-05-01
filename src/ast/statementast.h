@@ -71,7 +71,7 @@ private:
 	std::shared_ptr<BlockAST> mThenBlock;
 	std::shared_ptr<BlockAST> mElseBlock;
 public:
-	//Creates a new for statement
+	//Creates a new if else statement
 	IfElseStatementAST(std::shared_ptr<ExpressionAST> conditionExpression, std::shared_ptr<BlockAST> thenBlock, std::shared_ptr<BlockAST> elseBlock);
 
 	//Returns the condition expression
@@ -136,7 +136,7 @@ private:
 	std::shared_ptr<ExpressionAST> mChangeExpression;
 	std::shared_ptr<BlockAST> mBodyBlock;
 public:
-	//Creates a new if and else statement
+	//Creates a new for loop statement
 	ForLoopStatementAST(
 		std::shared_ptr<ExpressionAST> initExpression, std::shared_ptr<ExpressionAST> conditionExpression,
 		std::shared_ptr<ExpressionAST> changeExpression, std::shared_ptr<BlockAST> bodyBlock);

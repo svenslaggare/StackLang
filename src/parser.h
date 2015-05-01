@@ -26,7 +26,7 @@ private:
 	const OperatorContainer& operators;
 
 	//Signals that a compile error has occured
-	void compileError(std::string message);
+	void error(std::string message);
 
 	//Advances to the next token
 	Token& nextToken();
@@ -43,7 +43,7 @@ private:
 	//Asserts that the current token is the given character
 	void assertCurrentTokenAsChar(char character, std::string errorMessage);
 
-	//Returns the precedence for the current token or -1 if not a operator
+	//Returns the precedence for the current token or -1 if not an operator
 	int getTokenPrecedence();
 
 	//Parses a namespace name
