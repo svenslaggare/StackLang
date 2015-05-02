@@ -2,6 +2,8 @@
 #include <string>
 #include <iostream>
 #include <initializer_list>
+#include <algorithm> 
+#include <functional> 
 #include <cxxtest/TestSuite.h>
 
 //Executes the given command
@@ -42,6 +44,38 @@ std::string compileAndRun(std::string programName, std::initializer_list<std::st
 	return executeCmd(invokePath.data());
 }
 
+//Compiles the given program
+std::string compile(std::string programName, std::initializer_list<std::string> libs = {}) {
+    std::string libsStr = "";
+
+    for (auto lib : libs) {
+        libsStr += " -i " + lib;
+    }
+
+    std::string invokePath =
+        "./stackc programs/" + programName + ".sl"
+        + libsStr
+        + " 2>&1";
+
+    return executeCmd(invokePath.data());
+}
+
+static inline std::string &ltrim(std::string &s) {
+        s.erase(s.begin(), std::find_if(s.begin(), s.end(), std::not1(std::ptr_fun<int, int>(std::isspace))));
+        return s;
+}
+
+// trim from end
+static inline std::string &rtrim(std::string &s) {
+        s.erase(std::find_if(s.rbegin(), s.rend(), std::not1(std::ptr_fun<int, int>(std::isspace))).base(), s.end());
+        return s;
+}
+
+// trim from both ends
+static inline std::string &trim(std::string &s) {
+        return ltrim(rtrim(s));
+}
+
 //Strips error messages of unnecessary information
 std::string stripErrorMessage(std::string errorMessage) {
     std::string delimiter = "\n";
@@ -55,7 +89,7 @@ std::string stripErrorMessage(std::string errorMessage) {
     while ((pos = errorMessage.find(delimiter)) != std::string::npos) {
         token = errorMessage.substr(0, pos);
         errorMessage.erase(0, pos + delimiter.length());
-        
+
         if (line != 0 && errorMessage.length() > 0) {
             stripedString += token + "\n";
         }
@@ -63,7 +97,7 @@ std::string stripErrorMessage(std::string errorMessage) {
         line++;
     }
 
-    return stripedString;
+    return rtrim(ltrim(stripedString));
 }
 
 //Tests to compile and run programs
@@ -122,5 +156,11 @@ public:
 
         TS_ASSERT_EQUALS(compileAndRun("classes/loaded1", { "rtlib/vector.sbc" }), "1\n2\n0\n");
         TS_ASSERT_EQUALS(compileAndRun("classes/namespace1"), "5\n");
+
+        TS_ASSERT_EQUALS(stripErrorMessage(compile("classes/access1")), "what():  Cannot access private field of class Point.");
+        TS_ASSERT_EQUALS(stripErrorMessage(compile("classes/access2")), "what():  Cannot access private field of class Point.");
+        TS_ASSERT_EQUALS(compileAndRun("classes/access3"), "0\n");
+        TS_ASSERT_EQUALS(stripErrorMessage(compile("classes/access4")), "what():  Cannot access private field of class Point.");
+        TS_ASSERT_EQUALS(compileAndRun("classes/access5"), "0\n");
     }
 };
