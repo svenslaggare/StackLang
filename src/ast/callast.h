@@ -21,9 +21,6 @@ private:
 
 	std::shared_ptr<SymbolTable> mCallTable;
 
-	//Finds the func signature symbol
-	std::shared_ptr<FunctionSignatureSymbol> funcSignature(const TypeChecker& typeChecker) const;
-
 	//Returns the call table
 	std::shared_ptr<SymbolTable> callTable() const;
 public:
@@ -38,6 +35,9 @@ public:
 
 	//Sets the call table where to look for functions. The default is the symbol table for the tree.
 	void setCallTable(std::shared_ptr<SymbolTable> callTable);
+
+	//Finds the func signature symbol
+	std::shared_ptr<FunctionSignatureSymbol> funcSignature(const TypeChecker& typeChecker) const;
 
 	std::string asString() const override;
 

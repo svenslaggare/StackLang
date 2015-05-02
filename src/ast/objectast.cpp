@@ -2,11 +2,13 @@
 #include "variableast.h"
 #include "callast.h"
 #include "arrayast.h"
+#include "../object.h"
 #include "../typechecker.h"
 #include "../binder.h"
 #include "../symbol.h"
 #include "../symboltable.h"
 #include "../type.h"
+#include "../semantics.h"
 #include "../codegenerator.h"
 
 //Member access
@@ -97,8 +99,7 @@ void MemberAccessAST::typeCheck(TypeChecker& checker) {
 	}
 }
 
-std::shared_ptr<Type> MemberAccessAST::expressionType(const TypeChecker& checker) const {
-	auto memberName = std::dynamic_pointer_cast<VariableReferenceExpressionAST>(mMemberExpression)->name();
+const Object& MemberAccessAST::getObject(const TypeChecker& checker) const {
 	std::shared_ptr<Type> varRefType = nullptr;
 
 	if (auto varRef = std::dynamic_pointer_cast<VariableReferenceExpressionAST>(mAccessExpression)) {
@@ -114,7 +115,30 @@ std::shared_ptr<Type> MemberAccessAST::expressionType(const TypeChecker& checker
 		objName = "Array";
 	}
 
-	return checker.getObject(objName).getField(memberName).type();
+	return checker.getObject(objName);
+}
+
+const Field& MemberAccessAST::getField(const TypeChecker& checker) const {
+	auto memberName = std::dynamic_pointer_cast<VariableReferenceExpressionAST>(mMemberExpression)->name();
+	return getObject(checker).getField(memberName);
+}
+
+std::shared_ptr<Type> MemberAccessAST::expressionType(const TypeChecker& checker) const {
+	return getField(checker).type();
+}
+
+void MemberAccessAST::verify(SemanticVerifier& verifier) {
+	mAccessExpression->verify(verifier);
+	mMemberExpression->verify(verifier);
+	
+	if (getField(verifier.typeChecker()).accessModifier() == AccessModifiers::Private) {
+		auto className = mAccessExpression->expressionType(verifier.typeChecker())->name();
+		auto classSymbol = std::dynamic_pointer_cast<ClassSymbol>(mSymbolTable->find(className));
+
+		if (!classSymbol->symbolTable()->containsTable(mSymbolTable)) {
+			verifier.semanticError("Cannot access private field of class " + className + ".");
+		}
+	}
 }
 
 void MemberAccessAST::generateCode(CodeGenerator& codeGen, GeneratedFunction& func) {
@@ -189,10 +213,6 @@ void MemberCallExpressionAST::typeCheck(TypeChecker& checker) {
 
 		std::string objName = varRefType->name();
 
-		if (std::dynamic_pointer_cast<ArrayType>(varRefType)) {
-			objName = "Array";
-		}
-
 		if (!checker.objectExists(objName)) {
 			checker.typeError(varRefType->name() + " is not an object type.");
 		}
@@ -207,10 +227,6 @@ void MemberCallExpressionAST::typeCheck(TypeChecker& checker) {
 
 		std::string objName = varRefType->name();
 
-		if (std::dynamic_pointer_cast<ArrayType>(varRefType)) {
-			objName = "Array";
-		}
-
 		if (!checker.objectExists(objName)) {
 			checker.typeError(varRefType->name() + " is not an object type.");
 		}
@@ -224,6 +240,21 @@ void MemberCallExpressionAST::typeCheck(TypeChecker& checker) {
 
 std::shared_ptr<Type> MemberCallExpressionAST::expressionType(const TypeChecker& checker) const {
 	return mMemberCallExpression->expressionType(checker);
+}
+
+void MemberCallExpressionAST::verify(SemanticVerifier& verifier) {
+	mAccessExpression->verify(verifier);
+	mMemberCallExpression->verify(verifier);
+
+	auto accessModifier = mMemberCallExpression->funcSignature(verifier.typeChecker())->accessModifier();
+	if (accessModifier == AccessModifiers::Private) {
+		auto className = mAccessExpression->expressionType(verifier.typeChecker())->name();
+		auto classSymbol = std::dynamic_pointer_cast<ClassSymbol>(mSymbolTable->find(className));
+
+		if (!classSymbol->symbolTable()->containsTable(mSymbolTable)) {
+			verifier.semanticError("Cannot access private field of class " + className + ".");
+		}
+	}
 }
 
 void MemberCallExpressionAST::generateCode(CodeGenerator& codeGen, GeneratedFunction& func) {
@@ -253,8 +284,7 @@ std::shared_ptr<ExpressionAST> SetFieldValueAST::rightHandSide() const {
 }
 
 std::string SetFieldValueAST::asString() const {
-	return 
-		mObjectRefExpression->asString() + "." + mMemberExpression->asString() + " = " + mRightHandSide->asString();
+	return mObjectRefExpression->asString() + "." + mMemberExpression->asString() + " = " + mRightHandSide->asString();
 }
 
 void SetFieldValueAST::visit(VisitFn visitFn) const {
@@ -299,6 +329,24 @@ void SetFieldValueAST::generateSymbols(Binder& binder, std::shared_ptr<SymbolTab
 	mRightHandSide->generateSymbols(binder, symbolTable);
 }
 
+const Object& SetFieldValueAST::getObject(const TypeChecker& checker) const {
+	std::shared_ptr<Type> objRefType;
+
+	if (auto varRef = std::dynamic_pointer_cast<VariableReferenceExpressionAST>(mObjectRefExpression)) {
+		auto varSymbol = std::dynamic_pointer_cast<VariableSymbol>(mSymbolTable->find(varRef->name()));
+		objRefType = checker.findType(varSymbol->variableType());
+	} else if (auto arrayRef = std::dynamic_pointer_cast<ArrayAccessAST>(mObjectRefExpression)) {
+		objRefType = arrayRef->expressionType(checker);
+	}
+
+	return checker.getObject(objRefType->name());
+}
+
+const Field& SetFieldValueAST::getField(const TypeChecker& checker) const {
+	auto memberName = std::dynamic_pointer_cast<VariableReferenceExpressionAST>(mMemberExpression)->name();
+	return getObject(checker).getField(memberName);
+}
+
 void SetFieldValueAST::typeCheck(TypeChecker& checker) {
 	mObjectRefExpression->typeCheck(checker);
 
@@ -338,6 +386,21 @@ void SetFieldValueAST::typeCheck(TypeChecker& checker) {
 
 std::shared_ptr<Type> SetFieldValueAST::expressionType(const TypeChecker& checker) const {
 	return checker.findType("Void");
+}
+
+void SetFieldValueAST::verify(SemanticVerifier& verifier) {
+	mObjectRefExpression->verify(verifier);
+	mMemberExpression->verify(verifier);
+	mRightHandSide->verify(verifier);
+
+	if (getField(verifier.typeChecker()).accessModifier() == AccessModifiers::Private) {
+		auto className = getObject(verifier.typeChecker()).name();
+		auto classSymbol = std::dynamic_pointer_cast<ClassSymbol>(mSymbolTable->find(className));
+
+		if (!classSymbol->symbolTable()->containsTable(mSymbolTable)) {
+			verifier.semanticError("Cannot access private field of class " + className + ".");
+		}
+	}
 }
 
 void SetFieldValueAST::generateCode(CodeGenerator& codeGen, GeneratedFunction& func) {

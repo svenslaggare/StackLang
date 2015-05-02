@@ -7,12 +7,17 @@
 
 class OperatorContainer;
 class ProgramAST;
+class FunctionPrototypeAST;
 class FunctionAST;
+class MemberFunctionAST;
 class BlockAST;
 class StatementAST;
 class ExpressionAST;
 class NamespaceDeclarationAST;
 class ClassDefinitionAST;
+class VariableDeclarationExpressionAST;
+
+enum class AccessModifiers : char;
 
 //Represents a parser
 class Parser {
@@ -118,11 +123,20 @@ private:
 	//Parses a block
 	std::shared_ptr<BlockAST> parseBlock();
 
+	//Parses function parameters
+	std::vector<std::shared_ptr<VariableDeclarationExpressionAST>> parseFunctionParameters();
+
+	//Parses a function prototype
+	std::shared_ptr<FunctionPrototypeAST> parseFunctionPrototype();
+
 	//Parses a function definition
 	std::shared_ptr<FunctionAST> parseFunctionDef();
 
+	//Parses a member function definition
+	std::shared_ptr<MemberFunctionAST> parseMemberFunctionDef(AccessModifiers accessModifier);
+
 	//Parses a constructor definition
-	std::shared_ptr<FunctionAST> parseConstructorDef(std::string className);
+	std::shared_ptr<MemberFunctionAST> parseConstructorDef(std::string className, AccessModifiers accessModifier);
 
 	//Parses a class definition
 	std::shared_ptr<ClassDefinitionAST> parseClassDef();

@@ -1,13 +1,27 @@
 #include "object.h"
 
+std::string to_string(AccessModifiers accessModifier) {
+	switch (accessModifier) {
+		case AccessModifiers::Public:
+			return "public";
+		case AccessModifiers::Private:
+			return "private";
+	}
+}
+
+std::ostream& operator<<(std::ostream& os, const AccessModifiers& modifier) {
+	os << to_string(modifier);
+	return os;
+}
+
 //Field
-Field::Field(std::string name, std::shared_ptr<Type> type)
-	: mName(name), mType(type) {
+Field::Field(std::string name, std::shared_ptr<Type> type, AccessModifiers accessModifier)
+	: mName(name), mType(type), mAccessModifier(accessModifier) {
 
 }
 
 Field::Field()
-	: mName(""), mType(nullptr) {
+	: mName(""), mType(nullptr), mAccessModifier(AccessModifiers::Public) {
 
 }
 
@@ -17,6 +31,10 @@ std::string Field::name() const {
 
 std::shared_ptr<Type> Field::type() const {
 	return mType;
+}
+
+AccessModifiers Field::accessModifier() const {
+	return mAccessModifier;
 }
 
 //Object

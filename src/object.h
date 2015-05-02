@@ -2,23 +2,30 @@
 #include <memory>
 #include <string>
 #include <unordered_map>
+#include <iostream>
 
 class Type;
 
 //The access modifiers
-enum class AccessModifiers {
+enum class AccessModifiers : char {
 	Public,
 	Private
 };
+
+//Returns the given access modifier as a string
+std::string to_string(AccessModifiers accessModifier);
+
+std::ostream& operator<<(std::ostream& os, const AccessModifiers& modifier);
 
 //Represents a field in an object
 class Field {
 private:
 	std::string mName;
 	std::shared_ptr<Type> mType;
+	AccessModifiers mAccessModifier;
 public:
 	//Creates a new field
-	Field(std::string name, std::shared_ptr<Type> type);
+	Field(std::string name, std::shared_ptr<Type> type, AccessModifiers accessModifier = AccessModifiers::Public);
 	Field();
 
 	//Returns the name
@@ -26,6 +33,9 @@ public:
 
 	//Returns the type
 	std::shared_ptr<Type> type() const;
+
+	//Returns the access modifier
+	AccessModifiers accessModifier() const;
 };
 
 //Represents an object

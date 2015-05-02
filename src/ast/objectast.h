@@ -10,12 +10,20 @@ class CodeGenerator;
 class GeneratedFunction;
 class SemanticVerifier;
 class CallExpressionAST;
+class Field;
+class Object;
 
 //Represents a member access AST
 class MemberAccessAST : public ExpressionAST {
 private:	
 	std::shared_ptr<ExpressionAST> mAccessExpression;
 	std::shared_ptr<ExpressionAST> mMemberExpression;
+
+	//Returns the object
+	const Object& getObject(const TypeChecker& checker) const;
+
+	//Returns the field
+	const Field& getField(const TypeChecker& checker) const;
 public:
 	//Creates a new member access AST
 	MemberAccessAST(std::shared_ptr<ExpressionAST> accessExpression, std::shared_ptr<ExpressionAST> memberExpression);
@@ -39,6 +47,8 @@ public:
 	virtual void typeCheck(TypeChecker& checker) override;
 
 	virtual std::shared_ptr<Type> expressionType(const TypeChecker& checker) const override; 
+
+	virtual void verify(SemanticVerifier& verifier) override;
 
 	virtual void generateCode(CodeGenerator& codeGen, GeneratedFunction& func) override;
 };
@@ -70,6 +80,8 @@ public:
 
 	virtual std::shared_ptr<Type> expressionType(const TypeChecker& checker) const override; 
 
+	virtual void verify(SemanticVerifier& verifier) override;
+
 	virtual void generateCode(CodeGenerator& codeGen, GeneratedFunction& func) override;
 };
 
@@ -79,6 +91,12 @@ private:
 	std::shared_ptr<ExpressionAST> mObjectRefExpression;
 	std::shared_ptr<ExpressionAST> mMemberExpression;
 	std::shared_ptr<ExpressionAST> mRightHandSide;
+
+	//Returns the object
+	const Object& getObject(const TypeChecker& checker) const;
+
+	//Returns the field
+	const Field& getField(const TypeChecker& checker) const;
 public:
 	//Creates a new set field value AST
 	SetFieldValueAST(
@@ -107,5 +125,7 @@ public:
 
 	virtual std::shared_ptr<Type> expressionType(const TypeChecker& checker) const override; 
 
+	virtual void verify(SemanticVerifier& verifier) override;
+	
 	virtual void generateCode(CodeGenerator& codeGen, GeneratedFunction& func) override;
 };

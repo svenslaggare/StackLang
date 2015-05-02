@@ -71,6 +71,24 @@ bool SymbolTable::addFunction(std::string name, std::vector<VariableSymbol> para
 	}
 }
 
+bool SymbolTable::addMemberFunction(std::string name, std::vector<VariableSymbol> parameters, std::string returnType, AccessModifiers accessModifier) {
+	auto signature = std::make_shared<FunctionSignatureSymbol>(name, parameters, returnType, accessModifier);
+	
+	if (mInner.count(name) > 0) {
+		auto func = std::dynamic_pointer_cast<FunctionSymbol>(mInner.at(name));
+
+		if (func != nullptr) {
+			return func->addOverload(signature);
+		} else {
+			return false;
+		}
+	} else {
+		auto func = std::make_shared<FunctionSymbol>(name, signature, getNamespace());
+		mInner.insert({ name, func });
+		return true;
+	}
+}
+
 void SymbolTable::newFunction(std::string name, const std::vector<std::pair<std::string, std::string>>& parameters, std::string returnType) {
 	std::vector<VariableSymbol> parameterSymbols;
 
@@ -123,6 +141,18 @@ const std::map<std::string, std::shared_ptr<Symbol>>& SymbolTable::inner() const
 
 std::shared_ptr<SymbolTable> SymbolTable::outer() const {
 	return mOuter;
+}
+
+bool SymbolTable::containsTable(std::shared_ptr<SymbolTable> symbolTable) const {
+	if (mOuter == nullptr) {
+		return false;
+	}
+
+	if (this == symbolTable.get()) {
+		return true;
+	} else {
+		return mOuter->containsTable(symbolTable);
+	}
 }
 
 std::shared_ptr<SymbolTable> SymbolTable::newInner(std::shared_ptr<SymbolTable> outer) {

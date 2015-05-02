@@ -16,8 +16,8 @@
 #include <unordered_map>
 
 //Field declaration
-FieldDeclarationExpressionAST::FieldDeclarationExpressionAST(std::string fieldType, std::string fieldName)
-	: mFieldType(TypeName::make(fieldType)), mFieldName(fieldName) {
+FieldDeclarationExpressionAST::FieldDeclarationExpressionAST(std::string fieldType, std::string fieldName, AccessModifiers accessModifier)
+	: mFieldType(TypeName::make(fieldType)), mFieldName(fieldName), mAccessModifier(accessModifier) {
 
 }
 
@@ -29,8 +29,12 @@ std::string FieldDeclarationExpressionAST::fieldName() const {
 	return mFieldName;
 }
 
+AccessModifiers FieldDeclarationExpressionAST::accessModifier() const {
+	return mAccessModifier;
+}
+
 std::string FieldDeclarationExpressionAST::asString() const {
-	return fieldType() + " " + fieldName();
+	return to_string(mAccessModifier) + " " + fieldType() + " " + fieldName();
 }
 
 void FieldDeclarationExpressionAST::visit(VisitFn visitFn) const {
@@ -44,14 +48,7 @@ void FieldDeclarationExpressionAST::generateSymbols(Binder& binder, std::shared_
 		binder.error("The symbol '" + fieldName() + "' is already defined.");	
 	}
 
-	if (mFieldType->name() == "Point") {
-		mFieldType = std::move(TypeName::makeFull(mFieldType.get(), symbolTable));
-		// std::cout << mFieldType->name() << std::endl;
-		// std::cout << symbolTable->find("Point") << std::endl;
-		// for (auto symbol : symbolTable->outer()->inner()) {
-		// 	std::cout << symbol.first << std::endl;
-		// }
-	}
+	mFieldType = std::move(TypeName::makeFull(mFieldType.get(), symbolTable));
 
 	symbolTable->add(
 		fieldName(),
@@ -70,11 +67,25 @@ void FieldDeclarationExpressionAST::generateCode(CodeGenerator& codeGen, Generat
 	
 }
 
+//Member function
+MemberFunctionAST::MemberFunctionAST(std::shared_ptr<FunctionPrototypeAST> prototype, std::shared_ptr<BlockAST> body, AccessModifiers accessModifier)
+	: FunctionAST(prototype, body), mAccessModifier(accessModifier) {
+
+}
+
+AccessModifiers MemberFunctionAST::accessModifier() const {
+	return mAccessModifier;
+}
+
+std::string MemberFunctionAST::asString() const {
+	return to_string(mAccessModifier) + " " + FunctionAST::asString();
+}
+
 //Class definition
 ClassDefinitionAST::ClassDefinitionAST(
 	std::string name,
 	std::vector<std::shared_ptr<FieldDeclarationExpressionAST>> fields,
-	std::vector<std::shared_ptr<FunctionAST>> functions)
+	std::vector<std::shared_ptr<MemberFunctionAST>> functions)
 	: mName(name), mFields(fields), mFunctions(functions) {
 	
 	bool hasConstructor = false;
@@ -88,12 +99,13 @@ ClassDefinitionAST::ClassDefinitionAST(
 
 	//Add default constructor
 	if (!hasConstructor) {
-		mFunctions.push_back(std::make_shared<FunctionAST>(
+		mFunctions.push_back(std::make_shared<MemberFunctionAST>(
 			std::make_shared<FunctionPrototypeAST>(
 				".constructor",
 				std::vector<std::shared_ptr<VariableDeclarationExpressionAST>>({}),
 				"Void"),
-			std::make_shared<BlockAST>(std::vector<std::shared_ptr<StatementAST>>({}))));
+			std::make_shared<BlockAST>(std::vector<std::shared_ptr<StatementAST>>({})),
+			AccessModifiers::Public));
 	}
 }
 
@@ -105,7 +117,7 @@ const std::vector<std::shared_ptr<FieldDeclarationExpressionAST>>& ClassDefiniti
 	return mFields;
 }
 
-const std::vector<std::shared_ptr<FunctionAST>>& ClassDefinitionAST::functions() const {
+const std::vector<std::shared_ptr<MemberFunctionAST>>& ClassDefinitionAST::functions() const {
 	return mFunctions;
 }
 
@@ -157,8 +169,10 @@ void ClassDefinitionAST::addClassDefinition(TypeChecker& checker) const {
 
 		for (auto field : mFields) {
 			checker.assertTypeExists(field->fieldType(), false);
-			auto fieldType = checker.findType(field->fieldType());
-			fields.insert({ field->fieldName(), Field(field->fieldName(), fieldType) });
+			fields.insert({ 
+				field->fieldName(),
+				Field(field->fieldName(), checker.findType(field->fieldType()), field->accessModifier())
+			});
 		}
 
 		checker.addObject(Object(fullName(), classType, fields));
@@ -186,7 +200,7 @@ void ClassDefinitionAST::rewrite(Compiler& compiler) {
 		std::shared_ptr<AbstractSyntaxTree> newAST;
 
 		while (func->rewriteAST(newAST, compiler)) {
-			func = std::dynamic_pointer_cast<FunctionAST>(newAST);
+			func = std::dynamic_pointer_cast<MemberFunctionAST>(newAST);
 		}
 
 		func->rewrite(compiler);
@@ -237,7 +251,13 @@ void ClassDefinitionAST::generateSymbols(Binder& binder, std::shared_ptr<SymbolT
 			binder.error("The symbol '" + funcName + "' is already defined.");
 		}
 
-		if (!classTable->addFunction(funcName, parameters, func->prototype()->returnType())) {
+		auto added = classTable->addMemberFunction(
+			funcName,
+			parameters,
+			func->prototype()->returnType(),
+			func->accessModifier());
+
+		if (!added) {
 			auto paramsStr = Helpers::join<VariableSymbol>(
 				parameters,
 				[](VariableSymbol param) { return param.variableType(); },

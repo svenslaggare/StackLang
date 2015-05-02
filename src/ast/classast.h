@@ -1,10 +1,11 @@
 #pragma once
 #include "ast.h"
+#include "functionast.h"
 #include "../symbol.h"
+#include "../object.h"
 #include <vector>
 #include <memory>
 
-class FunctionAST;
 class Type;
 class TypeName;
 class Compiler;
@@ -15,21 +16,26 @@ class CodeGenerator;
 class GeneratedFunction;
 class Symbol;
 class FunctionSignatureSymbol;
+enum class AccessModifiers : char;
 
 //Represents a field declaration expression AST
 class FieldDeclarationExpressionAST : public ExpressionAST {
 private:
 	std::unique_ptr<TypeName> mFieldType;
 	std::string mFieldName;
+	AccessModifiers mAccessModifier;
 public:
 	//Creates a new field declaration expression
-	FieldDeclarationExpressionAST(std::string fieldType, std::string fieldName);
+	FieldDeclarationExpressionAST(std::string fieldType, std::string fieldName, AccessModifiers accessModifier);
 
 	//Returns the type of the field
 	std::string fieldType() const;
 
 	//Returns the name of the field
 	std::string fieldName() const;
+
+	//Returns the access modifier
+	AccessModifiers accessModifier() const;
 
 	std::string asString() const override;
 
@@ -45,16 +51,25 @@ public:
 };
 
 //Represents a member function AST
-// class MemberFunctionAST : public FunctionAST {
+class MemberFunctionAST : public FunctionAST {
+private:
+	AccessModifiers mAccessModifier;
+public:
+	//Creates a new member function
+	MemberFunctionAST(std::shared_ptr<FunctionPrototypeAST> prototype, std::shared_ptr<BlockAST> body, AccessModifiers accessModifier);
 
-// };
+	//Returns the access modifier
+	AccessModifiers accessModifier() const;
+
+	std::string asString() const override;
+};
 
 //Represents a class definition AST
 class ClassDefinitionAST : public AbstractSyntaxTree {
 private:
 	std::string mName;
 	std::vector<std::shared_ptr<FieldDeclarationExpressionAST>> mFields;
-	std::vector<std::shared_ptr<FunctionAST>> mFunctions;
+	std::vector<std::shared_ptr<MemberFunctionAST>> mFunctions;
 	std::shared_ptr<SymbolTable> mDefiningTable;
 
 	//Finds the namespace name for the current class
@@ -64,7 +79,7 @@ public:
 	ClassDefinitionAST(
 		std::string name,
 		std::vector<std::shared_ptr<FieldDeclarationExpressionAST>> fields,
-		std::vector<std::shared_ptr<FunctionAST>> functions);
+		std::vector<std::shared_ptr<MemberFunctionAST>> functions);
 
 	//Returns the name of the class
 	std::string name() const;
@@ -73,7 +88,7 @@ public:
 	const std::vector<std::shared_ptr<FieldDeclarationExpressionAST>>& fields() const;
 
 	//Returns the member functions
-	const std::vector<std::shared_ptr<FunctionAST>>& functions() const;
+	const std::vector<std::shared_ptr<MemberFunctionAST>>& functions() const;
 
 	//Returns the full name
 	std::string fullName(std::string namespaceSep = "::") const;

@@ -47,7 +47,8 @@ std::string FunctionPrototypeAST::fullName(std::string namespaceSep, bool member
 	if (!memberFunc) {
 		return findNamespaceName(mSymbolTable, namespaceSep) + mName;
 	} else {
-		return findNamespaceName(mSymbolTable->outer()->outer(), namespaceSep) + mSymbolTable->outer()->name() + "::" + mName;
+		return findNamespaceName(mSymbolTable->outer()->outer(), namespaceSep)
+			   + mSymbolTable->outer()->name() + "::" + mName;
 	}
 }
 

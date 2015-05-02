@@ -734,89 +734,20 @@ std::shared_ptr<BlockAST> Parser::parseBlock() {
 	return std::make_shared<BlockAST>(statements);
 }
 
-std::shared_ptr<FunctionAST> Parser::parseFunctionDef() {
-	//Eat the 'func'
-	nextToken();
-
-	//The name
-	if (currentToken.type() != TokenType::Identifier) {
-		error("Expected identifier.");
-	}
-
-	std::string name = currentToken.strValue;
-
-	//Arguments
-	nextToken(); //Eat the name
-	if (currentTokenAsChar() != '(')  {
-		error("Expected ')' in prototype.");
-	}
-
+std::vector<std::shared_ptr<VariableDeclarationExpressionAST>> Parser::parseFunctionParameters() {
 	nextToken(); //Eat the '('
 
-	std::vector<std::shared_ptr<VariableDeclarationExpressionAST>> arguments;
+	std::vector<std::shared_ptr<VariableDeclarationExpressionAST>> parameters;
 	if (!(currentToken.type() == TokenType::SingleChar && currentToken.charValue == ')')) {
 		while (true) {
 			if (currentToken.type() == TokenType::Identifier) {
 				std::string varType = parseTypeName();
 
 				if (currentToken.type() == TokenType::Identifier) {
-					arguments.push_back(std::make_shared<VariableDeclarationExpressionAST>(varType, currentToken.strValue, true));
-				}
-			}
-
-			nextToken();
-
-			if (isSingleCharToken(')')) {
-				break;
-			}
-
-			if (!isSingleCharToken(',')) {
-				error("Expected ',' or ')' in argument list.");
-			}
-
-			nextToken();
-		}
-	}
-
-	//Return type
-	nextToken();
-	if (currentTokenAsChar() != ':')  {
-		error("Expected ':' after arguments.");
-	}
-
-	nextToken();
-
-	if (currentToken.type() != TokenType::Identifier) {
-		error("Expected identifier.");
-	}
-
-	std::string returnType = parseTypeName();
-
-	//Body
-	auto body = parseBlock();
-
-	return std::make_shared<FunctionAST>(std::make_shared<FunctionPrototypeAST>(name, arguments, returnType), body);
-}
-
-std::shared_ptr<FunctionAST> Parser::parseConstructorDef(std::string className) {
-	//Eat the class name
-	nextToken();
-
-	if (currentTokenAsChar() != '(')  {
-		error("Expected ')' in constructor.");
-	}
-
-	//Arguments
-	nextToken(); //Eat the '('
-
-	std::vector<std::shared_ptr<VariableDeclarationExpressionAST>> arguments;
-	if (!(currentToken.type() == TokenType::SingleChar && currentToken.charValue == ')')) {
-		while (true) {
-			if (currentToken.type() == TokenType::Identifier) {
-				std::string varType = parseTypeName();
-
-				if (currentToken.type() == TokenType::Identifier) {
-					arguments.push_back(std::make_shared<VariableDeclarationExpressionAST>(varType, currentToken.strValue, true));
+					parameters.push_back(std::make_shared<VariableDeclarationExpressionAST>(
+						varType,
+						currentToken.strValue,
+						true));
 				}
 			}
 
@@ -835,11 +766,66 @@ std::shared_ptr<FunctionAST> Parser::parseConstructorDef(std::string className) 
 	}
 
 	nextToken(); //Eat the ')'
+	return parameters;
+}
 
-	//Body
+std::shared_ptr<FunctionPrototypeAST> Parser::parseFunctionPrototype() {
+	//Eat the 'func'
+	nextToken();
+
+	//The name
+	if (currentToken.type() != TokenType::Identifier) {
+		error("Expected identifier.");
+	}
+
+	std::string name = currentToken.strValue;
+
+	//Parameters
+	nextToken(); //Eat the name
+	if (currentTokenAsChar() != '(')  {
+		error("Expected ')' in prototype.");
+	}
+
+	auto parameters = parseFunctionParameters();
+
+	//Return type
+	if (currentTokenAsChar() != ':')  {
+		error("Expected ':' after parameters.");
+	}
+
+	nextToken();
+
+	if (currentToken.type() != TokenType::Identifier) {
+		error("Expected identifier.");
+	}
+
+	std::string returnType = parseTypeName();
+	return std::make_shared<FunctionPrototypeAST>(name, parameters, returnType);
+}
+
+std::shared_ptr<FunctionAST> Parser::parseFunctionDef() {
+	return std::make_shared<FunctionAST>(parseFunctionPrototype(), parseBlock());
+}
+
+std::shared_ptr<MemberFunctionAST> Parser::parseMemberFunctionDef(AccessModifiers accessModifier) {
+	return std::make_shared<MemberFunctionAST>(parseFunctionPrototype(), parseBlock(), accessModifier);
+}
+
+std::shared_ptr<MemberFunctionAST> Parser::parseConstructorDef(std::string className, AccessModifiers accessModifier) {
+	//Eat the class name
+	nextToken();
+
+	if (currentTokenAsChar() != '(')  {
+		error("Expected ')' in constructor.");
+	}
+
+	auto parameters = parseFunctionParameters();
 	auto body = parseBlock();
 
-	return std::make_shared<FunctionAST>(std::make_shared<FunctionPrototypeAST>(".constructor", arguments, "Void"), body);
+	return std::make_shared<MemberFunctionAST>(
+		std::make_shared<FunctionPrototypeAST>(".constructor", parameters, "Void"),
+		body,
+		accessModifier);
 }
 
 std::shared_ptr<ClassDefinitionAST> Parser::parseClassDef() {
@@ -861,7 +847,7 @@ std::shared_ptr<ClassDefinitionAST> Parser::parseClassDef() {
 
 	//Parse the members
 	std::vector<std::shared_ptr<FieldDeclarationExpressionAST>> fields;
-	std::vector<std::shared_ptr<FunctionAST>> functions;
+	std::vector<std::shared_ptr<MemberFunctionAST>> functions;
 	auto memberAccessModifier = AccessModifiers::Public;
 
 	while (true) {
@@ -872,11 +858,13 @@ std::shared_ptr<ClassDefinitionAST> Parser::parseClassDef() {
 			memberAccessModifier = AccessModifiers::Private;
 			nextToken();
 		} else if (currentToken.type() == TokenType::Func) {
-			functions.push_back(parseFunctionDef());
+			functions.push_back(parseMemberFunctionDef(memberAccessModifier));
 			nextToken();
+			memberAccessModifier = AccessModifiers::Public;
 		} else if (currentToken.type() == TokenType::Identifier && currentToken.strValue == className) {
-			functions.push_back(parseConstructorDef(className));
+			functions.push_back(parseConstructorDef(className, memberAccessModifier));
 			nextToken();
+			memberAccessModifier = AccessModifiers::Public;
 		} else if (!isSingleCharToken('}')) {
 			auto typeName = parseTypeName();
 
@@ -892,7 +880,8 @@ std::shared_ptr<ClassDefinitionAST> Parser::parseClassDef() {
 			}
 
 			nextToken(); //Eat the ';'
-			fields.push_back(std::make_shared<FieldDeclarationExpressionAST>(typeName, fieldName));
+			fields.push_back(std::make_shared<FieldDeclarationExpressionAST>(typeName, fieldName, memberAccessModifier));
+			memberAccessModifier = AccessModifiers::Public;
 		}
 
 		if (isSingleCharToken('}')) {

@@ -103,8 +103,12 @@ std::shared_ptr<FunctionSignatureSymbol> FunctionSymbol::findOverload(std::vecto
 }
 
 //Function signature
-FunctionSignatureSymbol::FunctionSignatureSymbol(std::string name, std::vector<VariableSymbol> parameters, std::string returnType)
-	: Symbol(name, "FunctionSignature"), mParameters(parameters), mReturnType(returnType) {
+FunctionSignatureSymbol::FunctionSignatureSymbol(
+	std::string name,
+	std::vector<VariableSymbol> parameters,
+	std::string returnType,
+	AccessModifiers accessModifier)
+	: Symbol(name, "FunctionSignature"), mParameters(parameters), mReturnType(returnType), mAccessModifier(accessModifier) {
 
 }
 
@@ -123,6 +127,10 @@ const std::vector<VariableSymbol>& FunctionSignatureSymbol::parameters() const {
 
 std::string FunctionSignatureSymbol::returnType() const {
 	return mReturnType;
+}
+
+AccessModifiers FunctionSignatureSymbol::accessModifier() const {
+	return mAccessModifier;
 }
 
 //Namespace

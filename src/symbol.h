@@ -1,5 +1,6 @@
 #pragma once
 #include "namespace.h"
+#include "object.h"
 #include <string>
 #include <memory>
 #include <vector>
@@ -66,9 +67,11 @@ class FunctionSignatureSymbol : public Symbol {
 private:
 	std::vector<VariableSymbol> mParameters;
 	std::string mReturnType;
+	AccessModifiers mAccessModifier;
 public:
 	//Creates a new function symbol with the given parameters and return type
-	FunctionSignatureSymbol(std::string name, std::vector<VariableSymbol>parameters, std::string returnType);
+	FunctionSignatureSymbol(std::string name, std::vector<VariableSymbol> parameters,
+							std::string returnType, AccessModifiers accessModifier = AccessModifiers::Public);
 
 	virtual std::string asString() const override;
 
@@ -77,6 +80,9 @@ public:
 
 	//Returns the return type
 	std::string returnType() const;
+
+	//Returns the access modifier
+	AccessModifiers accessModifier() const;
 };
 
 //Represents a function symbol
