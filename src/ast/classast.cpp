@@ -9,6 +9,7 @@
 #include "../symbol.h"
 #include "../type.h"
 #include "../typechecker.h"
+#include "../typename.h"
 #include "../object.h"
 #include "../codegenerator.h"
 #include "../helpers.h"

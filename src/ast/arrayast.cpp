@@ -8,15 +8,16 @@
 #include "../symbol.h"
 #include "../codegenerator.h"
 #include "../helpers.h"
+#include "../typename.h"
 
 //Array declaration
 ArrayDeclarationAST::ArrayDeclarationAST(std::string elementType, std::shared_ptr<ExpressionAST> lengthExpression)
-	: mElementType(elementType), mLengthExpression(lengthExpression) {
+	: mElementType(TypeName::make(elementType)), mLengthExpression(lengthExpression) {
 	
 }
 
 std::string ArrayDeclarationAST::elementType() const {
-	return mElementType;
+	return mElementType->name();
 }
 
 std::shared_ptr<ExpressionAST> ArrayDeclarationAST::lengthExpression() const {
@@ -24,18 +25,13 @@ std::shared_ptr<ExpressionAST> ArrayDeclarationAST::lengthExpression() const {
 }
 
 std::string ArrayDeclarationAST::asString() const {
-	return "new " + mElementType + "[" + mLengthExpression->asString() + "]";
+	return "new " + elementType() + "[" + mLengthExpression->asString() + "]";
 }
 
 void ArrayDeclarationAST::generateSymbols(Binder& binder, std::shared_ptr<SymbolTable> symbolTable) {
 	AbstractSyntaxTree::generateSymbols(binder, symbolTable);
 	mLengthExpression->generateSymbols(binder, symbolTable);
-
-	auto classSymbol = std::dynamic_pointer_cast<ClassSymbol>(Helpers::findSymbolInNamespace(mSymbolTable, mElementType));
-
-	if (classSymbol != nullptr) {
-		mElementType = classSymbol->fullName();
-	}
+	mElementType = std::move(TypeName::makeFull(mElementType.get(), symbolTable));
 }
 
 void ArrayDeclarationAST::typeCheck(TypeChecker& checker) {
@@ -48,25 +44,25 @@ void ArrayDeclarationAST::typeCheck(TypeChecker& checker) {
 		"Expected the length to be of type 'Int'.");
 
 	//Check if the element type exists
-	checker.assertTypeExists(mElementType, false);
-	checker.assertNotVoid(*checker.findType(mElementType), "Arrays of type 'Void' is not allowed.");
+	checker.assertTypeExists(elementType(), false);
+	checker.assertNotVoid(*checker.findType(elementType()), "Arrays of type 'Void' is not allowed.");
 
 	//Create the array type if not created
-	checker.getType(mElementType + "[]");
+	checker.getType(elementType() + "[]");
 }
 	
 std::shared_ptr<Type> ArrayDeclarationAST::expressionType(const TypeChecker& checker) const {
-	return checker.findType(mElementType + "[]");
+	return checker.findType(elementType() + "[]");
 }
 
 void ArrayDeclarationAST::generateCode(CodeGenerator& codeGen, GeneratedFunction& func) {
 	mLengthExpression->generateCode(codeGen, func);
-	func.addInstruction("NEWARR " + codeGen.typeChecker().findType(mElementType)->vmType());
+	func.addInstruction("NEWARR " + codeGen.typeChecker().findType(elementType())->vmType());
 }
 
 //Multidim array declaration
 MultiDimArrayDeclarationAST::MultiDimArrayDeclarationAST(std::string elementType, std::vector<std::shared_ptr<ExpressionAST>> lengthExpressions)
-	: mElementType(elementType), mLengthExpressions(lengthExpressions) {
+	: mElementType(TypeName::make(elementType)), mLengthExpressions(lengthExpressions) {
 
 }
 
@@ -81,11 +77,11 @@ std::string MultiDimArrayDeclarationAST::typeString(int dim) const {
 		arrayRankStr += "[]";
 	}
 
-	return mElementType + arrayRankStr;
+	return elementType() + arrayRankStr;
 }
 
 std::string MultiDimArrayDeclarationAST::elementType() const {
-	return mElementType;
+	return mElementType->name();
 }
 
 const std::vector<std::shared_ptr<ExpressionAST>>& MultiDimArrayDeclarationAST::lengthExpressions() const {
@@ -98,7 +94,7 @@ std::string MultiDimArrayDeclarationAST::asString() const {
 		[](std::shared_ptr<ExpressionAST> length) { return length->asString(); },
 		", ");
 
-	return "new " + mElementType + "[" + lengthsStr + "]";
+	return "new " + elementType() + "[" + lengthsStr + "]";
 }
 
 void MultiDimArrayDeclarationAST::generateSymbols(Binder& binder, std::shared_ptr<SymbolTable> symbolTable) {
@@ -108,11 +104,7 @@ void MultiDimArrayDeclarationAST::generateSymbols(Binder& binder, std::shared_pt
 		lengthExpr->generateSymbols(binder, symbolTable);
 	}
 
-	auto classSymbol = std::dynamic_pointer_cast<ClassSymbol>(Helpers::findSymbolInNamespace(mSymbolTable, mElementType));
-
-	if (classSymbol != nullptr) {
-		mElementType = classSymbol->fullName();
-	}
+	mElementType = std::move(TypeName::makeFull(mElementType.get(), symbolTable));
 }
 
 void MultiDimArrayDeclarationAST::typeCheck(TypeChecker& checker) {
@@ -131,8 +123,8 @@ void MultiDimArrayDeclarationAST::typeCheck(TypeChecker& checker) {
 	}
 
 	//Check if the element type exists
-	checker.assertTypeExists(mElementType, false);
-	checker.assertNotVoid(*checker.findType(mElementType), "Arrays of type 'Void' is not allowed.");
+	checker.assertTypeExists(elementType(), false);
+	checker.assertNotVoid(*checker.findType(elementType()), "Arrays of type 'Void' is not allowed.");
 
 	//Create all array types
 	for (int i = 0; i < mLengthExpressions.size(); i++) {

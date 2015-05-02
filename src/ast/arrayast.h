@@ -6,11 +6,12 @@
 
 class TypeChecker;
 class Type;
+class TypeName;
 
 //Represents an array declaration AST
 class ArrayDeclarationAST : public ExpressionAST {
 private:
-	std::string mElementType;
+	std::unique_ptr<TypeName> mElementType;
 	std::shared_ptr<ExpressionAST> mLengthExpression;
 public:
 	//Creates a new array declaration AST
@@ -36,7 +37,7 @@ public:
 //Represents a multidimensional array declaration AST
 class MultiDimArrayDeclarationAST : public ExpressionAST {
 private:
-	std::string mElementType;
+	std::unique_ptr<TypeName> mElementType;
 	std::vector<std::shared_ptr<ExpressionAST>> mLengthExpressions;
 
 	//Returns the type string

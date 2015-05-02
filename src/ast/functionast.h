@@ -5,20 +5,21 @@
 #include <string>
 #include <vector>
 
-class Compiler;;
+class Compiler;
 class SymbolTable;
 class TypeChecker;
 class CodeGenerator;
 class BlockAST;
 class VariableDeclarationExpressionAST;
 class ReturnStatementAST;
+class TypeName;
 
 //Represents a function prototype AST
 class FunctionPrototypeAST : public AbstractSyntaxTree {
 private:
 	std::string mName;
 	std::vector<std::shared_ptr<VariableDeclarationExpressionAST>> mParameters;
-	std::string mReturnType;
+	std::unique_ptr<TypeName> mReturnType;
 
 	//Finds the namespace name for the current function
 	std::string findNamespaceName(std::shared_ptr<SymbolTable> symbolTable, std::string sep) const;

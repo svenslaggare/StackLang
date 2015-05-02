@@ -9,10 +9,11 @@
 #include "../type.h"
 #include "../semantics.h"
 #include "../helpers.h"
+#include "../typename.h"
 
 //Function prototype AST
 FunctionPrototypeAST::FunctionPrototypeAST(std::string name, const std::vector<std::shared_ptr<VariableDeclarationExpressionAST>>& parameters, std::string returnType)
-	: mName(name), mParameters(parameters), mReturnType(returnType) {
+	: mName(name), mParameters(parameters), mReturnType(TypeName::make(returnType)) {
 
 }
 
@@ -25,7 +26,7 @@ const std::vector<std::shared_ptr<VariableDeclarationExpressionAST>>& FunctionPr
 }
 
 const std::string FunctionPrototypeAST::returnType() const {
-	return mReturnType;
+	return mReturnType->name();
 }
 
 std::string FunctionPrototypeAST::findNamespaceName(std::shared_ptr<SymbolTable> symbolTable, std::string sep) const {
@@ -64,7 +65,7 @@ std::string FunctionPrototypeAST::asString() const {
 		funcStr += param->asString();
 	}
 
-	funcStr += "): " + mReturnType + " ";
+	funcStr += "): " + returnType() + " ";
 	return funcStr;
 }
 
@@ -84,11 +85,8 @@ void FunctionPrototypeAST::generateSymbols(Binder& binder, std::shared_ptr<Symbo
 		param->generateSymbols(binder, symbolTable);
 	}
 
-	auto returnTypeSymbol = std::dynamic_pointer_cast<ClassSymbol>(Helpers::findSymbolInNamespace(mSymbolTable, mReturnType));
-
-	if (returnTypeSymbol != nullptr) {
-		mReturnType = returnTypeSymbol->fullName();
-	}
+	//Find the full type name
+	mReturnType = std::move(TypeName::makeFull(mReturnType.get(), symbolTable));
 }
 
 void FunctionPrototypeAST::typeCheck(TypeChecker& checker) {
@@ -96,7 +94,7 @@ void FunctionPrototypeAST::typeCheck(TypeChecker& checker) {
 		param->typeCheck(checker);
 	}
 
-	checker.assertTypeExists(mReturnType, false);
+	checker.assertTypeExists(returnType(), false);
 }
 
 void FunctionPrototypeAST::verify(SemanticVerifier& verifier) {
