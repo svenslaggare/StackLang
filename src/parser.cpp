@@ -3,6 +3,7 @@
 #include "lexer.h"
 #include "ast/asts.h"
 #include "typename.h"
+#include "object.h"
 
 Parser::Parser(const OperatorContainer& operators, std::vector<Token> tokens)
 	: operators(operators), tokens(tokens), tokenIndex(-1) {
@@ -861,9 +862,16 @@ std::shared_ptr<ClassDefinitionAST> Parser::parseClassDef() {
 	//Parse the members
 	std::vector<std::shared_ptr<FieldDeclarationExpressionAST>> fields;
 	std::vector<std::shared_ptr<FunctionAST>> functions;
+	auto memberAccessModifier = AccessModifiers::Public;
 
 	while (true) {
-		if (currentToken.type() == TokenType::Func) {
+		if (currentToken.type() == TokenType::Public) {
+			memberAccessModifier = AccessModifiers::Public;
+			nextToken();
+		} else if (currentToken.type() == TokenType::Private) {
+			memberAccessModifier = AccessModifiers::Private;
+			nextToken();
+		} else if (currentToken.type() == TokenType::Func) {
 			functions.push_back(parseFunctionDef());
 			nextToken();
 		} else if (currentToken.type() == TokenType::Identifier && currentToken.strValue == className) {

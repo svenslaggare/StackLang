@@ -16,6 +16,8 @@ std::string Token::asString() const {
 	switch (type()) {
 		case TokenType::NoToken:
 			return "";
+		case TokenType::EndOfFile:
+			return "EOF";
 		case TokenType::LineBreak:
 			return "\\n";
 		case TokenType::SingleChar:
@@ -61,9 +63,11 @@ std::string Token::asString() const {
 		case TokenType::Class:
 			return "class";	
 		case TokenType::Using:
-			return "using";	
-		case TokenType::EndOfFile:
-			return "EOF";
+			return "using";
+		case TokenType::Private:
+			return "private";
+		case TokenType::Public:
+			return "public";	
 	} 
 }
 
@@ -151,6 +155,10 @@ std::vector<Token> Lexer::tokenize(std::istream& stream) const {
 					tokens.push_back(Token(TokenType::Class));
 				} else if (identStr == "using") {
 					tokens.push_back(Token(TokenType::Using));
+				} else if (identStr == "private") {
+					tokens.push_back(Token(TokenType::Private));
+				} else if (identStr == "public") {
+					tokens.push_back(Token(TokenType::Public));
 				} else {
 					auto newToken = Token(TokenType::Identifier);
 					newToken.strValue = identStr;

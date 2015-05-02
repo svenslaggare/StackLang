@@ -13,17 +13,16 @@
 #include "../object.h"
 #include "../codegenerator.h"
 #include "../helpers.h"
-
 #include <unordered_map>
 
 //Field declaration
 FieldDeclarationExpressionAST::FieldDeclarationExpressionAST(std::string fieldType, std::string fieldName)
-	: mFieldType(fieldType), mFieldName(fieldName) {
+	: mFieldType(TypeName::make(fieldType)), mFieldName(fieldName) {
 
 }
 
 std::string FieldDeclarationExpressionAST::fieldType() const {
-	return mFieldType;
+	return mFieldType->name();
 }
 
 std::string FieldDeclarationExpressionAST::fieldName() const {
@@ -31,7 +30,7 @@ std::string FieldDeclarationExpressionAST::fieldName() const {
 }
 
 std::string FieldDeclarationExpressionAST::asString() const {
-	return mFieldType + " " + mFieldName;
+	return fieldType() + " " + fieldName();
 }
 
 void FieldDeclarationExpressionAST::visit(VisitFn visitFn) const {
@@ -45,17 +44,26 @@ void FieldDeclarationExpressionAST::generateSymbols(Binder& binder, std::shared_
 		binder.error("The symbol '" + fieldName() + "' is already defined.");	
 	}
 
+	if (mFieldType->name() == "Point") {
+		mFieldType = std::move(TypeName::makeFull(mFieldType.get(), symbolTable));
+		// std::cout << mFieldType->name() << std::endl;
+		// std::cout << symbolTable->find("Point") << std::endl;
+		// for (auto symbol : symbolTable->outer()->inner()) {
+		// 	std::cout << symbol.first << std::endl;
+		// }
+	}
+
 	symbolTable->add(
 		fieldName(),
 		std::make_shared<VariableSymbol>(fieldName(), fieldType(), VariableSymbolAttribute::FIELD, mSymbolTable->name()));
 }
 
 void FieldDeclarationExpressionAST::typeCheck(TypeChecker& checker) {
-	checker.assertTypeExists(mFieldType);
+	checker.assertTypeExists(fieldType());
 }
 
 std::shared_ptr<Type> FieldDeclarationExpressionAST::expressionType(const TypeChecker& checker) const {
-	return checker.findType(mFieldType);
+	return checker.findType(fieldType());
 }
 
 void FieldDeclarationExpressionAST::generateCode(CodeGenerator& codeGen, GeneratedFunction& func) {
@@ -159,6 +167,10 @@ void ClassDefinitionAST::addClassDefinition(TypeChecker& checker) const {
 	}
 }
 
+void ClassDefinitionAST::setDefiningTable(std::shared_ptr<SymbolTable> symbolTable) {
+	mDefiningTable = symbolTable;
+}
+
 void ClassDefinitionAST::rewrite(Compiler& compiler) {
 	for (auto& field : mFields) {
 		std::shared_ptr<AbstractSyntaxTree> newAST;
@@ -197,16 +209,16 @@ void ClassDefinitionAST::generateSymbols(Binder& binder, std::shared_ptr<SymbolT
 	auto classTable = std::make_shared<SymbolTable>(symbolTable, mName);
 	AbstractSyntaxTree::generateSymbols(binder, classTable);
 
-	mSymbolTable->add(
+	classTable->add(
 		"this",
 		std::make_shared<VariableSymbol>("this", mName, VariableSymbolAttribute::THIS_REFERENCE));
 
 	for (auto field : mFields) {
-		field->generateSymbols(binder, mSymbolTable);
+		field->generateSymbols(binder, classTable);
 	}
 
 	for (auto func : mFunctions) {
-		func->bindSignature(binder, mSymbolTable);
+		func->bindSignature(binder, classTable);
 
 		//Declare member functions
 		auto funcName = func->prototype()->name();
@@ -219,28 +231,32 @@ void ClassDefinitionAST::generateSymbols(Binder& binder, std::shared_ptr<SymbolT
 				VariableSymbolAttribute::FUNCTION_PARAMETER));
 		}
 
-		auto symbol = mSymbolTable->find(funcName);
+		auto symbol = classTable->find(funcName);
 
 		if (symbol != nullptr && std::dynamic_pointer_cast<FunctionSymbol>(symbol) == nullptr) {
 			binder.error("The symbol '" + funcName + "' is already defined.");
 		}
 
-		if (!mSymbolTable->addFunction(funcName, parameters, func->prototype()->returnType())) {
+		if (!classTable->addFunction(funcName, parameters, func->prototype()->returnType())) {
 			auto paramsStr = Helpers::join<VariableSymbol>(
 				parameters,
 				[](VariableSymbol param) { return param.variableType(); },
 				", ");
 
-			binder.error("The already exists a function with the given signature: '" + funcName + "(" + paramsStr + ")" + "'.");
+			binder.error("The already exists a member function with the given signature: '" + funcName + "(" + paramsStr + ")" + "'.");
 		}
 	}
 
 	for (auto func : mFunctions) {
-		func->generateSymbols(binder, mSymbolTable);
+		func->generateSymbols(binder, classTable);
 	}
 
-	if (symbolTable->find(mName) == nullptr) {
-		symbolTable->addClass(mName, classTable);
+	if (mDefiningTable == nullptr) {
+		mDefiningTable = symbolTable;
+	}
+
+	if (mDefiningTable->find(mName) == nullptr) {
+		mDefiningTable->addClass(mName, classTable);
 	} else {
 		binder.error("The symbol '" + mName + "' is already defined.");
 	}

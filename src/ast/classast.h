@@ -6,6 +6,7 @@
 
 class FunctionAST;
 class Type;
+class TypeName;
 class Compiler;
 class Binder;
 class SymbolTable;
@@ -18,11 +19,11 @@ class FunctionSignatureSymbol;
 //Represents a field declaration expression AST
 class FieldDeclarationExpressionAST : public ExpressionAST {
 private:
-	std::string mFieldType;
+	std::unique_ptr<TypeName> mFieldType;
 	std::string mFieldName;
 public:
 	//Creates a new field declaration expression
-	FieldDeclarationExpressionAST( std::string fieldType, std::string fieldName);
+	FieldDeclarationExpressionAST(std::string fieldType, std::string fieldName);
 
 	//Returns the type of the field
 	std::string fieldType() const;
@@ -43,12 +44,18 @@ public:
 	virtual void generateCode(CodeGenerator& codeGen, GeneratedFunction& func) override;
 };
 
+//Represents a member function AST
+// class MemberFunctionAST : public FunctionAST {
+
+// };
+
 //Represents a class definition AST
 class ClassDefinitionAST : public AbstractSyntaxTree {
 private:
 	std::string mName;
 	std::vector<std::shared_ptr<FieldDeclarationExpressionAST>> mFields;
 	std::vector<std::shared_ptr<FunctionAST>> mFunctions;
+	std::shared_ptr<SymbolTable> mDefiningTable;
 
 	//Finds the namespace name for the current class
 	std::string findNamespaceName(std::shared_ptr<SymbolTable> symbolTable, std::string sep) const;
@@ -75,6 +82,9 @@ public:
 
 	//Adds the class definition to the given type checker
 	void addClassDefinition(TypeChecker& checker) const;
+
+	//Sets the symbol table where the class will be defined in.
+	void setDefiningTable(std::shared_ptr<SymbolTable> symbolTable);
 
 	virtual void rewrite(Compiler& compiler) override;
 

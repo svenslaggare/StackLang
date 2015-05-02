@@ -5,6 +5,12 @@
 
 class Type;
 
+//The access modifiers
+enum class AccessModifiers {
+	Public,
+	Private
+};
+
 //Represents a field in an object
 class Field {
 private:

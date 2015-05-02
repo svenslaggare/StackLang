@@ -89,7 +89,8 @@ void NamespaceDeclarationAST::generateSymbols(Binder& binder, std::shared_ptr<Sy
 
 		//Bind classes
 		if (auto classMember = std::dynamic_pointer_cast<ClassDefinitionAST>(member)) {
-			classMember->generateSymbols(binder, namespaceTable);
+			classMember->setDefiningTable(namespaceTable);
+			classMember->generateSymbols(binder, innerTable);
 			continue;
 		}
 

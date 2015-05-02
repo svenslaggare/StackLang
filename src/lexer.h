@@ -4,9 +4,10 @@
 #include <vector>
 #include <unordered_set>
 
-//The type of a token
+//The token types
 enum class TokenType : unsigned char {
 	NoToken,
+	EndOfFile,
 	LineBreak,
 	SingleChar,
 	TwoChars,
@@ -30,7 +31,8 @@ enum class TokenType : unsigned char {
 	Cast,
 	Class,
 	Using,
-	EndOfFile
+	Private,
+	Public,
 };
 
 //Represents a token
