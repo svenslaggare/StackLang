@@ -7,7 +7,7 @@ class Point {
 	}
 
 	func normalize(): Void {
-		var len = length();
+		var len = this.length();
 		x /= len;
 		y /= len;
 	}
@@ -18,5 +18,5 @@ func main(): Int {
 	p.x = 2.0;
 	p.y = 4.0;
 	p.normalize();
-	return 0;
+	return cast<Int>(p.x + p.y);
 }

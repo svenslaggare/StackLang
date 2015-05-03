@@ -78,12 +78,16 @@ bool SymbolTable::addMemberFunction(std::string name, std::vector<VariableSymbol
 		auto func = std::dynamic_pointer_cast<FunctionSymbol>(mInner.at(name));
 
 		if (func != nullptr) {
+			if (!func->isMember()) {
+				throw std::out_of_range("The function '" + name + "' is not a member function.");
+			}
+
 			return func->addOverload(signature);
 		} else {
 			return false;
 		}
 	} else {
-		auto func = std::make_shared<FunctionSymbol>(name, signature, getNamespace());
+		auto func = std::make_shared<FunctionSymbol>(name, signature, getNamespace(), true);
 		mInner.insert({ name, func });
 		return true;
 	}

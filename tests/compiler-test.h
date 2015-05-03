@@ -148,6 +148,7 @@ public:
         TS_ASSERT_EQUALS(compileAndRun("classes/simple3"), "1.00499\n0\n");
         TS_ASSERT_EQUALS(compileAndRun("classes/simple4"), "4.47214\n0\n");
         TS_ASSERT_EQUALS(compileAndRun("classes/simple5"), "6\n");
+        TS_ASSERT_EQUALS(compileAndRun("classes/simple6"), "3\n");
 
         TS_ASSERT_EQUALS(compileAndRun("classes/constructor1"), "1\n2\n0\n");
         TS_ASSERT_EQUALS(compileAndRun("classes/constructor2"), "1\n2\n0\n");

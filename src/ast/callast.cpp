@@ -1,5 +1,8 @@
 #include "callast.h"
 #include "functionast.h"
+#include "objectast.h"
+#include "variableast.h"
+#include "../compiler.h"
 #include "../symboltable.h"
 #include "../binder.h"
 #include "../typechecker.h"
@@ -67,6 +70,21 @@ void CallExpressionAST::rewrite(Compiler& compiler) {
 
 		arg->rewrite(compiler);
 	}
+}
+
+bool CallExpressionAST::rewriteAST(std::shared_ptr<AbstractSyntaxTree>& newAST, Compiler& compiler) const {
+	if (mSymbolTable != nullptr) {
+		//Call to member function within member function with implicit 'this'
+		if (mFuncSymbol->isMember()) {
+			newAST = std::make_shared<MemberCallExpressionAST>(
+				std::make_shared<VariableReferenceExpressionAST>("this"),
+				std::make_shared<CallExpressionAST>(mFunctionName, mArguments));
+			newAST->generateSymbols(compiler.binder(), mSymbolTable);
+			return true;
+		}
+	}
+
+	return false;
 }
 
 void CallExpressionAST::generateSymbols(Binder& binder, std::shared_ptr<SymbolTable> symbolTable) {

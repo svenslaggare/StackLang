@@ -90,12 +90,18 @@ class FunctionSymbol : public Symbol {
 private:
 	std::vector<std::shared_ptr<FunctionSignatureSymbol>> mOverloads;
 	Namespace mDefinedNamespace;
+	bool mIsMember;
 public:
 	//Creates a new function symbol with the given signature
-	FunctionSymbol(std::string name, std::shared_ptr<FunctionSignatureSymbol> signature, Namespace definedNamespace = {});
+	FunctionSymbol(std::string name,
+				   std::shared_ptr<FunctionSignatureSymbol> signature,
+				   Namespace definedNamespace = {}, bool isMember = false);
 
 	//Returns the namespace that the function is defined in
 	const Namespace& definedNamespace() const;
+
+	//Indicates if the current function is a member function
+	bool isMember() const;
 
 	virtual std::string asString() const override;
 

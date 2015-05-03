@@ -46,13 +46,17 @@ std::string VariableSymbol::className() const {
 }
 
 //Function
-FunctionSymbol::FunctionSymbol(std::string name, std::shared_ptr<FunctionSignatureSymbol> signature, Namespace definedNamespace)
-	: Symbol(name, "Function"), mOverloads({ signature }), mDefinedNamespace(definedNamespace) {
+FunctionSymbol::FunctionSymbol(std::string name, std::shared_ptr<FunctionSignatureSymbol> signature, Namespace definedNamespace, bool isMember)
+	: Symbol(name, "Function"), mOverloads({ signature }), mDefinedNamespace(definedNamespace), mIsMember(isMember) {
 
 }
 
 const Namespace& FunctionSymbol::definedNamespace() const {
 	return mDefinedNamespace;
+}
+
+bool FunctionSymbol::isMember() const {
+	return mIsMember;
 }
 
 std::string FunctionSymbol::asString() const {
