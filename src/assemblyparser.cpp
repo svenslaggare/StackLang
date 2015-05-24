@@ -613,6 +613,7 @@ void AssemblyParser::parseTokens(const std::vector<std::string>& tokens, Assembl
 			if (numArgs >= 0 && numArgs <= MAXIMUM_NUMBER_OF_ARGUMENTS) {
 				currentFunc.structName = structTypeName;
 				currentFunc.memberFunctionName = memberFunctionName;
+				currentFunc.isMemberFunction = true;
 			} else {
 				throw std::runtime_error(
 					"Maximum " + std::to_string(MAXIMUM_NUMBER_OF_ARGUMENTS) + " arguments are supported.");
