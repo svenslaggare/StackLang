@@ -34,3 +34,6 @@ test
 
 #Test runners
 tests/runners/*
+
+#Clion
+.idea

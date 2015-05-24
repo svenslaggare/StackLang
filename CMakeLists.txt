@@ -1,0 +1,73 @@
+cmake_minimum_required(VERSION 3.2)
+project(StackLang)
+
+set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++11")
+
+set(SOURCE_FILES
+    src/ast/arrayast.cpp
+    src/ast/arrayast.h
+    src/ast/ast.cpp
+    src/ast/ast.h
+    src/ast/asts.h
+    src/ast/blockast.cpp
+    src/ast/blockast.h
+    src/ast/callast.cpp
+    src/ast/callast.h
+    src/ast/classast.cpp
+    src/ast/classast.h
+    src/ast/expressionast.cpp
+    src/ast/expressionast.h
+    src/ast/functionast.cpp
+    src/ast/functionast.h
+    src/ast/namespaceast.cpp
+    src/ast/namespaceast.h
+    src/ast/objectast.cpp
+    src/ast/objectast.h
+    src/ast/operatorast.cpp
+    src/ast/operatorast.h
+    src/ast/programast.cpp
+    src/ast/programast.h
+    src/ast/statementast.cpp
+    src/ast/statementast.h
+    src/ast/variableast.cpp
+    src/ast/variableast.h
+    src/binder.cpp
+    src/binder.h
+    src/codegenerator.cpp
+    src/codegenerator.h
+    src/compiler.cpp
+    src/compiler.h
+    src/helpers.cpp
+    src/helpers.h
+    src/lexer.cpp
+    src/lexer.h
+    src/loader.cpp
+    src/loader.h
+    src/namespace.cpp
+    src/namespace.h
+    src/object.cpp
+    src/object.h
+    src/operators.cpp
+    src/operators.h
+    src/parser.cpp
+    src/parser.h
+    src/semantics.cpp
+    src/semantics.h
+    src/stacklang.cpp
+    src/stacklang.h
+    src/symbol.cpp
+    src/symbol.h
+    src/symboltable.cpp
+    src/symboltable.h
+    src/type.cpp
+    src/type.h
+    src/typechecker.cpp
+    src/typechecker.h
+    src/typename.cpp
+    src/typename.h
+    tests/runners/compiler-test-runner.cpp
+    tests/runners/type-test-runner.cpp
+    tests/compiler-test.h
+    tests/type-test.h)
+
+add_executable(StackLang ${SOURCE_FILES} src/assemblyparser.h src/assemblyparser.cpp)

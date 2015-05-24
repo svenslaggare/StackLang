@@ -8,7 +8,7 @@ class TypeChecker;
 class Type;
 class SymbolTable;
 
-//Represents a function defition
+//Represents a function definition
 struct FunctionDefinition {
 	std::string name;
 	const std::vector<std::shared_ptr<Type>> parameters;
