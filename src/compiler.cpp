@@ -3,7 +3,6 @@
 #include "ast/programast.h"
 #include "loader.h"
 
-#include <iostream>
 #include <fstream>
 
 Compiler::Compiler(
@@ -104,7 +103,7 @@ CodeGenerator& Compiler::codeGenerator() {
 	return *mCodeGenerator.get();
 }
 
-void Compiler::load() {
+void Compiler::load(std::vector<std::string> libraries) {
 	//Load the runtime library
 	Loader loader(binder(), typeChecker());
 	std::fstream rtLibText("../StackJIT/rtlib/rtlib.sbc");
@@ -112,6 +111,17 @@ void Compiler::load() {
 
 	std::fstream vectorLibText("rtlib/vector.sbc");
 	loader.loadAssembly(vectorLibText);
+
+	//Load user libraries
+	for (auto library : libraries) {
+		std::fstream libText(library);
+
+		if (libText.is_open()) {
+			loader.loadAssembly(libText);
+		} else {
+			throw std::runtime_error("Could not load library '" + library + "'.");
+		}
+	}
 }
 
 void Compiler::process(std::shared_ptr<ProgramAST> programAST) {

@@ -1,0 +1,17 @@
+struct Point
+{
+	x Int
+	y Int
+}
+
+member Point::.constructor() Void
+{
+	RET
+}
+
+member Point::length() Int
+{
+	@AccessModifier(value=private)
+	PUSHINT 0
+	RET
+}

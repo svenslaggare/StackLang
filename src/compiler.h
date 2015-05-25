@@ -49,7 +49,7 @@ public:
 	CodeGenerator& codeGenerator();
 
 	//Loads libraries
-	void load();
+	void load(std::vector<std::string> libraries = {});
 
 	//Process the given program
 	void process(std::shared_ptr<ProgramAST> programAST);

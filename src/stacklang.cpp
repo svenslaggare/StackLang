@@ -1,10 +1,6 @@
 #include "compiler.h"
-#include "lexer.h"
 #include "parser.h"
-
-#include <iostream>
 #include <fstream>
-#include <memory>
 
 int main(int argc, char* argv[]) {
 	auto compiler = Compiler::create();
@@ -15,6 +11,18 @@ int main(int argc, char* argv[]) {
 		filePath = argv[1];
 	} else {
 		throw std::runtime_error("No input files specified.");
+	}
+
+	std::vector<std::string> libraries;
+
+	if (argc > 2) {
+		for (int i = 2; i < argc; ++i) {
+			std::string library = argv[i];
+
+			if (library.find(".sbc") == library.length() - 4) {
+				libraries.push_back(library);
+			}
+		}
 	}
 
 	std::fstream programText(filePath);
@@ -29,7 +37,7 @@ int main(int argc, char* argv[]) {
 	auto programAST = parser.parse();
 
 	//Loads libraries
-	compiler.load();
+	compiler.load(libraries);
 
 	//Process the program
 	compiler.process(programAST);

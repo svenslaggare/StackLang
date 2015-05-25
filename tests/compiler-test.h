@@ -161,7 +161,15 @@ public:
         TS_ASSERT_EQUALS(stripErrorMessage(compile("classes/access1")), "what():  Cannot access private field of class Point.");
         TS_ASSERT_EQUALS(stripErrorMessage(compile("classes/access2")), "what():  Cannot access private field of class Point.");
         TS_ASSERT_EQUALS(compileAndRun("classes/access3"), "0\n");
-        TS_ASSERT_EQUALS(stripErrorMessage(compile("classes/access4")), "what():  Cannot access private field of class Point.");
+        TS_ASSERT_EQUALS(stripErrorMessage(compile("classes/access4")), "what():  Cannot call private function of class Point.");
         TS_ASSERT_EQUALS(compileAndRun("classes/access5"), "0\n");
+
+        TS_ASSERT_EQUALS(
+            stripErrorMessage(compile("classes/loaded2", { "programs/classes/point1.sbc" })),
+            "what():  Cannot access private field of class Point.");
+
+        TS_ASSERT_EQUALS(
+            stripErrorMessage(compile("classes/loaded3", { "programs/classes/point2.sbc" })),
+            "what():  Cannot call private function of class Point.");
     }
 };

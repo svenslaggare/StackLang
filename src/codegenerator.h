@@ -33,13 +33,15 @@ private:
 	std::vector<FunctionParameter> mParameters;
 	std::shared_ptr<Type> mReturnType;
 	bool mIsMemberFunction;
+	AccessModifiers mAccessModifier;
 
 	std::map<std::string, Local> mLocals;
 	std::vector<std::string> mInstructions;
 	std::vector<int> mReturnBranches;
 public:
 	//Creates a new generated function
-	GeneratedFunction(std::string functionName, std::vector<FunctionParameter> parameters, std::shared_ptr<Type> returnType, bool isMemberFunction = false);
+	GeneratedFunction(std::string functionName, std::vector<FunctionParameter> parameters, std::shared_ptr<Type> returnType,
+					  bool isMemberFunction, AccessModifiers accessModifier);
 	GeneratedFunction();
 
 	//Returns the number of locals
@@ -80,7 +82,7 @@ public:
 	//Adds the instruction at the given index to the list of return branches
 	void addReturnBranch(int index);
 
-	//Ouputs the generated code to the given stream
+	//Outputs the generated code to the given stream
 	void outputGeneratedCode(std::ostream& os);
 };
 
@@ -100,7 +102,7 @@ public:
 	//Returns the object layout
 	const Object& objectLayout() const;
 
-	//Ouputs the generated class to the given stream
+	//Outputs the generated class to the given stream
 	void outputGeneratedCode(std::ostream& os);
 };
 
@@ -121,12 +123,13 @@ public:
 	void generateProgram(std::shared_ptr<ProgramAST> programAST);
 
 	//Creates a new function
-	GeneratedFunction& newFunction(std::shared_ptr<FunctionPrototypeAST> functionPrototype, bool isMemberFunction = false);
+	GeneratedFunction& newFunction(std::shared_ptr<FunctionPrototypeAST> functionPrototype,
+								   bool isMemberFunction = false, AccessModifiers accessModifier = AccessModifiers::Public);
 
 	//Prints the generated code
 	void printGeneratedCode();
 
-	//Indicates that a code gen error has occured
+	//Indicates that a code gen error has occurred
 	void codeGenError(std::string errorMessage);
 
 	//The name of the return value local

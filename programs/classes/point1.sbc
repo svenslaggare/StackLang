@@ -1,0 +1,11 @@
+struct Point
+{
+	@FieldAccessModifiers(x=private y=private)
+	x Int
+	y Int
+}
+
+member Point::.constructor() Void
+{
+	RET
+}

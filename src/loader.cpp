@@ -67,6 +67,17 @@ std::shared_ptr<SymbolTable> getNamespaceTable(std::shared_ptr<SymbolTable> oute
 	}
 }
 
+//Parses the given access modifier
+AccessModifiers parseAccessModifier(std::string modifier) {
+	if (modifier == "public") {
+		return AccessModifiers::Public;
+	} else if (modifier == "private") {
+		return AccessModifiers::Private;
+	} else {
+		throw std::runtime_error("'" + modifier + "' is not a valid access modifier.");
+	}
+}
+
 void Loader::defineFunction(const AssemblyParser::Function& funcDef, std::shared_ptr<SymbolTable> funcScope) {
 	std::vector<VariableSymbol> parameterSymbols;
 
@@ -115,14 +126,26 @@ void Loader::defineClass(const AssemblyParser::Struct& classDef) {
 
         std::unordered_map<std::string, Field> fields;
 
+		auto attributes = classDef.attributes.attributes;
+
         for (auto field : classDef.fields) {
 			auto fieldType = getType(field.type);
+			auto accessModifier = AccessModifiers::Public;
 
 			if (fieldType == nullptr) {
 				throw std::runtime_error("'" + field.type + "' is not a type.");
 			}
 
-            fields.insert({ field.name, Field(field.name, fieldType) });
+			//Check if any access modifiers are defined in the class
+			if (attributes.count("FieldAccessModifiers") > 0) {
+				auto fieldModifiers = attributes["FieldAccessModifiers"].values;
+
+				if (fieldModifiers.count(field.name) > 0) {
+					accessModifier = parseAccessModifier(fieldModifiers[field.name]);
+				}
+			}
+
+            fields.insert({ field.name, Field(field.name, fieldType, accessModifier) });
         }
 
         mTypeChecker.addObject(Object(classDef.name, classType, fields));
@@ -152,10 +175,47 @@ void Loader::defineMemberFunction(const AssemblyParser::Function& memberDef) {
 		throw std::runtime_error("Constructors must have return type 'Void");
 	}
 
-	AssemblyParser::Function funcDef = memberDef;
-	funcDef.name = memberName;
-	funcDef.parameters.erase(funcDef.parameters.begin());
-	defineFunction(funcDef, classSymbol->symbolTable());
+	auto attributes = memberDef.attributes.attributes;
+	auto accessModifier = AccessModifiers::Public;
+
+	//Check if an access modifier are defined in function
+	if (attributes.count("AccessModifier") > 0) {
+		auto accessModifierAttr = attributes["AccessModifier"].values;
+
+		if (accessModifierAttr.count("value") > 0) {
+			accessModifier = parseAccessModifier(accessModifierAttr["value"]);
+		}
+	}
+
+	std::vector<VariableSymbol> parameterSymbols;
+
+	for (std::size_t i = 1; i < memberDef.parameters.size(); ++i) {
+		auto param = memberDef.parameters[i];
+		auto paramType = getType(param);
+
+		if (paramType == nullptr) {
+			throw std::runtime_error("'" + param + "' is not a type.");
+		}
+
+		parameterSymbols.push_back(VariableSymbol(
+			"param_" + std::to_string(i), paramType->name(),
+			VariableSymbolAttribute::FUNCTION_PARAMETER));
+	}
+
+	auto returnType = getType(memberDef.returnType);
+	if (returnType == nullptr) {
+		throw std::runtime_error("'" + memberDef.returnType + "' is not a type.");
+	}
+
+	auto added = classSymbol->symbolTable()->addMemberFunction(
+		memberDef.memberFunctionName,
+		parameterSymbols,
+		returnType->name(),
+		accessModifier);
+
+	if (!added) {
+		throw std::runtime_error("The function '" + memberDef.memberFunctionName + "' is already defined.");
+	}
 }
 
 void Loader::loadAssembly(std::istream& stream) {

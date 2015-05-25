@@ -252,7 +252,7 @@ void MemberCallExpressionAST::verify(SemanticVerifier& verifier) {
 		auto classSymbol = std::dynamic_pointer_cast<ClassSymbol>(mSymbolTable->find(className));
 
 		if (!classSymbol->symbolTable()->containsTable(mSymbolTable)) {
-			verifier.semanticError("Cannot access private field of class " + className + ".");
+			verifier.semanticError("Cannot call private function of class " + className + ".");
 		}
 	}
 }

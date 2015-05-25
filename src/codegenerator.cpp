@@ -22,8 +22,13 @@ FunctionParameter::FunctionParameter()
 }
 
 //Generated function
-GeneratedFunction::GeneratedFunction(std::string functionName, std::vector<FunctionParameter> parameters, std::shared_ptr<Type> returnType, bool isMemberFunction)
-	: mFunctionName(functionName), mParameters(parameters), mReturnType(returnType), mIsMemberFunction(isMemberFunction) {
+GeneratedFunction::GeneratedFunction(std::string functionName, std::vector<FunctionParameter> parameters, std::shared_ptr<Type> returnType,
+									 bool isMemberFunction, AccessModifiers accessModifier)
+	: mFunctionName(functionName),
+	  mParameters(parameters),
+	  mReturnType(returnType),
+	  mIsMemberFunction(isMemberFunction),
+	  mAccessModifier(accessModifier) {
 
 }
 
@@ -125,6 +130,10 @@ void GeneratedFunction::outputGeneratedCode(std::ostream& os) {
 	os << ") " << mReturnType->vmType() << std::endl;
 	os << "{";
 
+	if (mIsMemberFunction) {
+		os << std::endl << "   @AccessModifier(value=" << mAccessModifier << ")";
+	}
+
 	if (mLocals.size() > 0) {
 		os << std::endl << "   .locals " << mLocals.size() << std::endl;
 
@@ -185,6 +194,25 @@ void GeneratedClass::outputGeneratedCode(std::ostream& os) {
 	os << "struct " << mName << std::endl;
 	os << "{" << std::endl;
 
+	if (mObjectLayout.fields().size() > 0) {
+		os << "   @FieldAccessModifiers(";
+
+		bool isFirst = true;
+		for (auto fieldDef : mObjectLayout.fields()) {
+			auto field = fieldDef.second;
+
+			if (isFirst) {
+				isFirst = false;
+			} else {
+				os << " ";
+			}
+
+			os << field.name() << "=" << field.accessModifier();
+		}
+
+		os << ")" << std::endl;
+	}
+
 	for (auto fieldDef : mObjectLayout.fields()) {
 		auto field = fieldDef.second;
 		os << "   " << field.name() << " " << field.type()->vmType() << std::endl;
@@ -222,7 +250,7 @@ void CodeGenerator::generateProgram(std::shared_ptr<ProgramAST> programAST) {
 				parameters,
 				memberFunc->prototype()->returnType());
 
-			auto& genFunc = newFunction(memberFuncPrototype, true);
+			auto& genFunc = newFunction(memberFuncPrototype, true, memberFunc->accessModifier());
 			memberFunc->generateCode(*this, genFunc);
 		}
 	});
@@ -233,7 +261,8 @@ void CodeGenerator::generateProgram(std::shared_ptr<ProgramAST> programAST) {
 	});
 }
 
-GeneratedFunction& CodeGenerator::newFunction(std::shared_ptr<FunctionPrototypeAST> functionPrototype, bool isMemberFunction) {
+GeneratedFunction& CodeGenerator::newFunction(std::shared_ptr<FunctionPrototypeAST> functionPrototype,
+											  bool isMemberFunction, AccessModifiers accessModifier) {
 	std::vector<FunctionParameter> parameters;
 
 	for (auto param : functionPrototype->parameters()) {
@@ -244,7 +273,8 @@ GeneratedFunction& CodeGenerator::newFunction(std::shared_ptr<FunctionPrototypeA
 		functionPrototype->fullName("."),
 		parameters,
 		mTypeChecker.findType(functionPrototype->returnType()),
-		isMemberFunction));
+		isMemberFunction,
+		accessModifier));
 
 	auto& newFunc = mFunctions[mFunctions.size() - 1];
 

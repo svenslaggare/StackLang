@@ -1,0 +1,129 @@
+struct Point
+{
+   @FieldAccessModifiers(y=private x=private)
+   y Int
+   x Int
+}
+
+member Point::.constructor(Int Int) Void
+{
+   @AccessModifier(value=public)
+   LDARG 0
+   LDARG 1
+   STFIELD Point::x
+   LDARG 0
+   LDARG 2
+   STFIELD Point::y
+   RET
+}
+
+member Point::getX() Int
+{
+   @AccessModifier(value=public)
+   .locals 1
+   .local 0 Int
+
+   LDARG 0
+   LDFIELD Point::x
+   STLOC 0
+   BR 4
+   LDLOC 0
+   RET
+}
+
+member Point::getY() Int
+{
+   @AccessModifier(value=public)
+   .locals 1
+   .local 0 Int
+
+   LDARG 0
+   LDFIELD Point::y
+   STLOC 0
+   BR 4
+   LDLOC 0
+   RET
+}
+
+member Point::squareX() Int
+{
+   @AccessModifier(value=private)
+   .locals 1
+   .local 0 Int
+
+   LDARG 0
+   LDFIELD Point::x
+   LDARG 0
+   LDFIELD Point::x
+   MUL
+   STLOC 0
+   BR 7
+   LDLOC 0
+   RET
+}
+
+member Point::squareY() Int
+{
+   @AccessModifier(value=private)
+   .locals 1
+   .local 0 Int
+
+   LDARG 0
+   LDFIELD Point::y
+   LDARG 0
+   LDFIELD Point::y
+   MUL
+   STLOC 0
+   BR 7
+   LDLOC 0
+   RET
+}
+
+member Point::length() Int
+{
+   @AccessModifier(value=public)
+   .locals 1
+   .local 0 Int
+
+   LDARG 0
+   LDFIELD Point::x
+   LDARG 0
+   LDFIELD Point::x
+   MUL
+   LDARG 0
+   LDFIELD Point::y
+   LDARG 0
+   LDFIELD Point::y
+   MUL
+   ADD
+   CONVINTTOFLOAT
+   CALL std.math.sqrt(Float)
+   STLOC 0
+   BR 15
+   LDLOC 0
+   RET
+}
+
+member Point::normalize() Void
+{
+   @AccessModifier(value=public)
+   .locals 1
+   .local 0 Int
+
+   LDARG 0
+   CALLINST Point::length()
+   STLOC 0
+   LDARG 0
+   LDARG 0
+   LDFIELD Point::x
+   LDLOC 0
+   DIV
+   STFIELD Point::x
+   LDARG 0
+   LDARG 0
+   LDFIELD Point::y
+   LDLOC 0
+   DIV
+   STFIELD Point::y
+   RET
+}
