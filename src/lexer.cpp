@@ -243,6 +243,23 @@ std::vector<Token> Lexer::tokenize(std::istream& stream) const {
 			if (currentChar == '\'') {
 				char charValue = stream.get();
 
+
+				if (charValue == '\\') {
+					charValue = stream.get();
+					bool isEscaped = false;
+
+					switch (charValue) {
+						case 'n':
+							charValue = '\n';
+							isEscaped = true;
+							break;
+					}
+
+					if (!isEscaped) {
+						error("'\\" + std::string(1, charValue) + "' is not a valid escape character.");
+					}
+				}
+
 				if (stream.get() != '\'') {
 					error("Expected ' after char value");
 				}
@@ -256,7 +273,6 @@ std::vector<Token> Lexer::tokenize(std::istream& stream) const {
 			Token newToken;
 
 			//Merge two single chars to the 'TwoChars' type
-			//auto allowedDoubleChar = (currentChar == '=' || currentChar == '&' || currentChar == '|' || currentChar == ':');
 			auto allowedDoubleChar = mTwoOpTable.count(currentChar) > 0;
 
 			if (prevToken.type() == TokenType::SingleChar && allowedDoubleChar && mOpTable.count(prevToken.charValue) > 0) {
