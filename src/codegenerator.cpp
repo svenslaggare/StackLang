@@ -194,28 +194,10 @@ void GeneratedClass::outputGeneratedCode(std::ostream& os) {
 	os << "struct " << mName << std::endl;
 	os << "{" << std::endl;
 
-	if (mObjectLayout.fields().size() > 0) {
-		os << "   @FieldAccessModifiers(";
-
-		bool isFirst = true;
-		for (auto fieldDef : mObjectLayout.fields()) {
-			auto field = fieldDef.second;
-
-			if (isFirst) {
-				isFirst = false;
-			} else {
-				os << " ";
-			}
-
-			os << field.name() << "=" << field.accessModifier();
-		}
-
-		os << ")" << std::endl;
-	}
-
 	for (auto fieldDef : mObjectLayout.fields()) {
 		auto field = fieldDef.second;
 		os << "   " << field.name() << " " << field.type()->vmType() << std::endl;
+		os << "   @AccessModifier(value=" << field.accessModifier() << ")" << std::endl << std::endl;
 	}
 
 	os << "}" << std::endl;

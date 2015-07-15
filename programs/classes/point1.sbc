@@ -1,8 +1,10 @@
 struct Point
 {
-	@FieldAccessModifiers(x=private y=private)
 	x Int
+	@AccessModifier(value=private)
+
 	y Int
+	@AccessModifier(value=private)
 }
 
 member Point::.constructor() Void

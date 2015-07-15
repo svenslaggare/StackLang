@@ -126,22 +126,21 @@ void Loader::defineClass(const AssemblyParser::Struct& classDef) {
 
         std::unordered_map<std::string, Field> fields;
 
-		auto attributes = classDef.attributes.attributes;
-
         for (auto field : classDef.fields) {
 			auto fieldType = getType(field.type);
 			auto accessModifier = AccessModifiers::Public;
+			auto attributes = field.attributes.attributes;
 
 			if (fieldType == nullptr) {
 				throw std::runtime_error("'" + field.type + "' is not a type.");
 			}
 
-			//Check if any access modifiers are defined in the class
-			if (attributes.count("FieldAccessModifiers") > 0) {
-				auto fieldModifiers = attributes["FieldAccessModifiers"].values;
+			//Check if an access modifier are defined for the filed
+			if (attributes.count("AccessModifier") > 0) {
+				auto accessModifierAttr = attributes["AccessModifier"].values;
 
-				if (fieldModifiers.count(field.name) > 0) {
-					accessModifier = parseAccessModifier(fieldModifiers[field.name]);
+				if (accessModifierAttr.count("value") > 0) {
+					accessModifier = parseAccessModifier(accessModifierAttr["value"]);
 				}
 			}
 
