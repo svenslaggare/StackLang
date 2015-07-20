@@ -3,7 +3,7 @@ func std.math.intMaxValue() Int
    .locals 1
    .local 0 Int
 
-   PUSHINT 2147483647
+   LDINT 2147483647
    STLOC 0
    BR 3
    LDLOC 0
@@ -15,7 +15,7 @@ func std.math.intMinValue() Int
    .locals 1
    .local 0 Int
 
-   PUSHINT -2147483647
+   LDINT -2147483647
    STLOC 0
    BR 3
    LDLOC 0
@@ -31,10 +31,10 @@ func std.math.max(Ref.Array[Int]) Int
    .local 1 Int
 
    LDARG 0
-   PUSHINT 0
+   LDINT 0
    LDELEM Int
    STLOC 1
-   PUSHINT 1
+   LDINT 1
    STLOC 2
    LDARG 0
    LDLEN
@@ -50,7 +50,7 @@ func std.math.max(Ref.Array[Int]) Int
    LDLOC 3
    STLOC 1
    LDLOC 2
-   PUSHINT 1
+   LDINT 1
    ADD
    STLOC 2
    BR 6
@@ -70,10 +70,10 @@ func std.math.max(Ref.Array[Float]) Float
    .local 1 Float
 
    LDARG 0
-   PUSHINT 0
+   LDINT 0
    LDELEM Float
    STLOC 1
-   PUSHINT 1
+   LDINT 1
    STLOC 2
    LDARG 0
    LDLEN
@@ -89,7 +89,7 @@ func std.math.max(Ref.Array[Float]) Float
    LDLOC 3
    STLOC 1
    LDLOC 2
-   PUSHINT 1
+   LDINT 1
    ADD
    STLOC 2
    BR 6

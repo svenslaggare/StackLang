@@ -169,7 +169,7 @@ void MultiDimArrayDeclarationAST::generateCode(CodeGenerator& codeGen, Generated
 	func.addInstruction("STELEM " + typeChecker.findType(typeString(mLengthExpressions.size() - 1))->vmType());
 
 	func.addInstruction("LDLOC " + std::to_string(subArrayLocal));
-	func.addInstruction("PUSHINT 1");
+	func.addInstruction("LDINT 1");
 	func.addInstruction("ADD");
 	func.addInstruction("STLOC " + std::to_string(subArrayLocal));
 

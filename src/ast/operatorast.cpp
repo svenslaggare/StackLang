@@ -446,9 +446,9 @@ void UnaryOpExpressionAST::generateCode(CodeGenerator& codeGen, GeneratedFunctio
 		auto opType = mOperand->expressionType(codeGen.typeChecker());
 
 		if (*opType == *codeGen.typeChecker().findType("Int")) {
-			func.addInstruction("PUSHINT 0");
+			func.addInstruction("LDINT 0");
 		} else if (*opType == *codeGen.typeChecker().findType("Float")) {
-			func.addInstruction("PUSHFLOAT 0");
+			func.addInstruction("LDFLOAT 0");
 		}
 
 		mOperand->generateCode(codeGen, func);

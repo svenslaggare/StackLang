@@ -12,6 +12,6 @@ member Point::.constructor() Void
 member Point::length() Int
 {
 	@AccessModifier(value=private)
-	PUSHINT 0
+	LDINT 0
 	RET
 }

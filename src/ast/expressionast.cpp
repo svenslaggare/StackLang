@@ -27,7 +27,7 @@ std::shared_ptr<Type> IntegerExpressionAST::expressionType(const TypeChecker& ch
 }
 
 void IntegerExpressionAST::generateCode(CodeGenerator& codeGen, GeneratedFunction& func) {
-	func.addInstruction("PUSHINT " + std::to_string(mValue));
+	func.addInstruction("LDINT " + std::to_string(mValue));
 }
 
 //Bool expression AST
@@ -87,7 +87,7 @@ std::shared_ptr<Type> FloatExpressionAST::expressionType(const TypeChecker& chec
 }
 
 void FloatExpressionAST::generateCode(CodeGenerator& codeGen, GeneratedFunction& func) {
-	func.addInstruction("PUSHFLOAT " + std::to_string(mValue));
+	func.addInstruction("LDFLOAT " + std::to_string(mValue));
 }
 
 //Null ref expression AST
@@ -134,7 +134,7 @@ std::shared_ptr<Type> CharExpressionAST::expressionType(const TypeChecker& check
 }
 
 void CharExpressionAST::generateCode(CodeGenerator& codeGen, GeneratedFunction& func) {
-	func.addInstruction("PUSHCHAR " + std::to_string((int)mValue));
+	func.addInstruction("LDCHAR " + std::to_string((int)mValue));
 }
 
 //String expression AST

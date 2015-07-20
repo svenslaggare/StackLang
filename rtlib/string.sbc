@@ -49,7 +49,7 @@ func println(Ref.Struct.RTString) Void
    .locals 1
    .local 0 Int
 
-   PUSHINT 0
+   LDINT 0
    STLOC 0
    LDLOC 0
    LDARG 0
@@ -60,11 +60,11 @@ func println(Ref.Struct.RTString) Void
    CALLINST RTString::charAt(Int)
    CALL std.printchar(Char)
    LDLOC 0
-   PUSHINT 1
+   LDINT 1
    ADD
    STLOC 0
    BR 2
-   PUSHCHAR 10
+   LDCHAR 10
    CALL std.printchar(Char)
    RET
 }
@@ -80,7 +80,7 @@ func main() Int
    STLOC 1
    LDLOC 1
    CALL println(Ref.Struct.RTString)
-   PUSHINT 0
+   LDINT 0
    STLOC 0
    BR 8
    LDLOC 0
