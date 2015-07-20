@@ -332,7 +332,7 @@ void BinaryOpExpressionAST::generateCode(CodeGenerator& codeGen, GeneratedFuncti
 		int resLocal = func.newLocal("$tmp$_" + std::to_string(func.numLocals()), codeGen.typeChecker().findType("Bool"));
 
 		mLeftHandSide->generateCode(codeGen, func);
-		func.addInstruction("PUSHTRUE");
+		func.addInstruction("LDTRUE");
 		int branchIndex = func.numInstructions();
 		func.addInstruction("BNE ");
 
@@ -342,7 +342,7 @@ void BinaryOpExpressionAST::generateCode(CodeGenerator& codeGen, GeneratedFuncti
 		int skipIndex = func.numInstructions();
 		func.addInstruction("BR ");
 		func.instruction(branchIndex) += std::to_string(func.numInstructions());
-		func.addInstruction("PUSHFALSE");
+		func.addInstruction("LDFALSE");
 		func.addStoreLocal(resLocal);
 		func.instruction(skipIndex) += std::to_string(func.numInstructions());
 
@@ -352,7 +352,7 @@ void BinaryOpExpressionAST::generateCode(CodeGenerator& codeGen, GeneratedFuncti
 		int resLocal = func.newLocal("$tmp$_" + std::to_string(func.numLocals()), codeGen.typeChecker().findType("Bool"));
 
 		mLeftHandSide->generateCode(codeGen, func);
-		func.addInstruction("PUSHTRUE");
+		func.addInstruction("LDTRUE");
 		int branchIndex = func.numInstructions();
 		func.addInstruction("BEQ ");
 
@@ -362,7 +362,7 @@ void BinaryOpExpressionAST::generateCode(CodeGenerator& codeGen, GeneratedFuncti
 		int skipIndex = func.numInstructions();
 		func.addInstruction("BR ");
 		func.instruction(branchIndex) += std::to_string(func.numInstructions());
-		func.addInstruction("PUSHTRUE");
+		func.addInstruction("LDTRUE");
 		func.addStoreLocal(resLocal);
 		func.instruction(skipIndex) += std::to_string(func.numInstructions());
 

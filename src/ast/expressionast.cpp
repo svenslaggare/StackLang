@@ -58,9 +58,9 @@ std::shared_ptr<Type> BoolExpressionAST::expressionType(const TypeChecker& check
 
 void BoolExpressionAST::generateCode(CodeGenerator& codeGen, GeneratedFunction& func) {
 	if (mValue) {
-		func.addInstruction("PUSHTRUE");
+		func.addInstruction("LDTRUE");
 	} else {
-		func.addInstruction("PUSHFALSE");
+		func.addInstruction("LDFALSE");
 	}
 }
 
@@ -108,7 +108,7 @@ std::shared_ptr<Type> NullRefExpressionAST::expressionType(const TypeChecker& ch
 }
 
 void NullRefExpressionAST::generateCode(CodeGenerator& codeGen, GeneratedFunction& func) {
-	func.addInstruction("PUSHNULL");
+	func.addInstruction("LDNULL");
 }
 
 //Char expression AST

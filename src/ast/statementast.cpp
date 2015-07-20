@@ -267,7 +267,7 @@ void IfElseStatementAST::generateCode(CodeGenerator& codeGen, GeneratedFunction&
 	if (condIndex == -1) {
 		if (mConditionExpression->expressionType(codeGen.typeChecker())->name() == "Bool") {
 			mConditionExpression->generateCode(codeGen, func);
-			func.addInstruction("PUSHTRUE");
+			func.addInstruction("LDTRUE");
 			condIndex = func.numInstructions();
 			func.addInstruction("BNE");
 		} else {
@@ -360,7 +360,7 @@ void WhileLoopStatementAST::generateCode(CodeGenerator& codeGen, GeneratedFuncti
 	if (condIndex == -1) {
 		if (mConditionExpression->expressionType(codeGen.typeChecker())->name() == "Bool") {
 			mConditionExpression->generateCode(codeGen, func);
-			func.addInstruction("PUSHTRUE");
+			func.addInstruction("LDTRUE");
 			condIndex = func.numInstructions();
 			func.addInstruction("BNE");
 		} else {
