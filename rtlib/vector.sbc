@@ -1,5 +1,5 @@
 #Represents a 2D vector
-struct Vector2
+class Vector2
 {
 	x Float
 	y Float

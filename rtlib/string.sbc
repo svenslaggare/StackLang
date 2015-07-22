@@ -1,4 +1,4 @@
-struct RTString
+class RTString
 {
    @FieldAccessModifiers(chars=private)
    chars Ref.Array[Char]

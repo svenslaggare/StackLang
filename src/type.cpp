@@ -76,7 +76,7 @@ ClassType::ClassType(std::string name)
 }
 
 std::string ClassType::vmType() const {
-	return "Ref.Struct." + Helpers::replaceString(name(), "::", ".");
+	return "Ref.Class." + Helpers::replaceString(name(), "::", ".");
 }
 
 std::string ClassType::vmClassName() const {
@@ -205,21 +205,21 @@ std::string TypeSystem::fromVMType(std::string vmType) {
 			std::string elementType = match[1].str();
 			elementType = elementType.substr(1, elementType.length() - 2);
 			return fromVMType(elementType) + "[]";
-		} else if (typeParts[1] == "Struct") {
-			std::string structName = "";
+		} else if (typeParts[1] == "Class") {
+			std::string className = "";
 			bool isFirst = true;
 
 			for (int i = 2; i < typeParts.size(); i++) {
 				if (isFirst) {
 					isFirst = false;
 				} else {
-					structName += ".";
+					className += ".";
 				}
 
-				structName += typeParts[i];
+				className += typeParts[i];
 			}
 			
-			return structName;
+			return className;
 		} else if (typeParts.at(1) == "Null") {
 			return NullReferenceType().name();
 		}

@@ -1,4 +1,4 @@
-struct Point
+class Point
 {
    y Int
    @AccessModifier(value=private)

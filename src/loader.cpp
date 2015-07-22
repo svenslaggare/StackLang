@@ -119,7 +119,7 @@ void Loader::defineFunction(const AssemblyParser::Function& funcDef, std::shared
     }
 }
 
-void Loader::defineClass(const AssemblyParser::Struct& classDef) {
+void Loader::defineClass(const AssemblyParser::Class& classDef) {
     if (mTypeChecker.findType(classDef.name) == nullptr) {
         auto classType = std::make_shared<ClassType>(classDef.name);
         mTypeChecker.addType(classType);
@@ -161,7 +161,7 @@ void Loader::defineClass(const AssemblyParser::Struct& classDef) {
 }
 
 void Loader::defineMemberFunction(const AssemblyParser::Function& memberDef) {
-	auto className = memberDef.structName;
+	auto className = memberDef.className;
 	auto memberName = memberDef.memberFunctionName;
 
 	auto classSymbol = std::dynamic_pointer_cast<ClassSymbol>(mBinder.symbolTable()->find(className));
@@ -224,7 +224,7 @@ void Loader::loadAssembly(std::istream& stream) {
 	AssemblyParser::parseTokens(tokens, assembly);
 
 	//Load
-	for (auto& currentStruct : assembly.structs) {
+	for (auto& currentStruct : assembly.classes) {
 		defineClass(currentStruct);
 	}
 

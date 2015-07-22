@@ -10,7 +10,7 @@ class SymbolTable;
 
 namespace AssemblyParser {
 	struct Function;
-	struct Struct;
+	struct Class;
 }
 
 //Loads assemblies
@@ -26,7 +26,7 @@ private:
 	void defineFunction(const AssemblyParser::Function& funcDef, std::shared_ptr<SymbolTable> funcScope = nullptr);
 
 	//Defines the given class
-	void defineClass(const AssemblyParser::Struct& classDef);
+	void defineClass(const AssemblyParser::Class& classDef);
 
 	//Defines the given member function
 	void defineMemberFunction(const AssemblyParser::Function& memberDef);

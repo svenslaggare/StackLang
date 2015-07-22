@@ -191,7 +191,7 @@ const Object& GeneratedClass::objectLayout() const {
 }
 
 void GeneratedClass::outputGeneratedCode(std::ostream& os) {
-	os << "struct " << mName << std::endl;
+	os << "class " << mName << std::endl;
 	os << "{" << std::endl;
 
 	for (auto fieldDef : mObjectLayout.fields()) {
