@@ -1,7 +1,9 @@
+./stackc rtlib/string.sl
 class RTString
 {
-   @FieldAccessModifiers(chars=private)
    chars Ref.Array[Char]
+   @AccessModifier(value=private)
+
 }
 
 member RTString::.constructor(Ref.Array[Char]) Void
@@ -44,7 +46,80 @@ member RTString::length() Int
    RET
 }
 
-func println(Ref.Struct.RTString) Void
+member RTString::concat(Ref.Class.RTString) Ref.Class.RTString
+{
+   @AccessModifier(value=public)
+   .locals 7
+   .local 2 Ref.Array[Char]
+   .local 1 Int
+   .local 4 Int
+   .local 3 Int
+   .local 5 Int
+   .local 6 Char
+   .local 0 Ref.Class.RTString
+
+   LDARG 0
+   LDFIELD RTString::chars
+   LDLEN
+   LDARG 1
+   LDFIELD RTString::chars
+   LDLEN
+   ADD
+   STLOC 1
+   LDLOC 1
+   NEWARR Char
+   STLOC 2
+   LDINT 0
+   STLOC 3
+   LDLOC 3
+   LDARG 0
+   CALLINST RTString::length()
+   BGE 29
+   LDLOC 2
+   LDLOC 3
+   LDARG 0
+   LDFIELD RTString::chars
+   LDLOC 3
+   LDELEM Char
+   STELEM Char
+   LDLOC 3
+   LDINT 1
+   ADD
+   STLOC 3
+   BR 13
+   LDARG 0
+   LDFIELD RTString::chars
+   LDLEN
+   STLOC 4
+   LDINT 0
+   STLOC 5
+   LDLOC 5
+   LDARG 1
+   CALLINST RTString::length()
+   BGE 53
+   LDARG 1
+   LDFIELD RTString::chars
+   STLOC 6
+   LDLOC 2
+   LDLOC 4
+   LDLOC 5
+   ADD
+   LDLOC 6
+   STELEM Char
+   LDLOC 5
+   LDINT 1
+   ADD
+   STLOC 5
+   BR 35
+   LDLOC 2
+   NEWOBJ RTString::.constructor(Ref.Array[Char])
+   STLOC 0
+   BR 57
+   LDLOC 0
+   RET
+}
+
+func println(Ref.Class.RTString) Void
 {
    .locals 1
    .local 0 Int
@@ -71,18 +146,18 @@ func println(Ref.Struct.RTString) Void
 
 func main() Int
 {
-   .locals 2
-   .local 1 Ref.Struct.RTString
+   .locals 1
    .local 0 Int
 
-   LDSTR "test"
+   LDSTR "Hello"
    NEWOBJ RTString::.constructor(Ref.Array[Char])
-   STLOC 1
-   LDLOC 1
-   CALL println(Ref.Struct.RTString)
+   LDSTR ", World!"
+   NEWOBJ RTString::.constructor(Ref.Array[Char])
+   CALLINST RTString::concat(Ref.Class.RTString)
+   CALL println(Ref.Class.RTString)
    LDINT 0
    STLOC 0
-   BR 8
+   BR 9
    LDLOC 0
    RET
 }

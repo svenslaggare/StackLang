@@ -19,6 +19,9 @@ private:
 	std::shared_ptr<ExpressionAST> mAccessExpression;
 	std::shared_ptr<ExpressionAST> mMemberExpression;
 
+	//Returns the name of the member to access
+	std::string getMemberName() const;
+
 	//Returns the object
 	const Object& getObject(const TypeChecker& checker) const;
 
@@ -91,6 +94,9 @@ private:
 	std::shared_ptr<ExpressionAST> mObjectRefExpression;
 	std::shared_ptr<ExpressionAST> mMemberExpression;
 	std::shared_ptr<ExpressionAST> mRightHandSide;
+
+	//Returns the name of the member to set
+	std::string getMemberName() const;
 
 	//Returns the object
 	const Object& getObject(const TypeChecker& checker) const;

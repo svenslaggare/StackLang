@@ -164,6 +164,8 @@ public:
         TS_ASSERT_EQUALS(stripErrorMessage(compile("classes/access4")), "what():  Cannot call private function of class Point.");
         TS_ASSERT_EQUALS(compileAndRun("classes/access5"), "0\n");
 
+        TS_ASSERT_EQUALS(compileAndRun("classes/selfusage1"), "Hello, World!\n0\n");
+
         TS_ASSERT_EQUALS(
             stripErrorMessage(compile("classes/loaded2", { "programs/classes/point1.sbc" })),
             "what():  Cannot access private field of class Point.");

@@ -16,6 +16,17 @@ class RTString {
 	func concat(RTString other): RTString {
 		var newLength = chars.length + other.chars.length;
 		var newChars = new Char[newLength];
+
+		for (var i = 0; i < this.length(); i += 1) {
+			newChars[i] = chars[i];
+		}
+
+		var thisLength = chars.length;
+		for (var i = 0; i < other.length(); i += 1) {
+			var char = other.chars[i];
+			newChars[thisLength + i] = char;
+		}
+
 		return new RTString(newChars);
 	}
 }
@@ -29,7 +40,6 @@ func println(RTString str): Void {
 }
 
 func main(): Int {
-	var str = new RTString("test");
-	println(str);
+	println(new RTString("Hello").concat(new RTString(", World!")));
 	return 0;
 }

@@ -267,10 +267,6 @@ void ClassDefinitionAST::generateSymbols(Binder& binder, std::shared_ptr<SymbolT
 		}
 	}
 
-	for (auto func : mFunctions) {
-		func->generateSymbols(binder, classTable);
-	}
-
 	if (mDefiningTable == nullptr) {
 		mDefiningTable = symbolTable;
 	}
@@ -279,6 +275,10 @@ void ClassDefinitionAST::generateSymbols(Binder& binder, std::shared_ptr<SymbolT
 		mDefiningTable->addClass(mName, classTable);
 	} else {
 		binder.error("The symbol '" + mName + "' is already defined.");
+	}
+
+	for (auto func : mFunctions) {
+		func->generateSymbols(binder, classTable);
 	}
 }
 
@@ -331,6 +331,7 @@ std::shared_ptr<FunctionSignatureSymbol> NewClassExpressionAST::constructorSigna
 
 void NewClassExpressionAST::generateSymbols(Binder& binder, std::shared_ptr<SymbolTable> symbolTable) {
 	AbstractSyntaxTree::generateSymbols(binder, symbolTable);
+
 	auto classSymbol = std::dynamic_pointer_cast<ClassSymbol>(Helpers::findSymbolInNamespace(mSymbolTable, mTypeName));
 
 	if (classSymbol == nullptr) {

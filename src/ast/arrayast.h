@@ -24,7 +24,9 @@ public:
 	std::shared_ptr<ExpressionAST> lengthExpression() const;
 
 	std::string asString() const override;
-	
+
+	virtual void rewrite(Compiler& compiler) override;
+
 	virtual void generateSymbols(Binder& binder, std::shared_ptr<SymbolTable> symbolTable) override;
 
 	virtual void typeCheck(TypeChecker& checker) override;
@@ -53,7 +55,9 @@ public:
 	const std::vector<std::shared_ptr<ExpressionAST>>& lengthExpressions() const;
 
 	std::string asString() const override;
-	
+
+	virtual void rewrite(Compiler& compiler) override;
+
 	virtual void generateSymbols(Binder& binder, std::shared_ptr<SymbolTable> symbolTable) override;
 
 	virtual void typeCheck(TypeChecker& checker) override;
@@ -79,12 +83,17 @@ public:
 	std::shared_ptr<ExpressionAST> accessExpression() const;
 
 	std::string asString() const override;
-	
+
+	virtual void rewrite(Compiler& compiler) override;
+
 	virtual void generateSymbols(Binder& binder, std::shared_ptr<SymbolTable> symbolTable) override;
 
 	virtual void typeCheck(TypeChecker& checker) override;
 
-	virtual std::shared_ptr<Type> expressionType(const TypeChecker& checker) const override; 
+	virtual std::shared_ptr<Type> expressionType(const TypeChecker& checker) const override;
+
+	//Generates code for accessing an array
+	void generateCode(CodeGenerator& codeGen, GeneratedFunction& func, std::shared_ptr<Type> elementType);
 
 	virtual void generateCode(CodeGenerator& codeGen, GeneratedFunction& func) override;
 };
@@ -112,12 +121,17 @@ public:
 	std::shared_ptr<ExpressionAST> rightHandSide() const;
 
 	std::string asString() const override;
-	
+
+	virtual void rewrite(Compiler& compiler) override;
+
 	virtual void generateSymbols(Binder& binder, std::shared_ptr<SymbolTable> symbolTable) override;
 
 	virtual void typeCheck(TypeChecker& checker) override;
 
-	virtual std::shared_ptr<Type> expressionType(const TypeChecker& checker) const override; 
+	virtual std::shared_ptr<Type> expressionType(const TypeChecker& checker) const override;
+
+	//Generated code for setting an element
+	void generateCode(CodeGenerator& codeGen, GeneratedFunction& func, std::shared_ptr<Type> elementType);
 
 	virtual void generateCode(CodeGenerator& codeGen, GeneratedFunction& func) override;
 };

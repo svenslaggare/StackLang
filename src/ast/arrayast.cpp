@@ -28,6 +28,15 @@ std::string ArrayDeclarationAST::asString() const {
 	return "new " + elementType() + "[" + mLengthExpression->asString() + "]";
 }
 
+void ArrayDeclarationAST::rewrite(Compiler& compiler) {
+	std::shared_ptr<AbstractSyntaxTree> newLength;
+	while (mLengthExpression->rewriteAST(newLength, compiler)) {
+		mLengthExpression = std::dynamic_pointer_cast<ExpressionAST>(newLength);
+	}
+
+	mLengthExpression->rewrite(compiler);
+}
+
 void ArrayDeclarationAST::generateSymbols(Binder& binder, std::shared_ptr<SymbolTable> symbolTable) {
 	AbstractSyntaxTree::generateSymbols(binder, symbolTable);
 	mLengthExpression->generateSymbols(binder, symbolTable);
@@ -95,6 +104,17 @@ std::string MultiDimArrayDeclarationAST::asString() const {
 		", ");
 
 	return "new " + elementType() + "[" + lengthsStr + "]";
+}
+
+void MultiDimArrayDeclarationAST::rewrite(Compiler& compiler) {
+	for (auto& lengthExpr : mLengthExpressions) {
+		std::shared_ptr<AbstractSyntaxTree> newLength;
+		while (lengthExpr->rewriteAST(newLength, compiler)) {
+			lengthExpr = std::dynamic_pointer_cast<ExpressionAST>(newLength);
+		}
+
+		lengthExpr->rewrite(compiler);
+	}
 }
 
 void MultiDimArrayDeclarationAST::generateSymbols(Binder& binder, std::shared_ptr<SymbolTable> symbolTable) {
@@ -197,6 +217,23 @@ std::string ArrayAccessAST::asString() const {
 	return mArrayRefExpression->asString() + "[" + mAccessExpression->asString() + "]";
 }
 
+void ArrayAccessAST::rewrite(Compiler& compiler) {
+	std::shared_ptr<AbstractSyntaxTree> newAccess;
+
+	while (mAccessExpression->rewriteAST(newAccess, compiler)) {
+		mAccessExpression = std::dynamic_pointer_cast<ExpressionAST>(newAccess);
+	}
+
+	std::shared_ptr<AbstractSyntaxTree> newMember;
+
+	while (mArrayRefExpression->rewriteAST(newMember, compiler)) {
+		mArrayRefExpression = std::dynamic_pointer_cast<ExpressionAST>(newMember);
+	}
+
+	mAccessExpression->rewrite(compiler);
+	mArrayRefExpression->rewrite(compiler);
+}
+
 void ArrayAccessAST::generateSymbols(Binder& binder, std::shared_ptr<SymbolTable> symbolTable) {
 	AbstractSyntaxTree::generateSymbols(binder, symbolTable);
 	mArrayRefExpression->generateSymbols(binder, symbolTable);
@@ -225,11 +262,19 @@ std::shared_ptr<Type> ArrayAccessAST::expressionType(const TypeChecker& checker)
 	return varType->elementType();
 }
 
-void ArrayAccessAST::generateCode(CodeGenerator& codeGen, GeneratedFunction& func) {
-	mArrayRefExpression->generateCode(codeGen, func);
+void ArrayAccessAST::generateCode(CodeGenerator& codeGen, GeneratedFunction& func, std::shared_ptr<Type> elementType) {
+	if (elementType == nullptr) {
+		mArrayRefExpression->generateCode(codeGen, func);
+		elementType = std::dynamic_pointer_cast<ArrayType>(mArrayRefExpression->expressionType(codeGen.typeChecker()))
+			->elementType();
+	}
+
 	mAccessExpression->generateCode(codeGen, func);
-	auto varType = std::dynamic_pointer_cast<ArrayType>(mArrayRefExpression->expressionType(codeGen.typeChecker()));
-	func.addInstruction("LDELEM " + varType->elementType()->vmType());
+	func.addInstruction("LDELEM " + elementType->vmType());
+}
+
+void ArrayAccessAST::generateCode(CodeGenerator& codeGen, GeneratedFunction& func) {
+	generateCode(codeGen, func, nullptr);
 }
 
 //Array set element
@@ -255,6 +300,27 @@ std::shared_ptr<ExpressionAST> ArraySetElementAST::rightHandSide() const {
 
 std::string ArraySetElementAST::asString() const {
 	return mArrayRefExpression->asString() + "[" + mAccessExpression->asString() + "] = " + mRightHandSide->asString();
+}
+
+void ArraySetElementAST::rewrite(Compiler& compiler) {
+	std::shared_ptr<AbstractSyntaxTree> newArrayRef;
+	while (mArrayRefExpression->rewriteAST(newArrayRef, compiler)) {
+		mArrayRefExpression = std::dynamic_pointer_cast<ExpressionAST>(newArrayRef);
+	}
+
+	std::shared_ptr<AbstractSyntaxTree> newAccess;
+	while (mAccessExpression->rewriteAST(newAccess, compiler)) {
+		mAccessExpression = std::dynamic_pointer_cast<ExpressionAST>(newAccess);
+	}
+
+	std::shared_ptr<AbstractSyntaxTree> newRHS;
+	while (mRightHandSide->rewriteAST(newRHS, compiler)) {
+		mRightHandSide = std::dynamic_pointer_cast<ExpressionAST>(newRHS);
+	}
+
+	mAccessExpression->rewrite(compiler);
+	mArrayRefExpression->rewrite(compiler);
+	mRightHandSide->rewrite(compiler);
 }
 
 void ArraySetElementAST::generateSymbols(Binder& binder, std::shared_ptr<SymbolTable> symbolTable) {
@@ -293,11 +359,18 @@ std::shared_ptr<Type> ArraySetElementAST::expressionType(const TypeChecker& chec
 	return checker.findType("Void");
 }
 
-void ArraySetElementAST::generateCode(CodeGenerator& codeGen, GeneratedFunction& func) {
-	auto arrayRefType = std::dynamic_pointer_cast<ArrayType>(mArrayRefExpression->expressionType(codeGen.typeChecker()));
+void ArraySetElementAST::generateCode(CodeGenerator& codeGen, GeneratedFunction& func, std::shared_ptr<Type> elementType) {
+	if (elementType == nullptr) {
+		auto arrayRefType = std::dynamic_pointer_cast<ArrayType>(mArrayRefExpression->expressionType(codeGen.typeChecker()));
+		mArrayRefExpression->generateCode(codeGen, func);
+		elementType = arrayRefType->elementType();
+	}
 
-	mArrayRefExpression->generateCode(codeGen, func);
 	mAccessExpression->generateCode(codeGen, func);
 	mRightHandSide->generateCode(codeGen, func);
-	func.addInstruction("STELEM " + arrayRefType->elementType()->vmType());
+	func.addInstruction("STELEM " + elementType->vmType());
+}
+
+void ArraySetElementAST::generateCode(CodeGenerator& codeGen, GeneratedFunction& func) {
+	generateCode(codeGen, func, nullptr);
 }

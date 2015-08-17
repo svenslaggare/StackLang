@@ -79,24 +79,24 @@ void BinaryOpExpressionAST::rewrite(Compiler& compiler) {
 }
 
 bool BinaryOpExpressionAST::rewriteAST(std::shared_ptr<AbstractSyntaxTree>& newAST, Compiler& compiler) const {
-	bool correctOp = false;
+	bool assignAndOperator = false;
 	Operator op(' ');
 
 	if (mOp == Operator('+', '=')) {
 		op = Operator('+');
-		correctOp = true;
+		assignAndOperator = true;
 	} else if (mOp == Operator('-', '=')) {
 		op = Operator('-');
-		correctOp = true;
+		assignAndOperator = true;
 	} else if (mOp == Operator('*', '=')) {
 		op = Operator('*');
-		correctOp = true;
+		assignAndOperator = true;
 	} else if (mOp == Operator('/', '=')) {
 		op = Operator('/');
-		correctOp = true;
+		assignAndOperator = true;
 	}
 
-	if (correctOp) {
+	if (assignAndOperator) {
 		std::shared_ptr<ExpressionAST> varRefExpr;
 
 		if (auto varDec = std::dynamic_pointer_cast<VariableDeclarationExpressionAST>(mLeftHandSide)) {
