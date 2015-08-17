@@ -36,7 +36,7 @@ std::string compileAndRun(std::string programName, std::initializer_list<std::st
 
 	std::string invokePath =
         "./stackc programs/" + programName + ".sl"
-        + " | ../StackJIT/stackjit -nd"
+        + " | ../StackJIT/stackjit"
         + " -i ../StackJIT/rtlib/rtlib.sbc"
         + libsStr
         + " 2>&1";
