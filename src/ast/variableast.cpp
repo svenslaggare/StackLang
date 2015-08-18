@@ -146,6 +146,6 @@ std::shared_ptr<Type> VariableDeclarationExpressionAST::expressionType(const Typ
 void VariableDeclarationExpressionAST::generateCode(CodeGenerator& codeGen, GeneratedFunction& func) {
 	if (!mIsFunctionParameter) {
 		auto varRefSymbol = std::dynamic_pointer_cast<VariableSymbol>(mSymbolTable->find(mName));
-		func.newLocal(varRefSymbol, codeGen.typeChecker().findType(type()));
+		func.newLocal(varRefSymbol, expressionType(codeGen.typeChecker()));
 	}
 }

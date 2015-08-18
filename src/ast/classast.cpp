@@ -238,6 +238,16 @@ void ClassDefinitionAST::generateSymbols(Binder& binder, std::shared_ptr<SymbolT
 		"this",
 		std::make_shared<VariableSymbol>("this", typeName, VariableSymbolAttribute::THIS_REFERENCE));
 
+	if (mDefiningTable == nullptr) {
+		mDefiningTable = symbolTable;
+	}
+
+	if (mDefiningTable->find(mName) == nullptr) {
+		mDefiningTable->addClass(mName, classTable);
+	} else {
+		binder.error("The symbol '" + mName + "' is already defined.");
+	}
+
 	for (auto field : mFields) {
 		field->generateSymbols(binder, classTable);
 	}
@@ -262,10 +272,11 @@ void ClassDefinitionAST::generateSymbols(Binder& binder, std::shared_ptr<SymbolT
 			binder.error("The symbol '" + funcName + "' is already defined.");
 		}
 
+		auto returnType = func->prototype()->returnType();
 		auto added = classTable->addMemberFunction(
 			funcName,
 			parameters,
-			func->prototype()->returnType(),
+			returnType,
 			func->accessModifier());
 
 		if (!added) {
@@ -276,16 +287,6 @@ void ClassDefinitionAST::generateSymbols(Binder& binder, std::shared_ptr<SymbolT
 
 			binder.error("The already exists a member function with the given signature: '" + funcName + "(" + paramsStr + ")" + "'.");
 		}
-	}
-
-	if (mDefiningTable == nullptr) {
-		mDefiningTable = symbolTable;
-	}
-
-	if (mDefiningTable->find(mName) == nullptr) {
-		mDefiningTable->addClass(mName, classTable);
-	} else {
-		binder.error("The symbol '" + mName + "' is already defined.");
 	}
 
 	for (auto func : mFunctions) {
@@ -338,6 +339,17 @@ std::shared_ptr<FunctionSignatureSymbol> NewClassExpressionAST::constructorSigna
 
 	auto funcSymbol = std::dynamic_pointer_cast<FunctionSymbol>(constructorSymbol(mClassSymbol->symbolTable()));
 	return funcSymbol->findOverload(argumentsTypes);
+}
+
+void NewClassExpressionAST::rewrite(Compiler& compiler) {
+	for (auto& arg : mConstructorArguments) {
+		std::shared_ptr<AbstractSyntaxTree> newArg;
+		if (arg->rewriteAST(newArg, compiler)) {
+			arg = std::dynamic_pointer_cast<ExpressionAST>(newArg);
+		}
+
+		arg->rewrite(compiler);
+	}
 }
 
 void NewClassExpressionAST::generateSymbols(Binder& binder, std::shared_ptr<SymbolTable> symbolTable) {

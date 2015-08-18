@@ -136,6 +136,8 @@ public:
 	//Returns the signature for the constructor
 	std::shared_ptr<FunctionSignatureSymbol> constructorSignature(const TypeChecker& typeChecker) const;
 
+	virtual void rewrite(Compiler& compiler) override;
+
 	virtual void generateSymbols(Binder& binder, std::shared_ptr<SymbolTable> symbolTable) override;
 
 	virtual void typeCheck(TypeChecker& checker) override;

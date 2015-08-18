@@ -159,6 +159,8 @@ public:
 
         TS_ASSERT_EQUALS(compileAndRun("classes/namespace1"), "5\n");
         TS_ASSERT_EQUALS(compileAndRun("classes/namespace2"), "Hello, World!\n0\n");
+        TS_ASSERT_EQUALS(compileAndRun("classes/namespace3"), "Hello, World!\n0\n");
+        TS_ASSERT_EQUALS(compileAndRun("classes/namespace4"), "Hello, World!\n0\n");
 
         TS_ASSERT_EQUALS(stripErrorMessage(compile("classes/access1")), "what():  Cannot access private field of class Point.");
         TS_ASSERT_EQUALS(stripErrorMessage(compile("classes/access2")), "what():  Cannot access private field of class Point.");

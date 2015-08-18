@@ -95,7 +95,14 @@ void FunctionPrototypeAST::typeCheck(TypeChecker& checker) {
 		param->typeCheck(checker);
 	}
 
-	checker.assertTypeExists(returnType(), false);
+	auto returnTypeName = returnType();
+
+	if (auto returnTypeSymbol = std::dynamic_pointer_cast<ClassSymbol>(mSymbolTable->find(returnType()))) {
+		returnTypeName = returnTypeSymbol->fullName();
+		mReturnType = std::move(TypeName::makeFull(TypeName::make(returnTypeName).get(), mSymbolTable));
+	}
+
+	checker.assertTypeExists(returnTypeName, false);
 }
 
 void FunctionPrototypeAST::verify(SemanticVerifier& verifier) {

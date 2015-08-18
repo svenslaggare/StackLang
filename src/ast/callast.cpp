@@ -163,13 +163,13 @@ void CallExpressionAST::generateCode(CodeGenerator& codeGen, GeneratedFunction& 
 	auto nameParts = Helpers::splitString(mFunctionName, "::");
 	auto funcName = nameParts[nameParts.size() - 1];
 	auto namespaceName = mFuncSymbol->definedNamespace().vmName();
-	std::string calldedFuncName = funcName;
+	std::string calledFuncName = funcName;
 
 	if (namespaceName != "") {
-		calldedFuncName = namespaceName + "." + funcName;
+		calledFuncName = namespaceName + "." + funcName;
 	}
 
-	func.addInstruction("CALL " + calldedFuncName + "(" + argsTypeStr + ")");
+	func.addInstruction("CALL " + calledFuncName + "(" + argsTypeStr + ")");
 }
 
 void CallExpressionAST::generateMemberCallCode(CodeGenerator& codeGen, GeneratedFunction& func, std::shared_ptr<ClassType> classType) {

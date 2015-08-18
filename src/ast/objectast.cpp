@@ -247,7 +247,6 @@ void MemberCallExpressionAST::typeCheck(TypeChecker& checker) {
 		}
 
 		auto classSymbol = std::dynamic_pointer_cast<ClassSymbol>(Helpers::findSymbolInNamespace(mSymbolTable, objName));
-
 		mMemberCallExpression->setCallTable(classSymbol->symbolTable());
 		mMemberCallExpression->generateSymbols(checker.binder(), mSymbolTable);
 		mMemberCallExpression->typeCheck(checker);
@@ -260,7 +259,7 @@ void MemberCallExpressionAST::typeCheck(TypeChecker& checker) {
 			checker.typeError(varRefType->name() + " is not an object type.");
 		}
 
-		auto classSymbol = std::dynamic_pointer_cast<ClassSymbol>(mSymbolTable->find(objName));
+		auto classSymbol = std::dynamic_pointer_cast<ClassSymbol>(Helpers::findSymbolInNamespace(mSymbolTable, objName));
 		mMemberCallExpression->setCallTable(classSymbol->symbolTable());
 		mMemberCallExpression->generateSymbols(checker.binder(), mSymbolTable);
 		mMemberCallExpression->typeCheck(checker);

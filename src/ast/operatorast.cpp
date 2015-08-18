@@ -187,9 +187,6 @@ void BinaryOpExpressionAST::typeCheck(TypeChecker& checker) {
 	auto rhsType = mRightHandSide->expressionType(checker);
 
 	if (lhsType->name() != "Auto") {
-		auto intType = checker.findType("Int");
-		auto floatType = checker.findType("Float");
-
 		checker.assertSameType(
 			*lhsType, 
 			*rhsType,
