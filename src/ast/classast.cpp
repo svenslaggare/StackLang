@@ -52,7 +52,10 @@ void FieldDeclarationExpressionAST::generateSymbols(Binder& binder, std::shared_
 
 	symbolTable->add(
 		fieldName(),
-		std::make_shared<VariableSymbol>(fieldName(), fieldType(), VariableSymbolAttribute::FIELD, mSymbolTable->name()));
+		std::make_shared<VariableSymbol>(
+			fieldName(),
+			fieldType(),
+			VariableSymbolAttribute::FIELD));
 }
 
 void FieldDeclarationExpressionAST::typeCheck(TypeChecker& checker) {
@@ -223,9 +226,17 @@ void ClassDefinitionAST::generateSymbols(Binder& binder, std::shared_ptr<SymbolT
 	auto classTable = std::make_shared<SymbolTable>(symbolTable, mName);
 	AbstractSyntaxTree::generateSymbols(binder, classTable);
 
+	std::string typeName = "";
+
+	if (mDefiningTable != nullptr && mDefiningTable->name() != "") {
+		typeName = Namespace({ mDefiningTable->name(), mName }).name();
+	} else {
+		typeName = mName;
+	}
+
 	classTable->add(
 		"this",
-		std::make_shared<VariableSymbol>("this", mName, VariableSymbolAttribute::THIS_REFERENCE));
+		std::make_shared<VariableSymbol>("this", typeName, VariableSymbolAttribute::THIS_REFERENCE));
 
 	for (auto field : mFields) {
 		field->generateSymbols(binder, classTable);

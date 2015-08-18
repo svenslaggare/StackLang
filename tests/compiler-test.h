@@ -156,7 +156,9 @@ public:
         TS_ASSERT_EQUALS(compileAndRun("classes/array1"), "6\n");
 
         TS_ASSERT_EQUALS(compileAndRun("classes/loaded1", { "rtlib/vector.sbc" }), "1\n2\n0\n");
+
         TS_ASSERT_EQUALS(compileAndRun("classes/namespace1"), "5\n");
+        TS_ASSERT_EQUALS(compileAndRun("classes/namespace2"), "Hello, World!\n0\n");
 
         TS_ASSERT_EQUALS(stripErrorMessage(compile("classes/access1")), "what():  Cannot access private field of class Point.");
         TS_ASSERT_EQUALS(stripErrorMessage(compile("classes/access2")), "what():  Cannot access private field of class Point.");
@@ -164,7 +166,8 @@ public:
         TS_ASSERT_EQUALS(stripErrorMessage(compile("classes/access4")), "what():  Cannot call private function of class Point.");
         TS_ASSERT_EQUALS(compileAndRun("classes/access5"), "0\n");
 
-        TS_ASSERT_EQUALS(compileAndRun("classes/selfusage1"), "Hello, World!\n0\n");
+        TS_ASSERT_EQUALS(compileAndRun("classes/fieldarray1"), "Hello, World!\n0\n");
+        TS_ASSERT_EQUALS(compileAndRun("classes/fieldarray2"), "String 1\n0\n");
 
         TS_ASSERT_EQUALS(
             stripErrorMessage(compile("classes/loaded2", { "programs/classes/point1.sbc" })),

@@ -10,6 +10,7 @@
 #include "../type.h"
 #include "../semantics.h"
 #include "../codegenerator.h"
+#include "../helpers.h"
 
 //Member access
 MemberAccessAST::MemberAccessAST(std::shared_ptr<ExpressionAST> accessExpression, std::shared_ptr<ExpressionAST> memberExpression)
@@ -239,21 +240,19 @@ void MemberCallExpressionAST::typeCheck(TypeChecker& checker) {
 		auto varSymbol = std::dynamic_pointer_cast<VariableSymbol>(mSymbolTable->find(varRef->name()));
 		auto varRefType = checker.findType(varSymbol->variableType());
 
-		auto memberName = mMemberCallExpression->functionName();
-
 		std::string objName = varRefType->name();
 
 		if (!checker.objectExists(objName)) {
 			checker.typeError(varRefType->name() + " is not an object type.");
 		}
 
-		auto classSymbol = std::dynamic_pointer_cast<ClassSymbol>(mSymbolTable->find(objName));
+		auto classSymbol = std::dynamic_pointer_cast<ClassSymbol>(Helpers::findSymbolInNamespace(mSymbolTable, objName));
+
 		mMemberCallExpression->setCallTable(classSymbol->symbolTable());
 		mMemberCallExpression->generateSymbols(checker.binder(), mSymbolTable);
 		mMemberCallExpression->typeCheck(checker);
 	} else {
 		auto varRefType = mAccessExpression->expressionType(checker);
-		auto memberName = mMemberCallExpression->functionName();
 
 		std::string objName = varRefType->name();
 
@@ -289,7 +288,8 @@ void MemberCallExpressionAST::verify(SemanticVerifier& verifier) {
 
 void MemberCallExpressionAST::generateCode(CodeGenerator& codeGen, GeneratedFunction& func) {
 	mAccessExpression->generateCode(codeGen, func);
-	mMemberCallExpression->generateMemberCallCode(codeGen, func, mAccessExpression->expressionType(codeGen.typeChecker()));
+	auto classType = std::dynamic_pointer_cast<ClassType>(mAccessExpression->expressionType(codeGen.typeChecker()));
+	mMemberCallExpression->generateMemberCallCode(codeGen, func, classType);
 }
 
 //Set field value
@@ -410,7 +410,6 @@ void SetFieldValueAST::typeCheck(TypeChecker& checker) {
 	}
 
 	auto memberName = getMemberName();
-
 	std::string objName = objRefType->name();
 
 	if (!checker.objectExists(objName)) {
@@ -428,7 +427,7 @@ void SetFieldValueAST::typeCheck(TypeChecker& checker) {
 	//Check rhs
 	std::shared_ptr<Type> fieldType;
 
-	if (auto arrayMember = std::dynamic_pointer_cast<ArrayAccessAST>(mMemberExpression)) {
+	if (std::dynamic_pointer_cast<ArrayAccessAST>(mMemberExpression)) {
 		fieldType = std::dynamic_pointer_cast<ArrayType>(object.getField(memberName).type())->elementType();
 	} else {
 		fieldType = object.getField(memberName).type();

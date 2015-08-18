@@ -28,6 +28,9 @@ public:
 
 	//Returns the VM type
 	virtual std::string vmType() const;
+
+	//Returns the name of the type in the VM
+	std::string vmTypeName() const;
 };
 
 //Represents a type to be inferred

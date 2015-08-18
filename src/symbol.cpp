@@ -25,8 +25,8 @@ std::string Symbol::asString() const {
 }
 
 //Variable
-VariableSymbol::VariableSymbol(std::string name, std::string variableType, VariableSymbolAttribute attribute, std::string className)
-	: Symbol(name, "Variable"), mVariableType(variableType), mAttribute(attribute), mClassName(className) {
+VariableSymbol::VariableSymbol(std::string name, std::string variableType, VariableSymbolAttribute attribute)
+	: Symbol(name, "Variable"), mVariableType(variableType), mAttribute(attribute) {
 
 }
 
@@ -40,9 +40,6 @@ std::string VariableSymbol::variableType() const {
 
 VariableSymbolAttribute VariableSymbol::attribute() const {
 	return mAttribute;
-}
-std::string VariableSymbol::className() const {
-	return mClassName;
 }
 
 //Function

@@ -20,9 +20,6 @@ public:
 	//Constructs the given type name
 	static std::unique_ptr<TypeName> make(std::string name);
 
-	//Constructs the given type name using defined symbols
-	// static std::unique_ptr<TypeName> make(std::string name, std::shared_ptr<SymbolTable> symbolTable);
-	
 	//Constructs a full name from the given type name using defined symbols
 	static std::unique_ptr<TypeName> makeFull(const TypeName* const typeName, std::shared_ptr<SymbolTable> symbolTable);
 

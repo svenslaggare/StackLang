@@ -63,13 +63,11 @@ void BinaryOpExpressionAST::visit(VisitFn visitFn) const {
 
 void BinaryOpExpressionAST::rewrite(Compiler& compiler) {
 	std::shared_ptr<AbstractSyntaxTree> newLHS;
-
 	while (mLeftHandSide->rewriteAST(newLHS, compiler)) {
 		mLeftHandSide = std::dynamic_pointer_cast<ExpressionAST>(newLHS);
 	}
 
 	std::shared_ptr<AbstractSyntaxTree> newRHS;
-
 	while (mRightHandSide->rewriteAST(newRHS, compiler)) {
 		mRightHandSide = std::dynamic_pointer_cast<ExpressionAST>(newRHS);
 	}
@@ -145,6 +143,10 @@ bool BinaryOpExpressionAST::rewriteAST(std::shared_ptr<AbstractSyntaxTree>& newA
 				setFieldValue->memberExpression(),
 				mRightHandSide);
 
+			if (mSymbolTable != nullptr) {
+				newAST->generateSymbols(compiler.binder(), mSymbolTable);
+			}
+
 			return true;
 		}
 	}
@@ -162,7 +164,6 @@ bool BinaryOpExpressionAST::rewriteAST(std::shared_ptr<AbstractSyntaxTree>& newA
 						mRightHandSide);
 
 					newAST->generateSymbols(compiler.binder(), mSymbolTable);
-
 					return true;
 				}
 			}

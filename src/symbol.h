@@ -45,10 +45,9 @@ class VariableSymbol : public Symbol {
 private:
 	std::string mVariableType;
 	VariableSymbolAttribute mAttribute;
-	std::string mClassName;
 public:
 	//Creates a new variable symbol of the given type
-	VariableSymbol(std::string name, std::string variableType, VariableSymbolAttribute attribute = VariableSymbolAttribute::NONE, std::string className = "");
+	VariableSymbol(std::string name, std::string variableType, VariableSymbolAttribute attribute = VariableSymbolAttribute::NONE);
 
 	virtual std::string asString() const override;
 
@@ -57,9 +56,6 @@ public:
 
 	//Return the attribute
 	VariableSymbolAttribute attribute() const;
-
-	//The class name if field
-	std::string className() const;
 };
 
 //Represents a function signature symbol

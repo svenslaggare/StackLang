@@ -7,6 +7,8 @@
 #include "../symbol.h"
 #include "../helpers.h"
 #include "../typename.h"
+#include "../compiler.h"
+#include "objectast.h"
 
 //Variable reference expression AST
 VariableReferenceExpressionAST::VariableReferenceExpressionAST(std::string name)
@@ -32,6 +34,23 @@ std::shared_ptr<VariableSymbol> VariableReferenceExpressionAST::symbol() const {
 
 void VariableReferenceExpressionAST::visit(VisitFn visitFn) const {
 	visitFn(this);
+}
+
+bool VariableReferenceExpressionAST::rewriteAST(std::shared_ptr<AbstractSyntaxTree>& newAST, Compiler& compiler) const {
+	if (mSymbolTable != nullptr) {
+		auto varRefSymbol = std::dynamic_pointer_cast<VariableSymbol>(mSymbolTable->find(name()));
+
+		if (varRefSymbol->attribute() == VariableSymbolAttribute::FIELD) {
+			newAST = std::make_shared<MemberAccessAST>(
+				std::make_shared<VariableReferenceExpressionAST>("this"),
+				std::make_shared<VariableReferenceExpressionAST>(mName));
+			newAST->generateSymbols(compiler.binder(), mSymbolTable);
+
+			return true;
+		}
+	}
+
+	return false;
 }
 
 void VariableReferenceExpressionAST::generateSymbols(Binder& binder, std::shared_ptr<SymbolTable> symbolTable) {
@@ -61,14 +80,10 @@ std::shared_ptr<Type> VariableReferenceExpressionAST::expressionType(const TypeC
 void VariableReferenceExpressionAST::generateCode(CodeGenerator& codeGen, GeneratedFunction& func) {
 	auto varRefSymbol = std::dynamic_pointer_cast<VariableSymbol>(mSymbolTable->find(name()));
 	bool isFuncParam = varRefSymbol->attribute() == VariableSymbolAttribute::FUNCTION_PARAMETER;
-	bool isField = varRefSymbol->attribute() == VariableSymbolAttribute::FIELD;
 	bool isThis = varRefSymbol->attribute() == VariableSymbolAttribute::THIS_REFERENCE;
 
 	if (isFuncParam) {
 		func.addInstruction("LDARG " + std::to_string(func.functionParameterIndex(mName)));
-	} else if (isField) {
-		func.addInstruction("LDARG 0");
-		func.addInstruction("LDFIELD " + varRefSymbol->className() + "::" + mName);
 	} else if (isThis) {
 		func.addInstruction("LDARG 0");
 	} else {

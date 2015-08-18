@@ -11,6 +11,7 @@ class SymbolTable;
 class VariableSymbol;
 class FunctionSignatureSymbol;
 class FunctionSymbol;
+class ClassType;
 
 //Represents a call expression
 class CallExpressionAST : public ExpressionAST {
@@ -59,7 +60,7 @@ public:
 	void generateCode(CodeGenerator& codeGen, GeneratedFunction& func, std::string scopeName);
 
 	//Generates code for a member call
-	void generateMemberCallCode(CodeGenerator& codeGen, GeneratedFunction& func, std::shared_ptr<Type> classType);
+	void generateMemberCallCode(CodeGenerator& codeGen, GeneratedFunction& func, std::shared_ptr<ClassType> classType);
 
 	virtual void generateCode(CodeGenerator& codeGen, GeneratedFunction& func) override;
 };

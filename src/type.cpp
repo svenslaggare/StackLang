@@ -28,6 +28,13 @@ std::string Type::vmType() const {
 	return name();
 }
 
+std::string Type::vmTypeName() const {
+	return Helpers::join<std::string>(
+		Helpers::splitString(mName, "::"),
+		[](std::string str) { return str; },
+		".");
+}
+
 //Auto
 AutoType::AutoType()
 	: Type("Auto") {

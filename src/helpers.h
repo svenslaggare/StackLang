@@ -2,6 +2,7 @@
 #include <functional>
 #include <vector>
 #include <memory>
+#include "symboltable.h"
 
 class Symbol;
 class SymbolTable;
@@ -27,7 +28,7 @@ namespace Helpers {
 		return str;
 	}
 
-	//Splits the given string by the given delimter
+	//Splits the given string by the given delimiter
 	std::vector<std::string> splitString(std::string str, std::string delimiter);
 
 	//Replaces all the occurrences in the given string

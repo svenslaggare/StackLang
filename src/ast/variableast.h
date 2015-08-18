@@ -29,6 +29,8 @@ public:
 
 	virtual void visit(VisitFn visitFn) const override;
 
+	virtual bool rewriteAST(std::shared_ptr<AbstractSyntaxTree>& newAST, Compiler& compiler) const override;
+
 	virtual void generateSymbols(Binder& binder, std::shared_ptr<SymbolTable> symbolTable) override;
 
 	virtual std::shared_ptr<Type> expressionType(const TypeChecker& checker) const override; 

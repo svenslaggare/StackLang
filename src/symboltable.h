@@ -20,10 +20,6 @@ private:
 	std::string mName = "";
 	std::shared_ptr<SymbolTable> mOuter;
 	std::map<std::string, std::shared_ptr<Symbol>> mInner;
-
-	//Returns the namespace that the symbol table is defined in
-	Namespace getNamespace();
-
 	//Gets the namespace parts
 	void getNamespaceParts(const SymbolTable* symbolTable, std::vector<std::string>& parts) const;
 public:
@@ -35,6 +31,9 @@ public:
 
 	//Returns the name of the table
 	std::string name() const;
+
+	//Returns the namespace that the symbol table is defined in
+	Namespace getNamespace();
 
 	//Adds the given symbol to the table. True if added else false.
 	bool add(std::string name, std::shared_ptr<Symbol> symbol);
