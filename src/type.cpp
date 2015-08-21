@@ -97,7 +97,6 @@ Types TypeSystem::defaultTypes() {
 	auto voidType = std::make_shared<PrimitiveType>(PrimitiveTypes::Void);
 	auto charType = std::make_shared<PrimitiveType>(PrimitiveTypes::Char);
 	auto nullType = std::make_shared<NullReferenceType>();
-	auto charArrayType = std::make_shared<ArrayType>(charType);
 
 	return {
 		{ "var", std::make_shared<AutoType>() },
@@ -107,7 +106,6 @@ Types TypeSystem::defaultTypes() {
 		{ voidType->name(), voidType },
 		{ charType->name(), charType },
 		{ nullType->name(), nullType },
-		{ "String", charArrayType }
 	};
 }
 

@@ -52,7 +52,7 @@ std::shared_ptr<Type> TypeChecker::findType(std::string typeName) const {
 	}
 }
 
-std::shared_ptr<Type> TypeChecker::getType(std::string typeName) {
+std::shared_ptr<Type> TypeChecker::makeType(std::string typeName) {
 	if (mTypes.count(typeName) > 0) {
 		return mTypes.at(typeName);
 	} else {

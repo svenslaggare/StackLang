@@ -61,7 +61,7 @@ public:
 	std::shared_ptr<Type> findType(std::string typeName) const;
 
 	//Returns the given type. It not found it will try to construct it else nullptr.
-	std::shared_ptr<Type> getType(std::string typeName);
+	std::shared_ptr<Type> makeType(std::string typeName);
 
 	//Adds the given type
 	bool addType(std::shared_ptr<Type> type);

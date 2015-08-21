@@ -41,8 +41,10 @@ Compiler Compiler::create() {
 		{ Operator('!'), Operator('-') },
 		{ '+', '-', '*', '/' },
 		{
-			{ Operator('<'), boolType }, { Operator('>'), boolType }, { Operator('<', '='), boolType }, { Operator('>', '='), boolType }, 
-			{ Operator('=', '='), boolType }, { Operator('!', '='), boolType }, { Operator('&', '&'), boolType }, { Operator('|', '|'), boolType }, 
+			{ Operator('<'), boolType }, { Operator('>'), boolType },
+			{ Operator('<', '='), boolType }, { Operator('>', '='), boolType },
+			{ Operator('=', '='), boolType }, { Operator('!', '='), boolType },
+			{ Operator('&', '&'), boolType }, { Operator('|', '|'), boolType },
 		}));
 
 	auto binder = std::unique_ptr<Binder>(new Binder);
@@ -106,8 +108,11 @@ CodeGenerator& Compiler::codeGenerator() {
 void Compiler::load(std::vector<std::string> libraries) {
 	//Load the runtime library
 	Loader loader(binder(), typeChecker());
-	std::fstream rtLibText("../StackJIT/rtlib/rtlib.sbc");
-	loader.loadAssembly(rtLibText);
+	std::fstream nativeLibText("../StackJIT/rtlib/native.sbc");
+	loader.loadAssembly(nativeLibText);
+
+	std::fstream stringLibText("../StackJIT/rtlib/string.sbc");
+	loader.loadAssembly(stringLibText);
 
 	std::fstream vectorLibText("rtlib/vector.sbc");
 	loader.loadAssembly(vectorLibText);

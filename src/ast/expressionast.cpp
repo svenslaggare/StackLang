@@ -170,7 +170,7 @@ void StringExpressionAST::visit(VisitFn visitFn) const {
 }
 
 std::shared_ptr<Type> StringExpressionAST::expressionType(const TypeChecker& checker) const {
-	return checker.findType("Char[]");
+	return checker.findType("std::String");
 }
 
 void StringExpressionAST::generateCode(CodeGenerator& codeGen, GeneratedFunction& func) {
@@ -183,7 +183,7 @@ CastExpressionAST::CastExpressionAST(std::string typeName, std::shared_ptr<Expre
 
 }
 
-std::string CastExpressionAST::functionName() const {
+std::string CastExpressionAST::typeName() const {
 	return mTypeName;
 }
 
@@ -219,7 +219,7 @@ void CastExpressionAST::typeCheck(TypeChecker& checker) {
 	mExpression->typeCheck(checker);
 	checker.assertTypeExists(mTypeName);
 
-	auto toType = checker.getType(mTypeName);
+	auto toType = checker.makeType(mTypeName);
 	auto fromType = mExpression->expressionType(checker);
 
 	if (!checker.existsExplicitConversion(fromType, toType)) {

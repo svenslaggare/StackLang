@@ -165,7 +165,7 @@ void FunctionAST::typeCheck(TypeChecker& checker) {
 
 void FunctionAST::checkReturnStatement(SemanticVerifier& verifier, std::shared_ptr<ReturnStatementAST> returnStatement) {
 	auto checker = verifier.typeChecker();
-	auto returnType = checker.getType(mPrototype->returnType());
+	auto returnType = checker.makeType(mPrototype->returnType());
 
 	if (returnType->name() != "Void") {
 		if (returnStatement->returnExpression() == nullptr) {
@@ -220,7 +220,7 @@ bool FunctionAST::checkBranches(SemanticVerifier& verifier, std::shared_ptr<Stat
 void FunctionAST::checkReturnStatements(SemanticVerifier& verifier) {
 	auto checker = verifier.typeChecker();
 	bool allReturns = checkBranches(verifier, mBody);
-	auto returnType = checker.getType(mPrototype->returnType());
+	auto returnType = checker.makeType(mPrototype->returnType());
 
 	if (returnType->name() != "Void") {
 		if (!allReturns) {

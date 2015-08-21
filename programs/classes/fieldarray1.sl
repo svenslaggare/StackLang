@@ -1,3 +1,13 @@
+func createCharArray(std::String str): Char[] {
+	var chars = new Char[str.length()];
+
+	for (var i = 0; i < str.length(); i += 1) {
+		chars[i] = str.charAt(i);
+	}
+
+	return chars;
+}
+
 class TestString {
 	private Char[] chars;
 
@@ -37,7 +47,7 @@ func println(TestString str): Void {
 }
 
 func main(): Int {
-	var newStr = new TestString("Hello").concat(new TestString(", World!"));
+	var newStr = new TestString(createCharArray("Hello")).concat(new TestString(createCharArray(", World!")));
 	println(newStr);
 	return 0;
 }

@@ -37,7 +37,6 @@ std::string compileAndRun(std::string programName, std::initializer_list<std::st
 	std::string invokePath =
         "./stackc programs/" + programName + ".sl"
         + " | ../StackJIT/stackjit"
-        + " -i ../StackJIT/rtlib/rtlib.sbc"
         + libsStr
         + " 2>&1";
 
@@ -126,7 +125,7 @@ public:
     }
 
     void testStrings() {
-        TS_ASSERT_EQUALS(compileAndRun("strings/simple1"), "Fello, World!\n0\n");
+        TS_ASSERT_EQUALS(compileAndRun("strings/simple1"), "Hello, World!\n0\n");
     }
 
     void testNamespaces() {

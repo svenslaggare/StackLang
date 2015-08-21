@@ -48,7 +48,7 @@ void ArrayDeclarationAST::typeCheck(TypeChecker& checker) {
 
 	//Check length
 	checker.assertSameType(
-		*checker.getType("Int"),
+		*checker.makeType("Int"),
 		*mLengthExpression->expressionType(checker),
 		"Expected the length to be of type 'Int'.");
 
@@ -57,7 +57,7 @@ void ArrayDeclarationAST::typeCheck(TypeChecker& checker) {
 	checker.assertNotVoid(*checker.findType(elementType()), "Arrays of type 'Void' is not allowed.");
 
 	//Create the array type if not created
-	checker.getType(elementType() + "[]");
+	checker.makeType(elementType() + "[]");
 }
 	
 std::shared_ptr<Type> ArrayDeclarationAST::expressionType(const TypeChecker& checker) const {
@@ -136,7 +136,7 @@ void MultiDimArrayDeclarationAST::typeCheck(TypeChecker& checker) {
 	int dim = 0;
 	for (auto lengthExpr : mLengthExpressions) {
 		checker.assertSameType(
-			*checker.getType("Int"),
+			*checker.makeType("Int"),
 			*lengthExpr->expressionType(checker),
 			"Expected the length of dimension " + std::to_string(dim) + " to be of type 'Int'.");
 		dim++;
@@ -148,7 +148,7 @@ void MultiDimArrayDeclarationAST::typeCheck(TypeChecker& checker) {
 
 	//Create all array types
 	for (int i = 0; i < mLengthExpressions.size(); i++) {
-		checker.getType(typeString(i));
+		checker.makeType(typeString(i));
 	}
 }
 	
@@ -252,7 +252,7 @@ void ArrayAccessAST::typeCheck(TypeChecker& checker) {
 	}
 
 	checker.assertSameType(
-		*checker.getType("Int"),
+		*checker.makeType("Int"),
 		*mAccessExpression->expressionType(checker),
 		"Expected the array access indexing to be of type 'Int'.");
 }
@@ -344,7 +344,7 @@ void ArraySetElementAST::typeCheck(TypeChecker& checker) {
 
 	//Access access
 	checker.assertSameType(
-		*checker.getType("Int"),
+		*checker.makeType("Int"),
 		*mAccessExpression->expressionType(checker),
 		"Expected the array indexing to be of type 'Int'.");
 

@@ -1,3 +1,13 @@
+func createCharArray(std::String str): Char[] {
+	var chars = new Char[str.length()];
+
+	for (var i = 0; i < str.length(); i += 1) {
+		chars[i] = str.charAt(i);
+	}
+
+	return chars;
+}
+
 namespace std {
 	class RTString {
 		private Char[] chars;
@@ -39,6 +49,6 @@ namespace std {
 }
 
 func main(): Int {
-	std::println(new std::RTString("Hello").concat(new std::RTString(", World!")));
+	std::println(new std::RTString(createCharArray("Hello")).concat(new std::RTString(createCharArray(", World!"))));
 	return 0;
 }

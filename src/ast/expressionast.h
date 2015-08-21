@@ -123,7 +123,7 @@ public:
 
 	virtual void visit(VisitFn visitFn) const override;
 
-	virtual std::shared_ptr<Type> expressionType(const TypeChecker& checker) const override; 
+	virtual std::shared_ptr<Type> expressionType(const TypeChecker& checker) const override;
 
 	virtual void generateCode(CodeGenerator& codeGen, GeneratedFunction& func) override;
 };
@@ -138,7 +138,7 @@ public:
 	CastExpressionAST(std::string typeName, std::shared_ptr<ExpressionAST> expression);
 
 	//Returns the name of the type to cast to
-	std::string functionName() const;
+	std::string typeName() const;
 
 	//The expression to cast
 	std::shared_ptr<ExpressionAST> expression() const;

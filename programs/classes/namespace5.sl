@@ -1,3 +1,13 @@
+func createCharArray(std::String str): Char[] {
+	var chars = new Char[str.length()];
+
+	for (var i = 0; i < str.length(); i += 1) {
+		chars[i] = str.charAt(i);
+	}
+
+	return chars;
+}
+
 namespace std {
 	class Point {
 		Int x;
@@ -37,7 +47,7 @@ namespace std {
 }
 
 func main(): Int {
-	var str = new std::RTString("Hello, World!");
+	var str = new std::RTString(createCharArray("Hello, World!"));
 	var point = str.asPoint();
 	return point.x + point.y;
 }

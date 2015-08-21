@@ -1,28 +1,26 @@
-./stackc rtlib/string.sl
-class RTString
+class std.RTString
 {
    chars Ref.Array[Char]
    @AccessModifier(value=private)
-
 }
 
-member RTString::.constructor(Ref.Array[Char]) Void
+member std.RTString::.constructor(Ref.Array[Char]) Void
 {
    @AccessModifier(value=public)
    LDARG 0
    LDARG 1
-   STFIELD RTString::chars
+   STFIELD std.RTString::chars
    RET
 }
 
-member RTString::charAt(Int) Char
+member std.RTString::charAt(Int) Char
 {
    @AccessModifier(value=public)
    .locals 1
    .local 0 Char
 
    LDARG 0
-   LDFIELD RTString::chars
+   LDFIELD std.RTString::chars
    LDARG 1
    LDELEM Char
    STLOC 0
@@ -31,14 +29,14 @@ member RTString::charAt(Int) Char
    RET
 }
 
-member RTString::length() Int
+member std.RTString::length() Int
 {
    @AccessModifier(value=public)
    .locals 1
    .local 0 Int
 
    LDARG 0
-   LDFIELD RTString::chars
+   LDFIELD std.RTString::chars
    LDLEN
    STLOC 0
    BR 5
@@ -46,23 +44,21 @@ member RTString::length() Int
    RET
 }
 
-member RTString::concat(Ref.Class.RTString) Ref.Class.RTString
+member std.RTString::concat(Ref.Class.std.RTString) Ref.Class.std.RTString
 {
    @AccessModifier(value=public)
-   .locals 7
+   .locals 5
    .local 2 Ref.Array[Char]
    .local 1 Int
-   .local 4 Int
    .local 3 Int
-   .local 5 Int
-   .local 6 Char
-   .local 0 Ref.Class.RTString
+   .local 4 Int
+   .local 0 Ref.Class.std.RTString
 
    LDARG 0
-   LDFIELD RTString::chars
+   LDFIELD std.RTString::chars
    LDLEN
    LDARG 1
-   LDFIELD RTString::chars
+   LDFIELD std.RTString::chars
    LDLEN
    ADD
    STLOC 1
@@ -73,12 +69,12 @@ member RTString::concat(Ref.Class.RTString) Ref.Class.RTString
    STLOC 3
    LDLOC 3
    LDARG 0
-   CALLINST RTString::length()
+   CALLINST std.RTString::length()
    BGE 29
    LDLOC 2
    LDLOC 3
    LDARG 0
-   LDFIELD RTString::chars
+   LDFIELD std.RTString::chars
    LDLOC 3
    LDELEM Char
    STELEM Char
@@ -87,39 +83,91 @@ member RTString::concat(Ref.Class.RTString) Ref.Class.RTString
    ADD
    STLOC 3
    BR 13
-   LDARG 0
-   LDFIELD RTString::chars
-   LDLEN
-   STLOC 4
    LDINT 0
-   STLOC 5
-   LDLOC 5
-   LDARG 1
-   CALLINST RTString::length()
-   BGE 53
-   LDARG 1
-   LDFIELD RTString::chars
-   STLOC 6
-   LDLOC 2
+   STLOC 4
    LDLOC 4
-   LDLOC 5
+   LDARG 1
+   CALLINST std.RTString::length()
+   BGE 50
+   LDLOC 2
+   LDARG 0
+   CALLINST std.RTString::length()
+   LDLOC 4
    ADD
-   LDLOC 6
+   LDARG 1
+   LDFIELD std.RTString::chars
+   LDLOC 4
+   LDELEM Char
    STELEM Char
-   LDLOC 5
+   LDLOC 4
    LDINT 1
    ADD
-   STLOC 5
-   BR 35
+   STLOC 4
+   BR 31
    LDLOC 2
-   NEWOBJ RTString::.constructor(Ref.Array[Char])
+   NEWOBJ std.RTString::.constructor(Ref.Array[Char])
    STLOC 0
-   BR 57
+   BR 54
    LDLOC 0
    RET
 }
 
-func println(Ref.Class.RTString) Void
+member std.RTString::equals(Ref.Class.std.RTString) Bool
+{
+   @AccessModifier(value=public)
+   .locals 2
+   .local 1 Int
+   .local 0 Bool
+
+   LDARG 1
+   LDNULL
+   BNE 6
+   LDFALSE
+   STLOC 0
+   BR 44
+   LDARG 0
+   LDARG 1
+   BNE 12
+   LDTRUE
+   STLOC 0
+   BR 44
+   LDARG 0
+   CALLINST std.RTString::length()
+   LDARG 1
+   CALLINST std.RTString::length()
+   BEQ 20
+   LDFALSE
+   STLOC 0
+   BR 44
+   LDINT 0
+   STLOC 1
+   LDLOC 1
+   LDARG 0
+   CALLINST std.RTString::length()
+   BGE 41
+   LDARG 0
+   LDLOC 1
+   CALLINST std.RTString::charAt(Int)
+   LDARG 1
+   LDLOC 1
+   CALLINST std.RTString::charAt(Int)
+   BEQ 36
+   LDFALSE
+   STLOC 0
+   BR 44
+   LDLOC 1
+   LDINT 1
+   ADD
+   STLOC 1
+   BR 22
+   LDTRUE
+   STLOC 0
+   BR 44
+   LDLOC 0
+   RET
+}
+
+func std.println(Ref.Class.std.RTString) Void
 {
    .locals 1
    .local 0 Int
@@ -128,11 +176,11 @@ func println(Ref.Class.RTString) Void
    STLOC 0
    LDLOC 0
    LDARG 0
-   CALLINST RTString::length()
+   CALLINST std.RTString::length()
    BGE 15
    LDARG 0
    LDLOC 0
-   CALLINST RTString::charAt(Int)
+   CALLINST std.RTString::charAt(Int)
    CALL std.printchar(Char)
    LDLOC 0
    LDINT 1
@@ -150,14 +198,20 @@ func main() Int
    .local 0 Int
 
    LDSTR "Hello"
-   NEWOBJ RTString::.constructor(Ref.Array[Char])
+   NEWOBJ std.RTString::.constructor(Ref.Array[Char])
    LDSTR ", World!"
-   NEWOBJ RTString::.constructor(Ref.Array[Char])
-   CALLINST RTString::concat(Ref.Class.RTString)
-   CALL println(Ref.Class.RTString)
+   NEWOBJ std.RTString::.constructor(Ref.Array[Char])
+   CALLINST std.RTString::concat(Ref.Class.std.RTString)
+   CALL std.println(Ref.Class.std.RTString)
+   LDSTR "Hello"
+   NEWOBJ std.RTString::.constructor(Ref.Array[Char])
+   LDSTR "Hello"
+   NEWOBJ std.RTString::.constructor(Ref.Array[Char])
+   CALLINST std.RTString::equals(Ref.Class.std.RTString)
+   CALL std.println(Bool)
    LDINT 0
    STLOC 0
-   BR 9
+   BR 15
    LDLOC 0
    RET
 }

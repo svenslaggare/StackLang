@@ -13,17 +13,7 @@ Loader::Loader(Binder& binder, TypeChecker& typeChecker)
 
 }
 
-std::shared_ptr<Type> Loader::getType(std::string vmTypeName) {
-    auto type = mTypeChecker.getType(TypeSystem::fromVMType(vmTypeName));
-
-    if (type == nullptr) {
-        throw std::runtime_error("'" + vmTypeName + "' is not a type.");
-    }
-
-    return type;
-}
-
-std::vector<std::string> splitFuncName(std::string name) {
+std::vector<std::string> splitTypeName(std::string name) {
 	std::vector<std::string> parts;
 
 	std::string delimiter = ".";
@@ -38,6 +28,17 @@ std::vector<std::string> splitFuncName(std::string name) {
 
 	parts.push_back(name);
 	return parts;
+}
+
+
+std::shared_ptr<Type> Loader::getType(std::string vmTypeName) {
+    auto type = mTypeChecker.makeType(Namespace(splitTypeName(TypeSystem::fromVMType(vmTypeName))).name());
+
+    if (type == nullptr) {
+        throw std::runtime_error("'" + vmTypeName + "' is not a type.");
+    }
+
+    return type;
 }
 
 //Returns the symbol table for the given namespace
@@ -85,10 +86,6 @@ void Loader::defineFunction(const AssemblyParser::Function& funcDef, std::shared
 	for (auto param : funcDef.parameters) {
 		auto paramType = getType(param);
 
-		if (paramType == nullptr) {
-			throw std::runtime_error("'" + param + "' is not a type.");
-		}
-
 		parameterSymbols.push_back(VariableSymbol(
             "param_" + std::to_string(i), paramType->name(),
             VariableSymbolAttribute::FUNCTION_PARAMETER));
@@ -99,7 +96,7 @@ void Loader::defineFunction(const AssemblyParser::Function& funcDef, std::shared
     auto funcName = funcDef.name;
 
 	if (funcScope == nullptr) {
-        auto splittedFuncName = splitFuncName(funcDef.name);
+        auto splittedFuncName = splitTypeName(funcDef.name);
         funcScope = mBinder.symbolTable();
         funcName = splittedFuncName.at(splittedFuncName.size() - 1);
         splittedFuncName.erase(splittedFuncName.end() - 1);
@@ -110,9 +107,6 @@ void Loader::defineFunction(const AssemblyParser::Function& funcDef, std::shared
     }
 
 	auto returnType = getType(funcDef.returnType);
-	if (returnType == nullptr) {
-		throw std::runtime_error("'" + funcDef.returnType + "' is not a type.");
-	}
 
 	if (!funcScope->addFunction(funcName, parameterSymbols, returnType->name())) {
         throw std::runtime_error("The function '" + funcName + "' is already defined.");
@@ -120,8 +114,12 @@ void Loader::defineFunction(const AssemblyParser::Function& funcDef, std::shared
 }
 
 void Loader::defineClass(const AssemblyParser::Class& classDef) {
-    if (mTypeChecker.findType(classDef.name) == nullptr) {
-        auto classType = std::make_shared<ClassType>(classDef.name);
+	auto splitName = splitTypeName(classDef.name);
+	auto fullClassName = Namespace(splitName).name();
+	auto className = splitName[splitName.size() - 1];
+
+    if (mTypeChecker.findType(fullClassName) == nullptr) {
+        auto classType = std::make_shared<ClassType>(fullClassName);
         mTypeChecker.addType(classType);
 
         std::unordered_map<std::string, Field> fields;
@@ -130,10 +128,6 @@ void Loader::defineClass(const AssemblyParser::Class& classDef) {
 			auto fieldType = getType(field.type);
 			auto accessModifier = AccessModifiers::Public;
 			auto attributes = field.attributes.attributes;
-
-			if (fieldType == nullptr) {
-				throw std::runtime_error("'" + field.type + "' is not a type.");
-			}
 
 			//Check if an access modifier are defined for the filed
 			if (attributes.count("AccessModifier") > 0) {
@@ -147,27 +141,42 @@ void Loader::defineClass(const AssemblyParser::Class& classDef) {
             fields.insert({ field.name, Field(field.name, fieldType, accessModifier) });
         }
 
-        mTypeChecker.addObject(Object(classDef.name, classType, fields));
-        auto symbolTable = mBinder.symbolTable();
+        mTypeChecker.addObject(Object(fullClassName, classType, fields));
+		std::shared_ptr<SymbolTable> symbolTable = mBinder.symbolTable();
 
-        if (symbolTable->find(classDef.name) == nullptr) {
-            symbolTable->addClass(classDef.name, std::make_shared<SymbolTable>(symbolTable));
+		if (splitName.size() > 1) {
+			auto namespaces = splitName;
+			namespaces.erase(namespaces.begin() + (splitName.size() - 1));
+			symbolTable = getNamespaceTable(symbolTable, namespaces);
+		}
+
+        if (symbolTable->find(className) == nullptr) {
+            symbolTable->addClass(className, std::make_shared<SymbolTable>(symbolTable));
         } else {
-            mBinder.error("The symbol '" + classDef.name + "' is already defined.");
+            mBinder.error("The symbol '" + className + "' is already defined.");
         }
     } else {
-        mTypeChecker.typeError("The class '" + classDef.name + "' is already defined.");
+        mTypeChecker.typeError("The class '" + fullClassName + "' is already defined.");
     }
 }
 
 void Loader::defineMemberFunction(const AssemblyParser::Function& memberDef) {
-	auto className = memberDef.className;
+	auto splitName = splitTypeName(memberDef.className);
+	auto fullClassName = Namespace(splitTypeName(memberDef.className)).name();
+	auto className = splitName[splitName.size() - 1];
 	auto memberName = memberDef.memberFunctionName;
 
-	auto classSymbol = std::dynamic_pointer_cast<ClassSymbol>(mBinder.symbolTable()->find(className));
+	std::shared_ptr<SymbolTable> symbolTable = mBinder.symbolTable();
+	if (splitName.size() > 1) {
+		auto namespaces = splitName;
+		namespaces.erase(namespaces.begin() + (splitName.size() - 1));
+		symbolTable = getNamespaceTable(symbolTable, namespaces);
+	}
+
+	auto classSymbol = std::dynamic_pointer_cast<ClassSymbol>(symbolTable->find(className));
 
 	if (classSymbol == nullptr) {
-		throw std::runtime_error("There exists no class named '" + className + "'.");
+		throw std::runtime_error("There exists no class named '" + fullClassName + "'e.");
 	}
 
 	if (memberName == ".constructor" && memberDef.returnType != PrimitiveType(PrimitiveTypes::Void).name()) {
@@ -192,19 +201,12 @@ void Loader::defineMemberFunction(const AssemblyParser::Function& memberDef) {
 		auto param = memberDef.parameters[i];
 		auto paramType = getType(param);
 
-		if (paramType == nullptr) {
-			throw std::runtime_error("'" + param + "' is not a type.");
-		}
-
 		parameterSymbols.push_back(VariableSymbol(
 			"param_" + std::to_string(i), paramType->name(),
 			VariableSymbolAttribute::FUNCTION_PARAMETER));
 	}
 
 	auto returnType = getType(memberDef.returnType);
-	if (returnType == nullptr) {
-		throw std::runtime_error("'" + memberDef.returnType + "' is not a type.");
-	}
 
 	auto added = classSymbol->symbolTable()->addMemberFunction(
 		memberDef.memberFunctionName,
@@ -224,8 +226,8 @@ void Loader::loadAssembly(std::istream& stream) {
 	AssemblyParser::parseTokens(tokens, assembly);
 
 	//Load
-	for (auto& currentStruct : assembly.classes) {
-		defineClass(currentStruct);
+	for (auto& currentClass : assembly.classes) {
+		defineClass(currentClass);
 	}
 
 	for (auto& currentFunc : assembly.functions) {

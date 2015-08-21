@@ -197,7 +197,7 @@ void GeneratedClass::outputGeneratedCode(std::ostream& os) {
 	for (auto fieldDef : mObjectLayout.fields()) {
 		auto field = fieldDef.second;
 		os << "   " << field.name() << " " << field.type()->vmType() << std::endl;
-		os << "   @AccessModifier(value=" << field.accessModifier() << ")" << std::endl << std::endl;
+		os << "   @AccessModifier(value=" << field.accessModifier() << ")" << std::endl;
 	}
 
 	os << "}" << std::endl;

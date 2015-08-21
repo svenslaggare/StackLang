@@ -200,7 +200,7 @@ void IfElseStatementAST::generateSymbols(Binder& binder, std::shared_ptr<SymbolT
 void IfElseStatementAST::typeCheck(TypeChecker& checker) {
 	mConditionExpression->typeCheck(checker);
 
-	checker.assertSameType(*checker.getType("Bool"), *mConditionExpression->expressionType(checker), mConditionExpression->asString());
+	checker.assertSameType(*checker.makeType("Bool"), *mConditionExpression->expressionType(checker), mConditionExpression->asString());
 
 	mThenBlock->typeCheck(checker);
 
