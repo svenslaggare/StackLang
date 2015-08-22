@@ -3,7 +3,11 @@ namespace std {
 		private Char[] chars;
 
 		RTString(Char[] inChars) {
-			chars = inChars;
+			chars = new Char[inChars.length];
+
+			for (var i = 0; i < chars.length; i += 1) {
+				chars[i] = inChars[i];
+			}
 		}
 
 		func charAt(Int index): Char {
@@ -29,8 +33,7 @@ namespace std {
 			return new RTString(newChars);
 		}
 
-		func equals(RTString other): Bool
-		{
+		func equals(RTString other): Bool {
 			if (other == null) {
 				return false;
 			}
@@ -60,10 +63,4 @@ namespace std {
 
 		std::printchar('\n');
 	}
-}
-
-func main(): Int {
-	std::println(new std::RTString("Hello").concat(new std::RTString(", World!")));
-	std::println(new std::RTString("Hello").equals(new std::RTString("Hello")));
-	return 0;
 }

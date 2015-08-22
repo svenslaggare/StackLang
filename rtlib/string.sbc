@@ -7,9 +7,33 @@ class std.RTString
 member std.RTString::.constructor(Ref.Array[Char]) Void
 {
    @AccessModifier(value=public)
+   .locals 1
+   .local 0 Int
+
    LDARG 0
    LDARG 1
+   LDLEN
+   NEWARR Char
    STFIELD std.RTString::chars
+   LDINT 0
+   STLOC 0
+   LDLOC 0
+   LDARG 0
+   LDFIELD std.RTString::chars
+   LDLEN
+   BGE 24
+   LDARG 0
+   LDFIELD std.RTString::chars
+   LDLOC 0
+   LDARG 1
+   LDLOC 0
+   LDELEM Char
+   STELEM Char
+   LDLOC 0
+   LDINT 1
+   ADD
+   STLOC 0
+   BR 7
    RET
 }
 
@@ -44,7 +68,7 @@ member std.RTString::length() Int
    RET
 }
 
-member std.RTString::concat(Ref.Class.std.RTString) Ref.Class.std.RTString
+member std.RTString::concat(Ref.std.RTString) Ref.std.RTString
 {
    @AccessModifier(value=public)
    .locals 5
@@ -52,7 +76,7 @@ member std.RTString::concat(Ref.Class.std.RTString) Ref.Class.std.RTString
    .local 1 Int
    .local 3 Int
    .local 4 Int
-   .local 0 Ref.Class.std.RTString
+   .local 0 Ref.std.RTString
 
    LDARG 0
    LDFIELD std.RTString::chars
@@ -112,7 +136,7 @@ member std.RTString::concat(Ref.Class.std.RTString) Ref.Class.std.RTString
    RET
 }
 
-member std.RTString::equals(Ref.Class.std.RTString) Bool
+member std.RTString::equals(Ref.std.RTString) Bool
 {
    @AccessModifier(value=public)
    .locals 2
@@ -167,7 +191,7 @@ member std.RTString::equals(Ref.Class.std.RTString) Bool
    RET
 }
 
-func std.println(Ref.Class.std.RTString) Void
+func std.println(Ref.std.RTString) Void
 {
    .locals 1
    .local 0 Int
@@ -189,29 +213,5 @@ func std.println(Ref.Class.std.RTString) Void
    BR 2
    LDCHAR 10
    CALL std.printchar(Char)
-   RET
-}
-
-func main() Int
-{
-   .locals 1
-   .local 0 Int
-
-   LDSTR "Hello"
-   NEWOBJ std.RTString::.constructor(Ref.Array[Char])
-   LDSTR ", World!"
-   NEWOBJ std.RTString::.constructor(Ref.Array[Char])
-   CALLINST std.RTString::concat(Ref.Class.std.RTString)
-   CALL std.println(Ref.Class.std.RTString)
-   LDSTR "Hello"
-   NEWOBJ std.RTString::.constructor(Ref.Array[Char])
-   LDSTR "Hello"
-   NEWOBJ std.RTString::.constructor(Ref.Array[Char])
-   CALLINST std.RTString::equals(Ref.Class.std.RTString)
-   CALL std.println(Bool)
-   LDINT 0
-   STLOC 0
-   BR 15
-   LDLOC 0
    RET
 }

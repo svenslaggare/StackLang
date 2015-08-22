@@ -83,7 +83,7 @@ ClassType::ClassType(std::string name)
 }
 
 std::string ClassType::vmType() const {
-	return "Ref.Class." + Helpers::replaceString(name(), "::", ".");
+	return "Ref." + Helpers::replaceString(name(), "::", ".");
 }
 
 std::string ClassType::vmClassName() const {
@@ -210,11 +210,13 @@ std::string TypeSystem::fromVMType(std::string vmType) {
 			std::string elementType = match[1].str();
 			elementType = elementType.substr(1, elementType.length() - 2);
 			return fromVMType(elementType) + "[]";
-		} else if (typeParts[1] == "Class") {
+		} else if (typeParts.at(1) == "Null") {
+			return NullReferenceType().name();
+		} else {
 			std::string className = "";
 			bool isFirst = true;
 
-			for (int i = 2; i < typeParts.size(); i++) {
+			for (int i = 1; i < typeParts.size(); i++) {
 				if (isFirst) {
 					isFirst = false;
 				} else {
@@ -223,10 +225,8 @@ std::string TypeSystem::fromVMType(std::string vmType) {
 
 				className += typeParts[i];
 			}
-			
+
 			return className;
-		} else if (typeParts.at(1) == "Null") {
-			return NullReferenceType().name();
 		}
 	}
 
